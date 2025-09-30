@@ -48,3 +48,15 @@ Essas funcionalidades foram inspiradas nas melhores práticas de grandes portais
 ## 👥 Equipe do Projeto
 - **Equipe Plumo – CESAR School**  
 - Participantes:
+  - André Borges Viana
+  - Bruno Augusto da Rocha Leite Filho
+  - Danilo Araújo Duleba
+  - Gustavo Torres Castro
+  - Igor Gabriel Dutra Silva
+  - Karina Leal Almeida Peixoto
+  - Maria Augusta Hatem da Fonte
+  - Maria Mariana Barros Nascimento
+  - Mariana Maliu da Rocha Montarroyos
+  - Naiany de Oliveira Gama Jardim
+  - Sofia Cunha Falcão
+  - Yasmin Espósito de Barros Correia
