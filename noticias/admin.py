@@ -12,5 +12,4 @@ class NoticiaAdmin(admin.ModelAdmin):
 class VotoAdmin(admin.ModelAdmin):
     list_display = ("id","noticia","usuario","valor")
     list_filter = ("valor",)
-
-
+    
