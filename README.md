@@ -16,13 +16,14 @@ O projeto tem como objetivo enfrentar o fenômeno de queda nas buscas orgânicas
 
 ## 📖 Histórias de Usuário
 
-Acesse [aqui](https://docs.google.com/document/d/1jJLojyvODMi-edo-Px83WnLxfeagTvDbq8oDtMDtzx4/edit?usp=sharing) nossas histórias de usuário.
+Acesse [aqui](https://docs.google.com/document/d/1JnNhxAkCXm_kst8XLBCpOD8OggUCGSjVN4K_PJkWf3Q/edit?usp=sharing) nossas histórias de usuário.
 
 ## 🚀 Funcionalidades Implementadas
 - 📌 **Compartilhamento de notícias** (WhatsApp, Twitter, Facebook).  
 - ⭐ **Avaliação de notícias** (sistema de votos positivos/negativos).  
 - 🏆 **Top 3 da semana** (notícias mais lidas).  
 - 📑 **Ler mais tarde** (salvar artigos).
+- 📑 **Filtros de Noticia** (filtrar noticias).
 
 Essas funcionalidades foram inspiradas nas melhores práticas de grandes portais (G1, NYT, The Guardian, etc.), comparadas em nossa matriz técnica.
 
