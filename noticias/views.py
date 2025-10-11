@@ -183,80 +183,46 @@ def toggle_salvo(request, pk):
     messages.success(request, msg)
     return redirect("noticias:detalhe", pk=pk)
 
-@require_POST
 def resumir_noticia(request, pk):
-    """
-    Gera (ou retorna do cache) o resumo de uma notícia.
-    Resposta: {"resumo": "..."} ou {"error": "..."} com status adequado.
-    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método não permitido.'}, status=405)
+
     noticia = get_object_or_404(Noticia, pk=pk)
 
-    if getattr(noticia, "resumo", ""):
-        return JsonResponse({"resumo": noticia.resumo})
-
-    if OpenAI is None:
-        return JsonResponse(
-            {"error": "Biblioteca 'openai' não está instalada. Rode: pip install openai"},
-            status=500,
-        )
-
-    api_key = getattr(settings, "OPENAI_API_KEY", "")
-    if not api_key:
-        return JsonResponse(
-            {"error": "OPENAI_API_KEY ausente. Defina a variável de ambiente."},
-            status=500,
-        )
-
-    titulo = (noticia.titulo or "").strip()
-    texto = (noticia.conteudo or "").strip()
-    if not texto:
-        return JsonResponse(
-            {"error": "Não há conteúdo suficiente para resumir."},
-            status=400,
-        )
-
-    MAX_CHARS = 12000
-    if len(texto) > MAX_CHARS:
-        texto = texto[:MAX_CHARS] + "\n\n[Texto truncado para resumo]"
+    if noticia.resumo:
+        return JsonResponse({'resumo': noticia.resumo})
 
     try:
-        client = OpenAI(api_key=api_key)
+        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
 
-        resp = client.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            temperature=0.2,
-            max_tokens=480,
             messages=[
                 {
                     "role": "system",
-                    "content": (
-                        "Você é um assistente que resume notícias de forma fiel, concisa, "
-                        "em português do Brasil, sem opinião e com foco em fatos."
-                    ),
+                    "content": "Você é um assistente de jornalismo que cria resumos concisos e informativos."
                 },
                 {
                     "role": "user",
-                    "content": (
-                        "Resuma a notícia abaixo em 5 a 7 tópicos claros, objetivos e fáceis "
-                        "de escanear no mobile. Evite redundâncias.\n\n"
-                        f"Título: {titulo}\n\nTexto:\n{texto}"
-                    ),
-                },
+                    "content": f"Resuma a seguinte notícia em um único parágrafo em português: {noticia.conteudo}"
+                }
             ],
+            temperature=0.7,
+            max_tokens=150
         )
+        
+        message_content = response.choices[0].message.content
 
-        resumo = (resp.choices[0].message.content or "").strip()
-        if not resumo:
-            return JsonResponse(
-                {"error": "A IA não retornou conteúdo para o resumo."},
-                status=502,
-            )
+        if message_content:
+            resumo_gerado = message_content.strip()
 
-        noticia.resumo = resumo
-        noticia.save(update_fields=["resumo"])
+            noticia.resumo = resumo_gerado
+            noticia.save()
 
-        return JsonResponse({"resumo": resumo})
-
+            return JsonResponse({'resumo': resumo_gerado})
+        else:
+            return JsonResponse({'error': 'A IA não conseguiu gerar um resumo para esta notícia.'}, status=500)
+            
     except Exception as e:
         return JsonResponse(
             {"error": f"Erro ao conectar/gerar com a OpenAI: {e}"},
