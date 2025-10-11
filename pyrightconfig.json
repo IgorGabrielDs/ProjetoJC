@@ -1,0 +1,10 @@
+{
+  "typeCheckingMode": "basic",
+  "reportMissingTypeStubs": false,
+  "plugins": ["mypy_django_plugin.main"],
+  "djangoSettingsModule": "JornalDoCommercio.settings",
+  "include": ["."],
+  "extraPaths": ["."],
+  "venvPath": ".",
+  "venv": "venv"
+}

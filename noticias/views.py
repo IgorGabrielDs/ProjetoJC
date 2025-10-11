@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.core.cache import cache
-from django.db.models import (Sum, Case, When, IntegerField, Exists, OuterRef, Value, BooleanField)
+from django.db.models import (Sum, Case, When, IntegerField, Exists, OuterRef, Value, BooleanField, F)
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
@@ -42,20 +42,20 @@ def index(request):
     else:
         noticias = noticias.annotate(is_saved=Value(False, output_field=BooleanField()))
 
-    top3 = cache.get("top3_semana")
+    top3 = cache.get("top3_semana_final")
     if top3 is None:
-        semana = timezone.now() - timedelta(days=7)
+        hoje = timezone.now().date()
+        inicio_da_janela = hoje - timedelta(days=6) 
+
         top3_qs = (
-            Noticia.objects.filter(votos__criado_em__gte=semana)
+            Noticia.objects.filter(criado_em__date__gte=inicio_da_janela)
             .annotate(
-                score_semanal=Sum("votos__valor"),
-                ups_semana=Sum(Case(When(votos__valor=1, then=1), default=0, output_field=IntegerField())),
-                downs_semana=Sum(Case(When(votos__valor=-1, then=1), default=0, output_field=IntegerField())),
+                score_calculado=Sum('votos__valor', default=0) + (F('visualizacoes') * 0.01)
             )
-            .order_by("-score_semanal", "-ups_semana", "-criado_em")[:3]
+            .order_by("-score_calculado", "-criado_em")[:3]
         )
         top3 = list(top3_qs)
-        cache.set("top3_semana", top3, 300)
+        cache.set("top3_semana_final", top3, 300)
 
     ctx = {
         "noticias": noticias,
