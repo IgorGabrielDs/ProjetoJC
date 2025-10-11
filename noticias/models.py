@@ -25,6 +25,8 @@ class Noticia(models.Model):
 
     assuntos = models.ManyToManyField(Assunto, related_name="noticias", blank=True)
 
+    visualizacoes = models.PositiveIntegerField(default=0)
+
     salvos = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         through='Salvo',

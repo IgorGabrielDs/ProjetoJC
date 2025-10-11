@@ -69,6 +69,8 @@ def index(request):
 
 def noticia_detalhe(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
+    noticia.visualizacoes += 1
+    noticia.save(update_fields=['visualizacoes'])
     voto_usuario = None
     if request.user.is_authenticated:
         voto_usuario = Voto.objects.filter(noticia=noticia, usuario=request.user).first()
