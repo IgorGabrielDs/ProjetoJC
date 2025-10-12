@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
+from django.urls import reverse
 
 class Assunto(models.Model):
     nome = models.CharField(max_length=80, unique=True)
@@ -33,6 +34,8 @@ class Noticia(models.Model):
         related_name='noticias_salvas',
         blank=True,
     )
+    def get_absolute_url(self):
+        return reverse("noticias:noticia_detalhe", args=[self.pk])
 
     @property
     def votos(self):
