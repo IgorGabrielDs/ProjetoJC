@@ -308,20 +308,17 @@ def toggle_salvo(request, pk):
 # =======================
 @login_required
 def resumir_noticia(request, pk):
-    # Carregar API key do ambiente
-    api_key = os.getenv("GEMINI_API_KEY")
+    from django.conf import settings
+    api_key = settings.GEMINI_API_KEY
+
     if not api_key:
         return JsonResponse({"error": "Chave da API não encontrada."}, status=500)
 
-    # ✅ Configurar Gemini corretamente
     import google.generativeai as genai
-    genai.configure(api_key=api_key)
+    genai.configure(api_key=api_key)  # type: ignore
 
-    # ✅ Use o modelo correto e compatível com generate_content
-    # gemini-1.5-flash é mais leve e 100% suportado
-    model = genai.GenerativeModel("gemini-flash-latest")
+    model = genai.GenerativeModel("gemini-flash-latest")  # type: ignore
 
-    # Buscar o texto da notícia no banco de dados
     noticia = get_object_or_404(Noticia, pk=pk)
 
     prompt = f"""
@@ -334,8 +331,9 @@ def resumir_noticia(request, pk):
 
     try:
         response = model.generate_content(prompt)
-        # ✅ Corrigido: resposta vem em .text
         resumo = response.text.strip()
         return JsonResponse({"resumo": resumo})
     except Exception as e:
+        # É bom registrar o erro no console do servidor para depuração
+        print(f"Erro na API Gemini: {e}")
         return JsonResponse({"error": f"Erro ao conectar com a API: {e}"}, status=500)
