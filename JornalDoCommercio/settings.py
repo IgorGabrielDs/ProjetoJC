@@ -1,10 +1,3 @@
-# settings.py
-
-"""
-Django settings for JornalDoCommercio project.
-...
-"""
-
 from pathlib import Path
 import os
 from dotenv import load_dotenv 
@@ -18,12 +11,9 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 # ==============================================================================
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = False
 
-if DEBUG:
-    ALLOWED_HOSTS = []
-else:
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'seusite.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
@@ -45,6 +35,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -118,7 +109,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = 'noticias/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles' 
+STATICFILES_DIRS = [BASE_DIR / 'noticias/static']
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
