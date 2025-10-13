@@ -1,19 +1,21 @@
+# noticias/views.py
+
 from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.core.cache import cache
-from django.db.models import (
-    Sum, Exists, OuterRef, Value, BooleanField, F, Q
-)
+from django.db.models import (Sum, Exists, OuterRef, Value, BooleanField, F, Q)
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from .models import Noticia, Voto, Assunto, Salvo
 from django.conf import settings
-import openai
-
+from google.generativeai.client import configure
+from google.generativeai.generative_models import GenerativeModel
+import google.generativeai as genai
+import os
 
 # =======================
 # FUNÇÃO AUXILIAR
@@ -33,6 +35,7 @@ def _annotate_is_saved(qs, user):
 # VIEW PRINCIPAL (HOME)
 # =======================
 def index(request):
+    # ... (todo o resto desta função continua exatamente igual)
     noticias = Noticia.objects.all()
     assuntos = Assunto.objects.all()
 
@@ -176,10 +179,8 @@ def index(request):
 
     return render(request, "noticias/index.html", ctx)
 
+# ... (as funções noticia_detalhe, votar, signup, minhas_salvas e toggle_salvo continuam iguais)
 
-# =======================
-# DETALHE DA NOTÍCIA
-# =======================
 def noticia_detalhe(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
     noticia.visualizacoes = (noticia.visualizacoes or 0) + 1
@@ -202,10 +203,6 @@ def noticia_detalhe(request, pk):
     }
     return render(request, "noticias/detalhe.html", ctx)
 
-
-# =======================
-# VOTAR (AJAX)
-# =======================
 @login_required
 def votar(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
@@ -247,10 +244,6 @@ def votar(request, pk):
 
     return redirect("noticias:noticia_detalhe", pk=pk)
 
-
-# =======================
-# SIGNUP
-# =======================
 def signup(request):
     next_url = request.GET.get("next") or request.POST.get("next")
     if not next_url or next_url == "None":
@@ -274,10 +267,6 @@ def signup(request):
 
     return render(request, "registration/signup.html", {"form": form, "next": next_url})
 
-
-# =======================
-# SALVOS
-# =======================
 @login_required
 def minhas_salvas(request):
     noticias = (
@@ -317,40 +306,36 @@ def toggle_salvo(request, pk):
 # =======================
 # RESUMO (IA)
 # =======================
+@login_required
 def resumir_noticia(request, pk):
-    if request.method != "POST":
-        return JsonResponse({"error": "Método não permitido."}, status=405)
+    # Carregar API key do ambiente
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return JsonResponse({"error": "Chave da API não encontrada."}, status=500)
 
+    # ✅ Configurar Gemini corretamente
+    import google.generativeai as genai
+    genai.configure(api_key=api_key)
+
+    # ✅ Use o modelo correto e compatível com generate_content
+    # gemini-1.5-flash é mais leve e 100% suportado
+    model = genai.GenerativeModel("gemini-flash-latest")
+
+    # Buscar o texto da notícia no banco de dados
     noticia = get_object_or_404(Noticia, pk=pk)
 
-    if noticia.resumo:
-        return JsonResponse({"resumo": noticia.resumo})
+    prompt = f"""
+    Você é um assistente de jornalismo. Resuma a notícia abaixo de forma clara, objetiva e em português:
+    <noticia>
+    Título: {noticia.titulo}
+    Conteúdo: {noticia.conteudo}
+    </noticia>
+    """
 
     try:
-        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Você é um assistente de jornalismo que cria resumos concisos e informativos.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Resuma a seguinte notícia em um único parágrafo em português: {noticia.conteudo}",
-                },
-            ],
-            temperature=0.7,
-            max_tokens=150,
-        )
-
-        resumo_gerado = response.choices[0].message.content.strip()
-        noticia.resumo = resumo_gerado
-        noticia.save(update_fields=["resumo"])
-        return JsonResponse({"resumo": resumo_gerado})
-
+        response = model.generate_content(prompt)
+        # ✅ Corrigido: resposta vem em .text
+        resumo = response.text.strip()
+        return JsonResponse({"resumo": resumo})
     except Exception as e:
-        return JsonResponse(
-            {"error": f"Erro ao conectar/gerar com a OpenAI: {e}"}, status=502
-        )
+        return JsonResponse({"error": f"Erro ao conectar com a API: {e}"}, status=500)
