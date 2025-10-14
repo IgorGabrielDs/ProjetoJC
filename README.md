@@ -44,7 +44,7 @@ Essas funcionalidades foram inspiradas nas melhores práticas de grandes portais
 - **Backend:** Django (Python).  
 - **Frontend:** HTML5, CSS3, JavaScript.  
 - **Banco de Dados:** SQLite (protótipo).  
-- **Ferramentas:** Google Trends (análise de temas), prototipação em Figma.
+- **Ferramentas:** Google Trends (análise de temas), prototipação em Figma, openAI.
 
 ---
 
