@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'jornaldocommercio.azurewebsites.net']
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
