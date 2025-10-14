@@ -24,6 +24,8 @@ Acesse [aqui](https://docs.google.com/document/d/1JnNhxAkCXm_kst8XLBCpOD8OggUCGS
 - 🏆 **Top 3 da semana** (notícias mais lidas).  
 - 📑 **Ler mais tarde** (salvar artigos).
 - 📑 **Filtros de Noticia** (filtrar noticias).
+- 📌 **Resumo de noticias** (Resumir noticias).
+- ⭐ **Caça-links** (Jogo).
 
 Essas funcionalidades foram inspiradas nas melhores práticas de grandes portais (G1, NYT, The Guardian, etc.), comparadas em nossa matriz técnica.
 
