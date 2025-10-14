@@ -179,8 +179,6 @@ def index(request):
 
     return render(request, "noticias/index.html", ctx)
 
-# ... (as funções noticia_detalhe, votar, signup, minhas_salvas e toggle_salvo continuam iguais)
-
 def noticia_detalhe(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
     noticia.visualizacoes = (noticia.visualizacoes or 0) + 1
@@ -334,6 +332,5 @@ def resumir_noticia(request, pk):
         resumo = response.text.strip()
         return JsonResponse({"resumo": resumo})
     except Exception as e:
-        # É bom registrar o erro no console do servidor para depuração
         print(f"Erro na API Gemini: {e}")
         return JsonResponse({"error": f"Erro ao conectar com a API: {e}"}, status=500)
