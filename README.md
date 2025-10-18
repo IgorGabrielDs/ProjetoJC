@@ -16,7 +16,7 @@ O projeto tem como objetivo enfrentar o fenômeno de queda nas buscas orgânicas
 
 ## 📖 Histórias de Usuário
 
-Acesse [aqui](https://docs.google.com/document/d/1JnNhxAkCXm_kst8XLBCpOD8OggUCGSjVN4K_PJkWf3Q/edit?usp=sharing) nossas histórias de usuário.
+Acesse [aqui](https://docs.google.com/document/d/1mwm4nb6xFgJM3tm10Y9zcyyIu7CfqOX0JvPXR5SX3ro/edit?usp=sharing) nossas histórias de usuário.
 
 ## 🚀 Funcionalidades Implementadas
 - 📌 **Compartilhamento de notícias** (WhatsApp, Twitter, Facebook).  
