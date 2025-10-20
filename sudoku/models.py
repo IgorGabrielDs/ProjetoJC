@@ -50,8 +50,3 @@ class UserSudokuProgress(models.Model):
             self.difficult_completion_time = None
             
             self.save()
-
-
-
-
-            """."""
