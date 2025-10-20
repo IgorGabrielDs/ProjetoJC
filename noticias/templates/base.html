@@ -16,7 +16,13 @@
   <header class="header">
     <div class="container row">
       <button class="icon-btn" aria-label="Abrir menu"><span>☰</span></button>
-      <img class="logo" src="{% static 'noticias/img/logo-jc-pe.svg' %}" alt="JC Pernambuco">
+
+      <a href="{% url 'noticias:index' %}" class="logo-link" aria-label="Voltar para a página inicial">
+        <img class="logo"
+             src="https://upload.wikimedia.org/wikipedia/pt/f/fd/Logotipo_do_Jornal_do_Commercio_%28Recife%29.png"
+             alt="JC Pernambuco" style="height:40px;">
+      </a>
+
       <div style="flex:1"></div>
       <button class="icon-btn" aria-label="Buscar"><span>🔍</span></button>
     </div>
@@ -31,6 +37,7 @@
   </footer>
 
   {# =================== MODAL DE BOAS-VINDAS =================== #}
+  {% url 'caca_links:escolher_tema' as caca_url %}
   <div id="welcomeModal"
        class="modal{% if show_welcome %} is-open{% endif %}"
        aria-hidden="{% if show_welcome %}false{% else %}true{% endif %}">
@@ -40,7 +47,6 @@
       <button class="modal__close" id="welcomeClose" aria-label="Fechar">×</button>
 
       <div class="modal__avatar" aria-hidden="true">
-        <!-- círculo preto com avatar -->
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="64" height="64">
           <path d="M20 21a8 8 0 0 0-16 0"></path>
@@ -49,14 +55,21 @@
       </div>
 
       <h2 id="welcome-title" class="modal__title">
-        Olá, {{ user.get_full_name|default:user.username|default:"Leitor(a)" }}! Seja bem-vindo(a)!
+        {% if welcome_name %}
+          Olá, {{ welcome_name }}! Seja bem-vindo(a)!
+        {% elif user.is_authenticated %}
+          Olá, {{ user.get_full_name|default:user.username }}! Seja bem-vindo(a)!
+        {% else %}
+          Olá, Leitor(a)! Seja bem-vindo(a)!
+        {% endif %}
       </h2>
+
 
       <p class="modal__subtitle">Deseja personalizar sua experiência JC?</p>
 
       <div class="modal__actions">
         <a id="welcomeLater" class="modal__btn" href="{% url 'noticias:index' %}">Agora não</a>
-        <a class="modal__btn modal__btn--primary" href="{% url 'caca_links:escolher_tema' %}">Sim! Vamos lá.</a>
+        <a class="modal__btn modal__btn--primary" href="{{ caca_url|default:'/caca-links/' }}">Sim! Vamos lá.</a>
       </div>
 
       <div class="modal__back">
@@ -86,15 +99,11 @@
           modal.setAttribute('aria-hidden', 'true');
         }
 
-        // Fechar por X / backdrop / tecla Esc
         closeBtn?.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
         backdrop?.addEventListener('click', closeModal);
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-
-        // “Agora não” fecha imediatamente (antes de navegar)
         laterBtn?.addEventListener('click', () => { closeModal(); });
 
-        // Expõe no escopo global caso queira abrir/fechar programaticamente
         window.JC = window.JC || {};
         window.JC.openWelcome  = openModal;
         window.JC.closeWelcome = closeModal;
