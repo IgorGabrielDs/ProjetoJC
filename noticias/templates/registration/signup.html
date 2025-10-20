@@ -1,27 +1,48 @@
 {% extends "base.html" %}
-{% block title %}Criar Conta{% endblock %}
+{% block title %}Cadastro — JC{% endblock %}
 
 {% block content %}
-<div class="box article" style="max-width:480px;margin:40px auto;">
-    <h1 class="article-title" style="font-size:28px;margin-bottom:12px;">Criar conta</h1>
+<div class="auth-page">
+  <div class="auth-back"><a href="{% url 'noticias:index' %}">← Voltar</a></div>
 
-    {% if form.errors %}
-      <p class="muted">Verifique os campos abaixo.</p>
-    {% else %}
-      <p class="muted">Preencha para acessar recursos como votação.</p>
-    {% endif %}
+  <div class="auth-card">
+    <h1>Cadastre-se no Jornal do Commercio</h1>
+    <p class="auth-subtitle">Experiência completa em uma conta só.</p>
 
-    <form method="post" action="{% url 'noticias:signup' %}">
+    <form method="post" class="auth-form">
       {% csrf_token %}
-      {{ form.as_p }}
-      <input type="hidden" name="next" value="{{ next }}">
-      <button type="submit" class="vote-btn up" style="margin-top:8px;">Cadastrar</button>
-    </form>
 
-    <p class="muted" style="margin-top:12px;">
-      Já tem conta?
-      <a href="{% url 'login' %}{% if next %}?next={{ next }}{% endif %}">Entrar</a> •
-      <a href="{% url 'noticias:index' %}">Voltar à home</a>
-    </p>
+      <div class="field has-tip">
+        <label for="id_fullname">Nome completo</label>
+        <input id="id_fullname" name="fullname" type="text" class="auth-input" placeholder="Informe o seu nome completo">
+      </div>
+
+      <div class="field has-tip">
+        <label for="id_email">Endereço de e-mail</label>
+        <input id="id_email" name="email" type="email" class="auth-input" placeholder="Ex: @gmail, @yahoo, @outlook, etc.">
+      </div>
+
+      <div class="field has-tip">
+        <label for="id_birthdate">Data de nascimento</label>
+        <input id="id_birthdate" name="birthdate" type="date" class="auth-input" placeholder="dd/mm/aaaa">
+      </div>
+
+      <div class="field has-tip">
+        <label for="id_password1">Crie uma senha</label>
+        <input id="id_password1" name="password1" type="password" class="auth-input" placeholder="Informe sua senha">
+      </div>
+
+      <div class="field has-tip">
+        <label for="id_password2">Confirme sua senha</label>
+        <input id="id_password2" name="password2" type="password" class="auth-input" placeholder="Repita sua senha">
+      </div>
+
+      <label class="auth-terms">
+        <input type="checkbox" required> Li e concordo com os Termos de Uso.
+      </label>
+
+      <button type="submit" class="auth-submit">Continuar</button>
+    </form>
+  </div>
 </div>
 {% endblock %}
