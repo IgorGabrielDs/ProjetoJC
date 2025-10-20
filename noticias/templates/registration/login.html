@@ -1,36 +1,86 @@
 {% extends "base.html" %}
-{% block content %}
 {% load static %}
-<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <title>Entrar</title>
-  <link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
-</head>
-<body>
-  <div class="box article" style="max-width:420px;margin:40px auto;">
-    <h1 class="article-title" style="font-size:28px;margin-bottom:12px;">Entrar</h1>
+
+{% block title %}Entrar — JC{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="login-wrap">
+
+  <!-- LOGO -->
+  <img class="login-logo" src="{% static 'noticias/img/logo-jc-pe.svg' %}" alt="JC PE">
+
+  <p class="login-sub">Experiência completa em uma conta só.</p>
+
+  <!-- Marcas do ecossistema -->
+  <div class="brands">
+    <img src="{% static 'noticias/img/brand-ne10.svg' %}" alt="NE10" onerror="this.style.display='none'">
+    <img src="{% static 'noticias/img/brand-jornal.svg' %}" alt="Jornal" onerror="this.style.display='none'">
+    <img src="{% static 'noticias/img/brand-tvjornal.svg' %}" alt="TV Jornal" onerror="this.style.display='none'">
+    <img src="{% static 'noticias/img/logo-jc-pe.svg' %}" alt="JC PE">
+    <img src="{% static 'noticias/img/brand-torcedor.svg' %}" alt="Torcedor" onerror="this.style.display='none'">
+    <img src="{% static 'noticias/img/brand-social1.svg' %}" alt="Social1" onerror="this.style.display='none'">
+    <img src="{% static 'noticias/img/brand-receitaboa.svg' %}" alt="Receita Boa" onerror="this.style.display='none'">
+  </div>
+
+  <div class="login-card">
+    <h1 class="login-title">Entre ou crie uma conta</h1>
 
     {% if form.errors %}
-      <p class="muted">Usuário ou senha inválidos. Tente novamente.</p>
-    {% else %}
-      <p class="muted">Faça login para votar e interagir.</p>
+      <div class="errors">Verifique seus dados e tente novamente.</div>
     {% endif %}
 
-    <form method="post" action="{% url 'login' %}">
+    <form method="post" action="{% url 'login' %}" novalidate>
       {% csrf_token %}
-      {{ form.as_p }}
-      <input type="hidden" name="next" value="{{ next }}">
-      <button type="submit" class="vote-btn up" style="margin-top:8px;">Entrar</button>
+      {% if next %}
+        <input type="hidden" name="next" value="{{ next }}">
+      {% endif %}
+
+      <div class="form-row">
+        <label class="form-label" for="id_username">Endereço de e-mail</label>
+        <input class="input" type="text" name="username" id="id_username"
+               placeholder="Ex: @gmail, @yahoo, @outlook, etc."
+               value="{{ form.username.value|default:'' }}" autocomplete="username" required>
+        <div class="helper">Use seu e-mail (ou usuário) cadastrado.</div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="id_password">Senha</label>
+        <input class="input" type="password" name="password" id="id_password"
+               placeholder="Sua senha" autocomplete="current-password" required>
+      </div>
+
+      <div class="form-row">
+        <button class="btn-primary" type="submit">Continuar</button>
+      </div>
     </form>
 
-    <p class="muted" style="margin-top:12px;">
-      <a href="{% url 'password_reset' %}">Esqueci minha senha</a> •
-      <a href="{% url 'noticias:signup' %}{% if next %}?next={{ next }}{% endif %}">Criar conta</a> •
-      <a href="{% url 'noticias:index' %}">Home</a>
+    <div class="divider"><span>ou</span></div>
+
+    <!-- Botões sociais (placeholders) -->
+    <div class="providers">
+      <a class="prov" href="#" aria-label="Entrar com Google">
+        <img src="{% static 'noticias/img/icon-google.svg' %}" alt="">
+      </a>
+      <a class="prov" href="#" aria-label="Entrar com Apple">
+        <img src="{% static 'noticias/img/icon-apple.svg' %}" alt="">
+      </a>
+      <a class="prov prov--full" href="#" aria-label="Entrar com Facebook">
+        <img src="{% static 'noticias/img/icon-facebook.svg' %}" alt="">
+      </a>
+    </div>
+
+    <p class="hint">
+      Não tem conta?
+      <a class="link" href="{% url 'noticias:signup' %}">Cadastre-se já!</a>
+    </p>
+
+    <p class="hint" style="margin-top:6px">
+      <a class="link" href="{% url 'password_reset' %}">Esqueceu a senha?</a>
     </p>
   </div>
-</body>
-</html>
-{%endblock content %}
+</div>
+{% endblock %}
