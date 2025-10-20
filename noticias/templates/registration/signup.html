@@ -9,37 +9,57 @@
     <h1>Cadastre-se no Jornal do Commercio</h1>
     <p class="auth-subtitle">Experiência completa em uma conta só.</p>
 
-    <form method="post" class="auth-form">
+    <form method="post" class="auth-form" action="">
       {% csrf_token %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
-      <div class="field has-tip">
-        <label for="id_fullname">Nome completo</label>
-        <input id="id_fullname" name="fullname" type="text" class="auth-input" placeholder="Informe o seu nome completo">
+      <div class="field has-tip {% if errors.nome %}has-error{% endif %}">
+        <label for="id_nome">Nome completo</label>
+        <input id="id_nome" name="nome" type="text" class="auth-input"
+               placeholder="Informe o seu nome completo"
+               value="{{ old.nome|default_if_none:'' }}">
+        {% if errors.nome %}<div class="helper">{{ errors.nome }}</div>{% endif %}
       </div>
 
-      <div class="field has-tip">
+      <div class="field has-tip {% if errors.email %}has-error{% endif %}">
         <label for="id_email">Endereço de e-mail</label>
-        <input id="id_email" name="email" type="email" class="auth-input" placeholder="Ex: @gmail, @yahoo, @outlook, etc.">
+        <input id="id_email" name="email" type="email" class="auth-input"
+               placeholder="Ex: seuemail@provedor.com"
+               value="{{ old.email|default_if_none:'' }}">
+        {% if errors.email %}<div class="helper">{{ errors.email }}</div>{% endif %}
       </div>
 
       <div class="field has-tip">
-        <label for="id_birthdate">Data de nascimento</label>
-        <input id="id_birthdate" name="birthdate" type="date" class="auth-input" placeholder="dd/mm/aaaa">
+        <label for="id_data_nascimento">Data de nascimento</label>
+        <input id="id_data_nascimento" name="data_nascimento" type="date" class="auth-input"
+               placeholder="dd/mm/aaaa"
+               value="{{ old.data_nascimento|default_if_none:'' }}">
       </div>
 
-      <div class="field has-tip">
+      <div class="field has-tip {% if errors.password1 %}has-error{% endif %}">
         <label for="id_password1">Crie uma senha</label>
-        <input id="id_password1" name="password1" type="password" class="auth-input" placeholder="Informe sua senha">
+        <input id="id_password1" name="password1" type="password" class="auth-input"
+               placeholder="Informe sua senha">
+        {% if errors.password1 %}<div class="helper">{{ errors.password1 }}</div>{% else %}
+          <div class="helper">Mínimo de 8 caracteres.</div>
+        {% endif %}
       </div>
 
-      <div class="field has-tip">
+      <div class="field has-tip {% if errors.password2 %}has-error{% endif %}">
         <label for="id_password2">Confirme sua senha</label>
-        <input id="id_password2" name="password2" type="password" class="auth-input" placeholder="Repita sua senha">
+        <input id="id_password2" name="password2" type="password" class="auth-input"
+               placeholder="Repita sua senha">
+        {% if errors.password2 %}<div class="helper">{{ errors.password2 }}</div>{% endif %}
       </div>
 
-      <label class="auth-terms">
-        <input type="checkbox" required> Li e concordo com os Termos de Uso.
-      </label>
+      <div class="auth-terms {% if errors.terms %}has-error{% endif %}">
+        <!-- fallback: garante que sempre exista 'terms' no POST -->
+        <input type="hidden" name="terms" value="off">
+        <input id="id_terms" type="checkbox" name="terms" value="on"
+               {% if old.terms %}checked{% endif %} required>
+        <label for="id_terms">Li e concordo com os Termos de Uso.</label>
+      </div>
+      {% if errors.terms %}<div class="helper">{{ errors.terms }}</div>{% endif %}
 
       <button type="submit" class="auth-submit">Continuar</button>
     </form>
