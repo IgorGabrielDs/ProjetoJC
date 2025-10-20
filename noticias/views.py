@@ -1,24 +1,26 @@
 # noticias/views.py
 
 from datetime import timedelta
+import logging
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
 from django.core.cache import cache
-from django.db.models import (Sum, Exists, OuterRef, Value, BooleanField, F, Q)
+from django.db.models import Sum, Exists, OuterRef, Value, BooleanField, F
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from .models import Noticia, Voto, Assunto, Salvo
+from django.urls import reverse
+from django.views.decorators.http import require_http_methods
+
 from django.conf import settings
-from google.generativeai.client import configure
-from google.generativeai.generative_models import GenerativeModel
-import google.generativeai as genai
-import os
+from .models import Noticia, Voto, Assunto, Salvo
+
+logger = logging.getLogger(__name__)
 
 # =======================
-# FUNÇÃO AUXILIAR
+# FUNÇÕES AUXILIARES
 # =======================
 def _annotate_is_saved(qs, user):
     """Anota se o usuário salvou a notícia."""
@@ -41,7 +43,6 @@ def _split_full_name(full_name: str):
 # =======================
 # HOME
 # =======================
-
 def index(request):
     noticias = Noticia.objects.all()
     assuntos = Assunto.objects.all()
@@ -105,7 +106,7 @@ def index(request):
     if not mais_lidas.exists():
         mais_lidas = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:2]
 
-    # 4) JC360 (slug/nome) + fallbacks
+    # 4) JC360
     try:
         jc360_assunto = Assunto.objects.get(slug="jc360")
         jc360_qs = all_qs.filter(assuntos=jc360_assunto)
@@ -118,7 +119,7 @@ def index(request):
     if not jc360.exists():
         jc360 = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:4]
 
-    # 5) Vídeos (slug/nome) + fallback
+    # 5) Vídeos
     try:
         videos_assunto = Assunto.objects.get(slug="videos")
         videos_qs = all_qs.filter(assuntos=videos_assunto)
@@ -151,8 +152,10 @@ def index(request):
         top3 = list(top3_qs)
         cache.set("top3_semana_final", top3, 300)
 
-    # <<< NOVO: sinal do modal de boas-vindas >>>
-    show_welcome = bool(request.session.pop('show_welcome', False))
+    # ===== Modal de boas-vindas (pós-cadastro) =====
+    show_welcome = bool(request.session.pop("show_welcome", False))
+    welcome_name = request.session.pop("welcome_name", None)
+    welcome_next = request.session.pop("welcome_next", reverse("login"))
 
     ctx = {
         "noticias": noticias,
@@ -167,14 +170,16 @@ def index(request):
         "videos": videos,
         "pernambuco": pernambuco,
         "top3": top3,
-        "show_welcome": show_welcome,  # <<< NOVO
+        # sinais do modal
+        "show_welcome": show_welcome,
+        "welcome_name": welcome_name,
+        "welcome_next": welcome_next,
     }
     return render(request, "noticias/index.html", ctx)
 
 # =======================
 # DETALHE
 # =======================
-
 def noticia_detalhe(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
     noticia.visualizacoes = (noticia.visualizacoes or 0) + 1
@@ -200,13 +205,10 @@ def noticia_detalhe(request, pk):
 # =======================
 # VOTO (AJAX)
 # =======================
-
 @login_required
+@require_http_methods(["POST"])
 def votar(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
-
-    if request.method != "POST":
-        return redirect("noticias:noticia_detalhe", pk=pk)
 
     try:
         valor = int(request.POST.get("valor", 0))
@@ -245,7 +247,6 @@ def votar(request, pk):
 # =======================
 # SALVOS
 # =======================
-
 @login_required
 def minhas_salvas(request):
     noticias = (
@@ -256,10 +257,8 @@ def minhas_salvas(request):
     return render(request, "noticias/noticias_salvas.html", {"noticias": noticias})
 
 @login_required
+@require_http_methods(["POST"])
 def toggle_salvo(request, pk):
-    if request.method != "POST":
-        return HttpResponseForbidden("Método não permitido.")
-
     noticia = get_object_or_404(Noticia, pk=pk)
     qs = Salvo.objects.filter(usuario=request.user, noticia=noticia)
 
@@ -280,30 +279,33 @@ def toggle_salvo(request, pk):
     messages.success(request, msg)
     return redirect("noticias:noticia_detalhe", pk=pk)
 
-# =======================
-# SIGNUP (custom p/ seu formulário)
-# =======================
-
+# =======================  
+# SIGNUP (custom)  
+# =======================  
+@require_http_methods(["GET", "POST"])
 def signup(request):
     """
-    Recebe os campos do seu formulário:
-      - nome (nome completo)
-      - email
-      - data_nascimento (opcional para salvar num Profile futuro)
-      - password1, password2
-      - checkbox de termos (terms)
-    Salva nome e email no User.
+    Recebe os campos do formulário customizado:
+    - nome, email, data_nascimento, password1, password2, terms
+    Cria usuário e, após sucesso, mostra o modal de boas-vindas na home.
     """
     User = get_user_model()
     next_url = request.GET.get("next") or request.POST.get("next") or None
 
     if request.method == "POST":
+        post_dict = request.POST.dict()
+        post_log = {k: ("***" if "password" in k else v) for k, v in post_dict.items()}
+        logger.info("POST /signup payload: %s", post_log)
+
         nome = (request.POST.get("nome") or "").strip()
         email = (request.POST.get("email") or "").strip().lower()
         data_nascimento = (request.POST.get("data_nascimento") or "").strip()
         password1 = request.POST.get("password1") or ""
         password2 = request.POST.get("password2") or ""
-        terms = request.POST.get("terms")  # "on" se marcado
+
+        # ✅ Checkbox robusto: considera marcado se houver "on" nos valores
+        terms_vals = request.POST.getlist("terms")
+        terms_ok = ("on" in terms_vals)
 
         errors = {}
 
@@ -316,26 +318,29 @@ def signup(request):
             errors["password2"] = "As senhas não coincidem."
         if len(password1) < 8:
             errors["password1"] = "A senha deve ter pelo menos 8 caracteres."
-        if not terms:
+        if not terms_ok:
             errors["terms"] = "É necessário concordar com os Termos de Uso."
 
         # unicidade por email/username
-        username = email  # simples: usamos email como username
+        username = email  # usamos email como username
         if email and User.objects.filter(email=email).exists():
             errors["email"] = "Este e-mail já está cadastrado."
         if username and User.objects.filter(username=username).exists():
             errors["email"] = "Este e-mail já está cadastrado."
 
         if errors:
+            logger.warning("Erros de validação no signup: %s", errors)
             ctx = {
                 "errors": errors,
                 "old": {
                     "nome": nome,
                     "email": email,
                     "data_nascimento": data_nascimento,
+                    "terms": bool(terms_ok),
                 },
                 "next": next_url,
             }
+            # 200 em erro de formulário (evita "Bad Request" no log)
             return render(request, "registration/signup.html", ctx)
 
         # cria usuário
@@ -348,33 +353,34 @@ def signup(request):
             last_name=last_name,
         )
 
-        # opcional: salvar DOB em um Perfil (se existir)
+        # opcional: salvar DOB em Perfil, se existir
         try:
-            from .models import Perfil  # hipotético
+            from .models import Perfil
             Perfil.objects.update_or_create(
                 user=user, defaults={"data_nascimento": data_nascimento}
             )
         except Exception:
-            pass
+            pass  # não quebra o fluxo
 
         # login automático
         user = authenticate(username=username, password=password1)
         if user:
             auth_login(request, user)
 
-        # <<< NOVO: sinal para abrir o modal de boas-vindas na home >>>
-        request.session['show_welcome'] = True
+        # Sinais para abrir o modal na Home
+        request.session["show_welcome"] = True
+        request.session["welcome_name"] = first_name or email
+        request.session["welcome_next"] = reverse("noticias:index")
 
         messages.success(request, "Conta criada com sucesso! Bem-vindo(a).")
-        return redirect(next_url or "noticias:index")
+        logger.info("Signup OK para %s — redirecionando para Home", email)
+        return redirect("noticias:index")
 
-    # GET
     return render(request, "registration/signup.html", {"next": next_url})
 
 # =======================
 # RESUMO (Gemini)
 # =======================
-
 @login_required
 def resumir_noticia(request, pk):
     api_key = getattr(settings, "GEMINI_API_KEY", "")
@@ -383,7 +389,6 @@ def resumir_noticia(request, pk):
 
     import google.generativeai as genai
     genai.configure(api_key=api_key)
-
     model = genai.GenerativeModel("gemini-flash-latest")
 
     noticia = get_object_or_404(Noticia, pk=pk)
