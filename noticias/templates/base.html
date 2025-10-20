@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}JC — Mobile First{% endblock %}</title>
+  <title>{% block title %}JC{% endblock %}</title>
 
   <link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
   <meta name="csrf-token" content="{{ csrf_token }}">
@@ -30,8 +30,76 @@
     <p class="caption" style="text-align:center">© JC Pernambuco</p>
   </footer>
 
+  {# =================== MODAL DE BOAS-VINDAS =================== #}
+  <div id="welcomeModal"
+       class="modal{% if show_welcome %} is-open{% endif %}"
+       aria-hidden="{% if show_welcome %}false{% else %}true{% endif %}">
+    <div class="modal__backdrop" data-close-modal></div>
+
+    <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+      <button class="modal__close" id="welcomeClose" aria-label="Fechar">×</button>
+
+      <div class="modal__avatar" aria-hidden="true">
+        <!-- círculo preto com avatar -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="64" height="64">
+          <path d="M20 21a8 8 0 0 0-16 0"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+
+      <h2 id="welcome-title" class="modal__title">
+        Olá, {{ user.get_full_name|default:user.username|default:"Leitor(a)" }}! Seja bem-vindo(a)!
+      </h2>
+
+      <p class="modal__subtitle">Deseja personalizar sua experiência JC?</p>
+
+      <div class="modal__actions">
+        <a id="welcomeLater" class="modal__btn" href="{% url 'noticias:index' %}">Agora não</a>
+        <a class="modal__btn modal__btn--primary" href="{% url 'caca_links:escolher_tema' %}">Sim! Vamos lá.</a>
+      </div>
+
+      <div class="modal__back">
+        <a href="{% url 'noticias:index' %}">‹ Voltar</a>
+      </div>
+    </div>
+  </div>
+  {# =================== /MODAL =================== #}
+
   {% block extra_js %}
     <script src="{% static 'noticias/js/jc.js' %}"></script>
+    <script>
+      (function () {
+        const modal   = document.getElementById('welcomeModal');
+        if (!modal) return;
+
+        const closeBtn = document.getElementById('welcomeClose');
+        const laterBtn = document.getElementById('welcomeLater');
+        const backdrop = modal.querySelector('[data-close-modal]');
+
+        function openModal() {
+          modal.classList.add('is-open');
+          modal.setAttribute('aria-hidden', 'false');
+        }
+        function closeModal() {
+          modal.classList.remove('is-open');
+          modal.setAttribute('aria-hidden', 'true');
+        }
+
+        // Fechar por X / backdrop / tecla Esc
+        closeBtn?.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
+        backdrop?.addEventListener('click', closeModal);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+        // “Agora não” fecha imediatamente (antes de navegar)
+        laterBtn?.addEventListener('click', () => { closeModal(); });
+
+        // Expõe no escopo global caso queira abrir/fechar programaticamente
+        window.JC = window.JC || {};
+        window.JC.openWelcome  = openModal;
+        window.JC.closeWelcome = closeModal;
+      })();
+    </script>
   {% endblock %}
 </body>
 </html>
