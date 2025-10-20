@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'noticias',
     "caca_links",
+    'sudoku',
 ]
 
 MIDDLEWARE = [

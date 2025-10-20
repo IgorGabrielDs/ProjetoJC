@@ -6,4 +6,5 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path("", include(("noticias.urls", "noticias"), namespace="noticias")),
     path("caca-links/", include(("caca_links.urls", "caca_links"), namespace="caca_links")),
+    path('sudoku/', include(('sudoku.urls', 'sudoku'), namespace='sudoku')),
 ]
