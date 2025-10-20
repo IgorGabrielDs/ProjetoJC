@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 from django.contrib import messages
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.core.cache import cache
@@ -30,12 +30,19 @@ def _annotate_is_saved(qs, user):
         )
     return qs.annotate(is_saved=Value(False, output_field=BooleanField()))
 
+def _split_full_name(full_name: str):
+    parts = [p for p in (full_name or "").strip().split() if p]
+    if not parts:
+        return "", ""
+    first = parts[0]
+    last = " ".join(parts[1:]) if len(parts) > 1 else ""
+    return first, last
 
 # =======================
-# VIEW PRINCIPAL (HOME)
+# HOME
 # =======================
+
 def index(request):
-    # ... (todo o resto desta função continua exatamente igual)
     noticias = Noticia.objects.all()
     assuntos = Assunto.objects.all()
 
@@ -43,9 +50,7 @@ def index(request):
     periodo = request.GET.get("periodo")
     sort = request.GET.get("sort", "recentes")
 
-    # -------------------------------
-    # Filtros e ordenação da lista principal
-    # -------------------------------
+    # filtros/ordenação da listagem principal
     if selecionados:
         noticias = noticias.filter(assuntos__slug__in=selecionados).distinct()
 
@@ -61,19 +66,19 @@ def index(request):
 
     noticias = _annotate_is_saved(noticias, request.user)
 
-    # -------------------------------
-    # Seções da home (INDEPENDENTES dos filtros da lista)
-    # -------------------------------
+    # seções independentes da lista
     all_qs = Noticia.objects.all().select_related().prefetch_related("assuntos")
 
-    # 1) Destaques (com imagem) + score por votos/visualizações
-    destaques_qs = all_qs.filter(imagem__isnull=False) \
-        .annotate(score_calculado=Sum("votos__valor", default=0) + (F("visualizacoes") * 0.01)) \
+    # 1) Destaques
+    destaques_qs = (
+        all_qs.filter(imagem__isnull=False)
+        .annotate(score_calculado=Sum("votos__valor", default=0) + (F("visualizacoes") * 0.01))
         .order_by("-score_calculado", "-criado_em")
+    )
     destaques = _annotate_is_saved(destaques_qs, request.user)[:3]
     destaques_ids = list(destaques.values_list("id", flat=True))
 
-    # 2) Para você (personalização simples + fallback)
+    # 2) Para você
     if request.user.is_authenticated:
         assuntos_interesse = Assunto.objects.filter(
             noticias__votos__usuario=request.user
@@ -91,17 +96,16 @@ def index(request):
 
     para_voce = _annotate_is_saved(pv_qs.order_by("-criado_em"), request.user)[:6]
     if not para_voce.exists():
-        # fallback: pega recentes mesmo se não houver interesses/dados suficientes
         para_voce = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:6]
 
-    # 3) Mais lidas (últimos 7 dias)
+    # 3) Mais lidas (7 dias)
     since_7 = timezone.now() - timedelta(days=7)
     ml_qs = all_qs.filter(criado_em__gte=since_7).order_by("-visualizacoes", "-criado_em")
     mais_lidas = _annotate_is_saved(ml_qs, request.user)[:2]
     if not mais_lidas.exists():
         mais_lidas = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:2]
 
-    # 4) JC360 (slug OU nome) + fallbacks em 3 etapas
+    # 4) JC360 (slug/nome) + fallbacks
     try:
         jc360_assunto = Assunto.objects.get(slug="jc360")
         jc360_qs = all_qs.filter(assuntos=jc360_assunto)
@@ -109,23 +113,12 @@ def index(request):
         jc360_qs = all_qs.filter(assuntos__nome__iexact="jc360")
 
     jc360 = _annotate_is_saved(jc360_qs.order_by("-criado_em"), request.user)[:4]
-
-    # Fallback 1: recentes fora dos destaques
     if not jc360.exists():
-        jc360 = _annotate_is_saved(
-            all_qs.exclude(id__in=destaques_ids).order_by("-criado_em"),
-            request.user
-        )[:4]
-
-    # Fallback 2: recentes gerais (sem excluir nada)
+        jc360 = _annotate_is_saved(all_qs.exclude(id__in=destaques_ids).order_by("-criado_em"), request.user)[:4]
     if not jc360.exists():
-        jc360 = _annotate_is_saved(
-            all_qs.order_by("-criado_em"),
-            request.user
-        )[:4]
+        jc360 = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:4]
 
-
-    # 5) Vídeos (slug OU nome) + fallback se vazio
+    # 5) Vídeos (slug/nome) + fallback
     try:
         videos_assunto = Assunto.objects.get(slug="videos")
         videos_qs = all_qs.filter(assuntos=videos_assunto)
@@ -136,7 +129,7 @@ def index(request):
     if not videos.exists():
         videos = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:2]
 
-    # 6) Pernambuco (slug OU nome) — 1 destaque
+    # 6) Pernambuco (destaque único)
     try:
         pe_assunto = Assunto.objects.get(slug="pernambuco")
         pernambuco = all_qs.filter(assuntos=pe_assunto).order_by("-criado_em").first()
@@ -145,20 +138,21 @@ def index(request):
     if not pernambuco:
         pernambuco = all_qs.order_by("-criado_em").first()
 
-    # 7) Top 3 da semana (cacheado)
+    # 7) Top 3 da semana (cache)
     top3 = cache.get("top3_semana_final")
     if top3 is None:
         hoje = timezone.now().date()
         inicio = hoje - timedelta(days=6)
         top3_qs = (
             Noticia.objects.filter(criado_em__date__gte=inicio)
-            .annotate(
-                score_calculado=Sum("votos__valor", default=0) + (F("visualizacoes") * 0.01)
-            )
+            .annotate(score_calculado=Sum("votos__valor", default=0) + (F("visualizacoes") * 0.01))
             .order_by("-score_calculado", "-criado_em")[:3]
         )
         top3 = list(top3_qs)
         cache.set("top3_semana_final", top3, 300)
+
+    # <<< NOVO: sinal do modal de boas-vindas >>>
+    show_welcome = bool(request.session.pop('show_welcome', False))
 
     ctx = {
         "noticias": noticias,
@@ -166,8 +160,6 @@ def index(request):
         "selecionados": selecionados,
         "periodo": periodo or "",
         "sort": sort,
-
-        # Seções da home
         "destaques": destaques,
         "para_voce": para_voce,
         "mais_lidas": mais_lidas,
@@ -175,9 +167,13 @@ def index(request):
         "videos": videos,
         "pernambuco": pernambuco,
         "top3": top3,
+        "show_welcome": show_welcome,  # <<< NOVO
     }
-
     return render(request, "noticias/index.html", ctx)
+
+# =======================
+# DETALHE
+# =======================
 
 def noticia_detalhe(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
@@ -200,6 +196,10 @@ def noticia_detalhe(request, pk):
         "is_saved": is_saved,
     }
     return render(request, "noticias/detalhe.html", ctx)
+
+# =======================
+# VOTO (AJAX)
+# =======================
 
 @login_required
 def votar(request, pk):
@@ -242,28 +242,9 @@ def votar(request, pk):
 
     return redirect("noticias:noticia_detalhe", pk=pk)
 
-def signup(request):
-    next_url = request.GET.get("next") or request.POST.get("next")
-    if not next_url or next_url == "None":
-        next_url = None
-
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            username = form.cleaned_data.get("username")
-            raw_password = form.cleaned_data.get("password1")
-            user = authenticate(username=username, password=raw_password)
-            if user:
-                auth_login(request, user)
-            messages.success(request, "Conta criada com sucesso! Bem-vindo(a).")
-            if next_url:
-                return redirect(next_url)
-            return redirect("noticias:index")
-    else:
-        form = UserCreationForm()
-
-    return render(request, "registration/signup.html", {"form": form, "next": next_url})
+# =======================
+# SALVOS
+# =======================
 
 @login_required
 def minhas_salvas(request):
@@ -273,7 +254,6 @@ def minhas_salvas(request):
         .distinct()
     )
     return render(request, "noticias/noticias_salvas.html", {"noticias": noticias})
-
 
 @login_required
 def toggle_salvo(request, pk):
@@ -300,25 +280,113 @@ def toggle_salvo(request, pk):
     messages.success(request, msg)
     return redirect("noticias:noticia_detalhe", pk=pk)
 
+# =======================
+# SIGNUP (custom p/ seu formulário)
+# =======================
+
+def signup(request):
+    """
+    Recebe os campos do seu formulário:
+      - nome (nome completo)
+      - email
+      - data_nascimento (opcional para salvar num Profile futuro)
+      - password1, password2
+      - checkbox de termos (terms)
+    Salva nome e email no User.
+    """
+    User = get_user_model()
+    next_url = request.GET.get("next") or request.POST.get("next") or None
+
+    if request.method == "POST":
+        nome = (request.POST.get("nome") or "").strip()
+        email = (request.POST.get("email") or "").strip().lower()
+        data_nascimento = (request.POST.get("data_nascimento") or "").strip()
+        password1 = request.POST.get("password1") or ""
+        password2 = request.POST.get("password2") or ""
+        terms = request.POST.get("terms")  # "on" se marcado
+
+        errors = {}
+
+        # validações básicas
+        if not nome:
+            errors["nome"] = "Informe seu nome completo."
+        if not email:
+            errors["email"] = "Informe seu e-mail."
+        if password1 != password2:
+            errors["password2"] = "As senhas não coincidem."
+        if len(password1) < 8:
+            errors["password1"] = "A senha deve ter pelo menos 8 caracteres."
+        if not terms:
+            errors["terms"] = "É necessário concordar com os Termos de Uso."
+
+        # unicidade por email/username
+        username = email  # simples: usamos email como username
+        if email and User.objects.filter(email=email).exists():
+            errors["email"] = "Este e-mail já está cadastrado."
+        if username and User.objects.filter(username=username).exists():
+            errors["email"] = "Este e-mail já está cadastrado."
+
+        if errors:
+            ctx = {
+                "errors": errors,
+                "old": {
+                    "nome": nome,
+                    "email": email,
+                    "data_nascimento": data_nascimento,
+                },
+                "next": next_url,
+            }
+            return render(request, "registration/signup.html", ctx)
+
+        # cria usuário
+        first_name, last_name = _split_full_name(nome)
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password1,
+            first_name=first_name,
+            last_name=last_name,
+        )
+
+        # opcional: salvar DOB em um Perfil (se existir)
+        try:
+            from .models import Perfil  # hipotético
+            Perfil.objects.update_or_create(
+                user=user, defaults={"data_nascimento": data_nascimento}
+            )
+        except Exception:
+            pass
+
+        # login automático
+        user = authenticate(username=username, password=password1)
+        if user:
+            auth_login(request, user)
+
+        # <<< NOVO: sinal para abrir o modal de boas-vindas na home >>>
+        request.session['show_welcome'] = True
+
+        messages.success(request, "Conta criada com sucesso! Bem-vindo(a).")
+        return redirect(next_url or "noticias:index")
+
+    # GET
+    return render(request, "registration/signup.html", {"next": next_url})
 
 # =======================
-# RESUMO (IA)
+# RESUMO (Gemini)
 # =======================
+
 @login_required
 def resumir_noticia(request, pk):
-    from django.conf import settings
-    api_key = settings.GEMINI_API_KEY
-
+    api_key = getattr(settings, "GEMINI_API_KEY", "")
     if not api_key:
         return JsonResponse({"error": "Chave da API não encontrada."}, status=500)
 
     import google.generativeai as genai
-    genai.configure(api_key=api_key)  # type: ignore
+    genai.configure(api_key=api_key)
 
-    model = genai.GenerativeModel("gemini-flash-latest")  # type: ignore
+    model = genai.GenerativeModel("gemini-flash-latest")
 
     noticia = get_object_or_404(Noticia, pk=pk)
-
     prompt = f"""
     Você é um assistente de jornalismo. Resuma a notícia abaixo de forma clara, objetiva e em português:
     <noticia>
@@ -329,8 +397,10 @@ def resumir_noticia(request, pk):
 
     try:
         response = model.generate_content(prompt)
-        resumo = response.text.strip()
+        resumo = (getattr(response, "text", "") or "").strip()
+        if resumo:
+            noticia.resumo = resumo
+            noticia.save(update_fields=["resumo"])
         return JsonResponse({"resumo": resumo})
     except Exception as e:
-        print(f"Erro na API Gemini: {e}")
         return JsonResponse({"error": f"Erro ao conectar com a API: {e}"}, status=500)
