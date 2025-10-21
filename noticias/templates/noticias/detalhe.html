@@ -6,112 +6,126 @@
 {% block content %}
 <article class="article-detail container">
 
+  {# Kicker + régua #}
   {% with assunto=noticia.assuntos.first %}
-    {% if assunto %}
-      <div class="topic">{{ assunto.nome }}</div>
-    {% endif %}
+    <div class="kicker">
+      <span class="k-left">{% if assunto %}{{ assunto.nome }}{% else %}Geral{% endif %}</span>
+      <span class="k-sep">|</span>
+      <span class="k-right">NOTÍCIA</span>
+    </div>
   {% endwith %}
+  <hr class="section-rule" />
 
   <h1 class="headline">{{ noticia.titulo }}</h1>
 
-  <div class="meta">
-    {% if noticia.criado_em %}Publicado em {{ noticia.criado_em|date:"d/m/Y H:i" }}{% endif %}
-    {% if noticia.autor %} • {{ noticia.autor }}{% endif %}
-  </div>
-
+  {# Capa + legenda #}
   {% if noticia.imagem %}
-  <figure class="cover figure">
-    <img src="{{ noticia.imagem.url }}" alt="{{ noticia.titulo }}">
-    {% if noticia.legenda or noticia.credito %}
-      <figcaption>
-        {{ noticia.legenda }}{% if noticia.credito %} — {{ noticia.credito }}{% endif %}
-      </figcaption>
-    {% endif %}
-  </figure>
+    <figure class="cover figure">
+      <img src="{{ noticia.imagem.url }}" alt="{{ noticia.titulo }}">
+      {% if noticia.legenda or noticia.credito_imagem %}
+        <figcaption>
+          {{ noticia.legenda }}{% if noticia.credito_imagem %} — {{ noticia.credito_imagem }}{% endif %}
+        </figcaption>
+      {% endif %}
+    </figure>
   {% endif %}
 
-  <div class="content">
-    {{ noticia.conteudo|linebreaks }}
+  {# BYLINE: bookmark + shares #}
+  <div class="meta-row meta-row--below">
+    <div class="meta-left">
+      <span class="by">Por <strong>{{ noticia.autor|default:"JC" }}</strong></span>
+    </div>
+
+    <div class="meta-share">
+      <!-- Ver mais tarde -->
+      <button
+        class="share-btn bookmark-btn{% if is_saved %} is-saved{% endif %}"
+        id="btn-bookmark"
+        type="button"
+        data-salvo-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
+        aria-label="{% if is_saved %}Retirar de Ver mais tarde{% else %}Ver mais tarde{% endif %}">
+        <svg class="bm-icon bm-outline" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        </svg>
+        <svg class="bm-icon bm-solid" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <!-- WhatsApp -->
+      <a class="share-btn" aria-label="WhatsApp"
+         href="https://api.whatsapp.com/send?text={{ request.build_absolute_uri|urlencode }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 3.9A10 10 0 1 0 21 12a9.9 9.9 0 0 0-1-8.1ZM7.9 6.9a1 1 0 0 1 1-.1l1.7.7a1 1 0 0 1 .6 1.1l-.2 1a1 1 0 0 0 .2.8 7.4 7.4 0 0 0 2.9 2.9 1 1 0 0 0 .8.2l1-.2a1 1 0 0 1 1.1.6l.7 1.7a1 1 0 0 1-.1 1 3.6 3.6 0 0 1-3.2 1.8c-2.8 0-6.1-2.7-7.2-4.8A3.6 3.6 0 0 1 7.9 6.9Z" fill="currentColor"/>
+        </svg>
+      </a>
+
+      <!-- Facebook -->
+      <a class="share-btn" aria-label="Facebook"
+         href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M13 22v-9h3l.5-4H13V7.6c0-1.1.3-1.7 1.9-1.7H17V2.2A30.6 30.6 0 0 0 14.6 2C12 2 10.2 3.6 10.2 6.9V9H7v4h3.2v9Z" fill="currentColor"/>
+        </svg>
+      </a>
+
+      <!-- Copiar link -->
+      <button class="share-btn" id="btn-copy-link" type="button" aria-label="Copiar link">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.5 14.5 8 16a4 4 0 1 1-5.7-5.7l3-3a4 4 0 0 1 5.7 0l.5.5M14.5 9.5 16 8a4 4 0 1 1 5.7 5.7l-3 3a4 4 0 0 1-5.7 0l-.5-.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <!-- Barra de ações -->
+  {# Publicado / Atualizado #}
+  <hr class="section-rule section-rule--tight" />
+  <div class="publine">
+    {% if noticia.criado_em %}Publicado em {{ noticia.criado_em|date:"d/m/Y H:i" }}{% endif %}
+    {% if noticia.atualizado_em and noticia.atualizado_em > noticia.criado_em %}
+      <span class="dot">•</span> Atualizado em {{ noticia.atualizado_em|date:"d/m/Y H:i" }}
+    {% endif %}
+  </div>
+
+  <div class="content">{{ noticia.conteudo|linebreaks }}</div>
+
+  {# Ações (somente botão compartilhar geral, opcional) #}
   <div class="article-actions" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-
-    {# Botão "Ver mais tarde" controlado por JS (sem recarregar) #}
-    <button
-      type="button"
-      class="btn btn-outline btn-save bookmark{% if is_saved %} is-saved{% endif %}"
-      data-salvo-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
-      aria-label="{% if is_saved %}Retirar de Ver mais tarde{% else %}Ver mais tarde{% endif %}">
-      🔖 {% if is_saved %}Retirar de Ver mais tarde{% else %}Ver mais tarde{% endif %}
-    </button>
-
-    <!-- Fallback sem JS -->
-    <noscript>
-      <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}">
-        {% csrf_token %}
-        <button class="btn btn-outline btn-save" type="submit">
-          {% if is_saved %}Retirar de Ver mais tarde{% else %}Ver mais tarde{% endif %}
-        </button>
-      </form>
-    </noscript>
-
-    <!-- Compartilhar -->
-    <button class="btn btn-outline btn-share" type="button" id="btn-share">
-      Compartilhar
-    </button>
+    <button class="btn btn-outline btn-share" type="button" id="btn-share">Compartilhar</button>
   </div>
 
-  <!-- Votação -->
-  <!-- Votação -->
-<section class="vote" style="margin-top:14px">
-  <div class="vote-box" data-votos-box
-       style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#f7f7f8;border:1px solid #e5e7eb;border-radius:12px;padding:8px 12px">
-
-    <div class="vote-row" style="display:flex;gap:6px;align-items:center">
-      {# Botão de voto positivo (JS) #}
-      <button
-        type="button"
-        class="btn-vote btn-voto{% if voto_usuario == 1 %} is-active{% endif %}"
-        data-votar-url="{% url 'noticias:votar' noticia.pk %}"
-        data-valor="1" aria-label="Gostei" title="Gostei">↑</button>
-      <span class="score" data-upcount aria-live="polite">{{ up }}</span>
-
-      <noscript>
-        <form method="post" action="{% url 'noticias:votar' noticia.pk %}">
-          {% csrf_token %}
-          <input type="hidden" name="valor" value="1">
-          <button class="btn-vote" aria-label="Gostei" title="Gostei">↑</button>
-        </form>
-      </noscript>
+  {# Votação #}
+  <section class="vote" style="margin-top:14px">
+    <div class="vote-box" data-votos-box
+         style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#f7f7f8;border:1px solid #e5e7eb;border-radius:12px;padding:8px 12px">
+      <div class="vote-row" style="display:flex;gap:6px;align-items:center">
+        <button type="button" class="btn-vote btn-voto{% if voto_usuario == 1 %} is-active{% endif %}"
+                data-votar-url="{% url 'noticias:votar' noticia.pk %}" data-valor="1"
+                aria-label="Gostei" title="Gostei">↑</button>
+        <span class="score" data-upcount aria-live="polite">{{ up }}</span>
+        <noscript>
+          <form method="post" action="{% url 'noticias:votar' noticia.pk %}">{% csrf_token %}
+            <input type="hidden" name="valor" value="1"><button class="btn-vote" aria-label="Gostei" title="Gostei">↑</button>
+          </form>
+        </noscript>
+      </div>
+      <div class="vote-row" style="display:flex;gap:6px;align-items:center">
+        <button type="button" class="btn-vote btn-voto{% if voto_usuario == -1 %} is-active{% endif %}"
+                data-votar-url="{% url 'noticias:votar' noticia.pk %}" data-valor="-1"
+                aria-label="Não gostei" title="Não gostei">↓</button>
+        <span class="score" data-downcount aria-live="polite">{{ down }}</span>
+        <noscript>
+          <form method="post" action="{% url 'noticias:votar' noticia.pk %}">{% csrf_token %}
+            <input type="hidden" name="valor" value="-1"><button class="btn-vote" aria-label="Não gostei" title="Não gostei">↓</button>
+          </form>
+        </noscript>
+      </div>
     </div>
+  </section>
 
-    <div class="vote-row" style="display:flex;gap:6px;align-items:center">
-      {# Botão de voto negativo (JS) #}
-      <button
-        type="button"
-        class="btn-vote btn-voto{% if voto_usuario == -1 %} is-active{% endif %}"
-        data-votar-url="{% url 'noticias:votar' noticia.pk %}"
-        data-valor="-1" aria-label="Não gostei" title="Não gostei">↓</button>
-      <span class="score" data-downcount aria-live="polite">{{ down }}</span>
-
-      <noscript>
-        <form method="post" action="{% url 'noticias:votar' noticia.pk %}">
-          {% csrf_token %}
-          <input type="hidden" name="valor" value="-1">
-          <button class="btn-vote" aria-label="Não gostei" title="Não gostei">↓</button>
-        </form>
-      </noscript>
-    </div>
-
-  </div>
-</section>
-
-  <!-- Resumo por IA -->
+  {# Resumo IA #}
   <section class="ai-panel" style="margin-top:18px">
     <div class="ai-title">Resumir notícia</div>
     <button class="btn btn-ai" type="button" id="btn-resumir">Resumir notícia</button>
-
     <div class="ai-summary" id="ai-summary" style="display:none">
       <div class="summary-title">Resumo gerado</div>
       <div id="ai-text"></div>
@@ -122,64 +136,127 @@
     </div>
   </section>
 
-  <!-- Leia também -->
-  {% if top3 %}
-  <div class="readmore">
-    <span class="label">Leia também</span>
-    {% for n in top3 %}
-      <a class="link" href="{{ n.get_absolute_url }}">{{ n.titulo }}</a>
-    {% endfor %}
-  </div>
+  {# Leia também #}
+  {% if relacionadas %}
+    <section class="related">
+      <h3 class="related-title">LEIA TAMBÉM</h3>
+      <div class="related-grid">
+        {% for n in relacionadas %}
+          <a class="related-card related-card--vertical" href="{{ n.get_absolute_url }}">
+            <div class="rc-thumb rc-thumb--top">
+              {% if n.imagem %}<img src="{{ n.imagem.url }}" alt="{{ n.titulo }}">{% else %}<div class="rc-thumb-placeholder"></div>{% endif %}
+            </div>
+            <div class="rc-body">
+              {% with a=n.assuntos.first %}
+                <div class="rc-kicker">{% if a %}{{ a.nome }}{% else %}Geral{% endif %}</div>
+              {% endwith %}
+              <h4 class="rc-title">{{ n.titulo }}</h4>
+              <p class="rc-excerpt">{{ n.conteudo|striptags|truncatewords:22 }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
   {% endif %}
+
+  {# Compartilhe (seção maior) #}
+  <section class="share-section">
+    <h3 class="share-title">Compartilhe</h3>
+    <div class="share-row">
+      <a class="share-icon" href="https://api.whatsapp.com/send?text={{ request.build_absolute_uri|urlencode }}" aria-label="WhatsApp">🟢</a>
+      <a class="share-icon" href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" aria-label="Facebook">📘</a>
+      <button class="share-icon" type="button" id="btn-copy-link-2" aria-label="Copiar link">🔗</button>
+    </div>
+  </section>
+
+  {# Tags #}
+  {% with tags=noticia.assuntos.all %}
+    {% if tags|length %}
+      <section class="tags">
+        <h3 class="tags-title">Tags</h3>
+        <div class="chips">
+          {% for a in tags %}
+            <a class="chip chip--red" href="{% url 'noticias:index' %}?assunto={{ a.slug }}">{{ a.nome|upper }}</a>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  {% endwith %}
 
 </article>
 {% endblock %}
 
 {% block extra_js %}
-  {{ block.super }}
-  <script>
-    // Compartilhar (Web Share API com fallback)
-    document.getElementById('btn-share')?.addEventListener('click', async () => {
-      const data = { title: document.title, text: '{{ noticia.titulo|escapejs }}', url: window.location.href };
-      if (navigator.share) { try { await navigator.share(data); } catch(e) {} }
-      else { try { await navigator.clipboard.writeText(data.url); } catch(e) {} alert('Link copiado!'); }
-    });
+{{ block.super }}
+<script>
+  // Compartilhar (Web Share) geral
+  document.getElementById('btn-share')?.addEventListener('click', async () => {
+    const data = { title: document.title, text: '{{ noticia.titulo|escapejs }}', url: window.location.href };
+    if (navigator.share) { try { await navigator.share(data); } catch(e) {} }
+    else { try { await navigator.clipboard.writeText(data.url); } catch(e) {} alert('Link copiado!'); }
+  });
 
-    // Util: pegar CSRF do cookie (ou meta) — se você já tem no jc.js, pode remover daqui
-    function getCookie(name) {
-      const m = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]*)'));
-      return m ? decodeURIComponent(m[2]) : null;
-    }
+  // Copiar link (atalhos)
+  function copyLink(){
+    try { navigator.clipboard.writeText(window.location.href); alert("Link copiado!"); }
+    catch(e){ alert("Não foi possível copiar o link."); }
+  }
+  document.getElementById('btn-copy-link')?.addEventListener('click', copyLink);
+  document.getElementById('btn-copy-link-2')?.addEventListener('click', copyLink);
 
-    // Resumo por IA (AJAX)
-    const btnResumir = document.getElementById('btn-resumir');
-    const box = document.getElementById('ai-summary');
-    const txt = document.getElementById('ai-text');
-    const btnCopy = document.getElementById('btn-copy');
-    const btnClose = document.getElementById('btn-close');
+  // CSRF util
+  function getCookie(name) {
+    const m = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]*)'));
+    return m ? decodeURIComponent(m[2]) : null;
+  }
 
-    btnResumir?.addEventListener('click', async () => {
-      btnResumir.disabled = true; btnResumir.textContent = 'Gerando...';
-      try {
-        const resp = await fetch("{% url 'noticias:resumir_noticia' noticia.pk %}", {
+  // Toggle "Ver mais tarde" (AJAX)
+  const bmBtn = document.getElementById('btn-bookmark');
+  if (bmBtn){
+    bmBtn.addEventListener('click', async () => {
+      const url = bmBtn.getAttribute('data-salvo-url');
+      try{
+        const resp = await fetch(url, {
           method: 'POST',
-          headers: {
-            'X-Requested-With':'XMLHttpRequest',
-            'X-CSRFToken': getCookie('csrftoken') || ''
-          }
+          headers: { 'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') || '' }
         });
         const data = await resp.json();
-        if (data.resumo) { txt.textContent = data.resumo; box.style.display = 'block'; }
-        else { alert(data.error || 'Não foi possível gerar o resumo.'); }
-      } catch(e){ alert('Falha de rede.'); }
-      finally { btnResumir.disabled = false; btnResumir.textContent = 'Resumir notícia'; }
+        const saved = !!data.saved;
+        bmBtn.classList.toggle('is-saved', saved);
+        const label = saved ? 'Retirar de Ver mais tarde' : 'Ver mais tarde';
+        bmBtn.setAttribute('aria-label', label);
+      }catch(e){
+        alert('Não foi possível atualizar seus salvos.');
+      }
     });
+  }
 
-    btnCopy?.addEventListener('click', async () => {
-      if (!txt.textContent) return;
-      try { await navigator.clipboard.writeText(txt.textContent); } catch(e) {}
-      alert('Resumo copiado!');
-    });
-    btnClose?.addEventListener('click', () => { box.style.display = 'none'; });
-  </script>
+  // Resumo por IA (AJAX)
+  const btnResumir = document.getElementById('btn-resumir');
+  const box = document.getElementById('ai-summary');
+  const txt = document.getElementById('ai-text');
+  const btnCopy = document.getElementById('btn-copy');
+  const btnClose = document.getElementById('btn-close');
+
+  btnResumir?.addEventListener('click', async () => {
+    btnResumir.disabled = true; btnResumir.textContent = 'Gerando...';
+    try {
+      const resp = await fetch("{% url 'noticias:resumir_noticia' noticia.pk %}", {
+        method: 'POST',
+        headers: { 'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') || '' }
+      });
+      const data = await resp.json();
+      if (data.resumo) { txt.textContent = data.resumo; box.style.display = 'block'; }
+      else { alert(data.error || 'Não foi possível gerar o resumo.'); }
+    } catch(e){ alert('Falha de rede.'); }
+    finally { btnResumir.disabled = false; btnResumir.textContent = 'Resumir notícia'; }
+  });
+
+  btnCopy?.addEventListener('click', async () => {
+    if (!txt.textContent) return;
+    try { await navigator.clipboard.writeText(txt.textContent); } catch(e) {}
+    alert('Resumo copiado!');
+  });
+  btnClose?.addEventListener('click', () => { box.style.display = 'none'; });
+</script>
 {% endblock %}
