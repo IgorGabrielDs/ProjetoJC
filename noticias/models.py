@@ -4,6 +4,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
 
+
 class Assunto(models.Model):
     nome = models.CharField(max_length=80, unique=True)
     slug = models.SlugField(max_length=80, unique=True)
@@ -19,32 +20,48 @@ class Noticia(models.Model):
     titulo = models.CharField(max_length=200)
     conteudo = models.TextField()
     resumo = models.TextField(blank=True, null=True)
-    criado_em = models.DateTimeField(auto_now_add=True)
 
+    # timestamps
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)  # <- NOVO
+
+    # mídia
     imagem = models.ImageField(upload_to="noticias/", null=True, blank=True)
     legenda = models.CharField(max_length=255, null=True, blank=True)
+    credito_imagem = models.CharField(  # <- NOVO
+        max_length=255, blank=True, default=""
+    )
 
+    # autoria
+    autor = models.CharField(  # <- NOVO
+        max_length=120, blank=True, default="JC"
+    )
+
+    # taxonomia
     assuntos = models.ManyToManyField(Assunto, related_name="noticias", blank=True)
 
+    # métricas/engajamento
     visualizacoes = models.PositiveIntegerField(default=0)
 
+    # salvos (through)
     salvos = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         through='Salvo',
         related_name='noticias_salvas',
         blank=True,
     )
+
     def get_absolute_url(self):
         return reverse("noticias:noticia_detalhe", args=[self.pk])
 
     @property
     def votos(self):
         """
-        Declaração explícita para retornar o QuerySet de Votos.
-        Isso resolve o erro se a relação inversa não for encontrada.
+        Retorna o QuerySet de votos desta notícia.
+        (Mantido como propriedade para compatibilidade com seu código atual.)
         """
         return Voto.objects.filter(noticia=self)
-    
+
     def is_salva_por(self, user):
         if not user.is_authenticated:
             return False
@@ -67,16 +84,20 @@ class Noticia(models.Model):
 
 
 class Voto(models.Model):
-    noticia = models.ForeignKey(Noticia, on_delete=models.CASCADE, related_name="votos") 
+    noticia = models.ForeignKey(
+        Noticia, on_delete=models.CASCADE, related_name="votos"
+    )
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     valor = models.IntegerField()
 
-    criado_em = models.DateTimeField(auto_now_add=True)  
+    criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["noticia", "usuario"], name="unique_user_vote_per_news")
+            models.UniqueConstraint(
+                fields=["noticia", "usuario"], name="unique_user_vote_per_news"
+            )
         ]
 
     def __str__(self):
@@ -86,7 +107,7 @@ class Voto(models.Model):
 class Salvo(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     noticia = models.ForeignKey(Noticia, on_delete=models.CASCADE)
-    criado_em = models.DateTimeField(auto_now_add=True)  
+    criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('usuario', 'noticia')
