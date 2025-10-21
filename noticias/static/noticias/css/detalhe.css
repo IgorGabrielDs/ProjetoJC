@@ -726,3 +726,14 @@ footer .caption{text-align:center}
   .modal__card{ padding: 24px 16px 18px; }
   .modal__actions{ grid-template-columns: 1fr; }
 }
+/* ===== Password Reset: ajustes mínimos ===== */
+.auth-title{
+  font-size: 28px;
+  line-height: 1.2;
+  text-align: center;
+  margin: 8px 0 8px;
+}
+
+@media (max-width: 480px){
+  .auth-title{ font-size: 24px; }
+}
