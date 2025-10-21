@@ -182,8 +182,25 @@ def index(request):
 # =======================
 def noticia_detalhe(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
+
     noticia.visualizacoes = (noticia.visualizacoes or 0) + 1
     noticia.save(update_fields=["visualizacoes"])
+
+    assuntos_ids = list(noticia.assuntos.values_list("id", flat=True))
+    if assuntos_ids:
+        relacionadas = (
+            Noticia.objects
+            .filter(assuntos__in=assuntos_ids)
+            .exclude(pk=noticia.pk)
+            .distinct()
+            .order_by("-criado_em")[:2]
+        )
+    else:
+        relacionadas = (
+            Noticia.objects
+            .exclude(pk=noticia.pk)
+            .order_by("-criado_em")[:2]
+        )
 
     voto_usuario = None
     if request.user.is_authenticated:
@@ -199,6 +216,7 @@ def noticia_detalhe(request, pk):
         "down": noticia.downvotes(),
         "voto_usuario": voto_usuario.valor if voto_usuario else 0,
         "is_saved": is_saved,
+        "relacionadas": relacionadas,
     }
     return render(request, "noticias/detalhe.html", ctx)
 
