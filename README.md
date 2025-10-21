@@ -27,6 +27,7 @@ Acesse [aqui](https://docs.google.com/document/d/1mwm4nb6xFgJM3tm10Y9zcyyIu7CfqO
 - 📑 **Filtros de Noticia** (filtrar noticias).
 - 📌 **Resumo de noticias** (Resumir noticias).
 - ⭐ **Caça-links** (Jogo).
+- ⭐ **Sudoku** (Jogo).
 
 Essas funcionalidades foram inspiradas nas melhores práticas de grandes portais (G1, NYT, The Guardian, etc.), comparadas em nossa matriz técnica.
 
