@@ -1,4 +1,5 @@
 # ProjetoJC
+### Acesse [aqui](https://jcproject.azurewebsites.net/) nosso site.
 
 ## 📌 Descrição do Projeto
 Este repositório contém o desenvolvimento do **portal de notícias personalizado da Equipe Plumo**, criado como parte do desafio proposto pelo **Jornal do Commercio (JC)**.  
