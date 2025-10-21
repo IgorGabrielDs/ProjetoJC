@@ -737,3 +737,92 @@ footer .caption{text-align:center}
 @media (max-width: 480px){
   .auth-title{ font-size: 24px; }
 }
+/* =========================================================
+   PASSWORD RESET — OTP (código de 6 dígitos)
+   ========================================================= */
+.otp-page{ display:flex; flex-direction:column; align-items:center; }
+
+.otp-back{
+  width:100%;
+  max-width:520px;
+  margin:8px auto 0;
+  font-size:var(--fs-sm);
+  color:var(--muted);
+}
+.otp-back a{ display:inline-flex; gap:6px; align-items:center; }
+
+.otp-wrap{
+  width:100%;
+  max-width:520px;
+  margin:6px auto 0;
+  text-align:center;
+}
+
+.otp-logo{
+  display:block;
+  margin:6px auto 10px;
+  height:112px;
+}
+
+.otp-title{
+  font-size:1.75rem;
+  line-height:1.2;
+  font-weight:900;
+  margin:8px 0 12px;
+  color:var(--ink);
+}
+
+.otp-sub{
+  color:var(--muted);
+  font-size:var(--fs-sm);
+  margin:0 auto 22px;
+  max-width:420px;
+}
+.otp-sub strong{ color:var(--ink); }
+
+.otp-boxes{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  margin:12px 0 22px;
+}
+
+.otp-inp{
+  width:56px; height:56px;
+  text-align:center;
+  font-size:24px; font-weight:600; color:var(--ink);
+  background:#eeeeee;
+  border:1px solid var(--line);
+  border-radius:12px;
+  outline:none;
+  transition: box-shadow .15s ease, background .15s ease, border-color .15s ease;
+}
+.otp-inp:focus{
+  background:#f6f6f7;
+  border-color:#d0d0d4;
+  box-shadow:0 0 0 3px rgba(0,0,0,.05);
+}
+
+.otp-submit{
+  width:100%;
+  max-width:420px;
+  height:48px;
+  border:1px solid #dadce3;
+  border-radius:999px;
+  background:#d9d9dd;
+  color:#111;
+  font-weight:800;
+  cursor:pointer;
+}
+.otp-submit:hover{ filter:brightness(.98); }
+
+.otp-foot{
+  color:var(--muted);
+  font-size:var(--fs-sm);
+  margin-top:24px;
+}
+
+@media (max-width:480px){
+  .otp-title{ font-size:1.5rem; }
+  .otp-inp{ width:48px; height:48px; font-size:20px; }
+}
