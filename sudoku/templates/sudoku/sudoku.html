@@ -1,24 +1,37 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
+{% load static %}
 
-{% block content %}
+{% block title %}Jogo Sudoku - {{ difficulty|title }} - JC{% endblock %}
+
+{% block extra_head %}
 <style>
-    /* CSS básico para o grid do Sudoku */
+    .sudoku-container {
+        max-width: 500px;
+        margin: 30px auto;
+        padding: 25px;
+        background: #fdfdfd;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+        text-align: center;
+    }
+
     #sudoku-grid {
         display: grid;
-        grid-template-columns: repeat(9, 40px);
-        grid-template-rows: repeat(9, 40px);
-        border: 3px solid #333;
-        margin: 20px auto;
-        width: 363px; /* 9 * 40px + 2 * 1.5px border */
+        grid-template-columns: repeat(9, minmax(0, 1fr));
+        border: 3px solid #1a1a1a;
+        margin: 25px auto;
+        max-width: 400px;
+        border-radius: 5px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .sudoku-cell {
-        width: 40px;
-        height: 40px;
-        border: 1px solid #ccc;
-        text-align: center;
-        font-size: 24px;
-        box-sizing: border-box; /* Importante para o layout */
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+        background-color: #fff;
     }
 
     .sudoku-cell input {
@@ -26,201 +39,260 @@
         height: 100%;
         border: none;
         text-align: center;
-        font-size: 24px;
+        font-size: 1.6em;
+        font-family: Arial, sans-serif;
         padding: 0;
         box-sizing: border-box;
+        color: #0d47a1; 
+        background-color: transparent;
+        transition: background-color 0.2s ease;
+        -moz-appearance: textfield;
+    }
+    .sudoku-cell input::-webkit-outer-spin-button,
+    .sudoku-cell input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
     }
     
-    /* Input das pistas (números iniciais) */
     .sudoku-cell input.clue {
-        background-color: #eee;
+        background-color: #f0f0f0;
         color: #333;
         font-weight: bold;
     }
 
-    /* Linhas mais grossas para os blocos 3x3 */
-    .sudoku-cell:nth-child(3n) {
-        border-right: 2px solid #333;
-    }
-    .sudoku-cell:nth-child(9n) {
-        border-right: 1px solid #ccc; /* Reset no final */
-    }
-    
-    /* Linhas 3 e 6 */
-    #sudoku-grid .row-2 .sudoku-cell,
-    #sudoku-grid .row-5 .sudoku-cell {
-        border-bottom: 2px solid #333;
+    .sudoku-cell input:not(.clue):focus {
+         background-color: #fffde7;
+         outline: 2px solid #D90429;
+         outline-offset: -2px;
     }
 
-    /* Estilo para o timer */
+    .sudoku-cell:nth-child(3n) {
+        border-right: 2px solid #555;
+    }
+    .sudoku-cell:nth-child(9n) {
+        border-right: 1px solid #ddd;
+    }
+    
+    .grid-row:nth-child(3) .sudoku-cell,
+    .grid-row:nth-child(6) .sudoku-cell {
+        border-bottom: 2px solid #555;
+    }
+    .grid-row:nth-child(9) .sudoku-cell {
+         border-bottom: 1px solid #ddd;
+    }
+
     #timer-container {
         font-size: 1.5em;
         font-weight: bold;
-        text-align: center;
-        margin: 10px 0;
         color: #444;
     }
 
     #check-button {
         display: block;
-        margin: 10px auto;
-        padding: 10px 20px;
+        margin: 20px auto 10px auto;
+        padding: 12px 30px;
         font-size: 1.1em;
+        font-weight: bold;
+        color: #fff;
+        background-color: #D90429;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        transition: background-color 0.3s ease, transform 0.1s ease; 
+    }
+    #check-button:hover:not(:disabled) {
+        background-color: #b80324;
+    }
+     #check-button:active:not(:disabled) {
+         transform: scale(0.98);
+    }
+    #check-button:disabled {
+        background-color: #aaa;
+        box-shadow: none;
+        cursor: not-allowed;
     }
 
     #message-area {
-        text-align: center;
         font-size: 1.1em;
+        font-weight: bold;
         margin-top: 10px;
     }
+    #message-area.success {
+        color: green;
+    }
+    #message-area.error {
+        color: red;
+    }
 </style>
+{% endblock %}
 
-<h2>Sudoku: Nível {{ puzzle.get_difficulty_display }}</h2>
-<p>Complete o fácil para destravar o médio, e o médio para destravar o difícil.</p>
 
-<div id="timer-container">
-    Tempo: <span id="timer">00:00</span>
+{% block content %}
+<div class="sudoku-container">
+    
+    <h2>Sudoku: 
+        Nível 
+        {% if difficulty == 'easy' %}
+            Fácil
+        {% elif difficulty == 'medium' %}
+            Médio
+        {% elif difficulty == 'hard' %}
+            Difícil
+        {% else %}
+            {{ difficulty|title }}
+        {% endif %}
+    </h2>
+    
+    <p>
+        {% if progress.completed_medium %}
+            Nível Médio Completo!
+        {% elif progress.completed_easy %}
+            Nível Fácil Completo!
+        {% else %}
+            Complete o fácil para destravar o médio.
+        {% endif %}
+    </p>
+
+    <div id="timer-container">
+        Tempo: <span id="timer">00:00</span>
+    </div>
+
+    {% csrf_token %}
+
+    <div id="sudoku-grid"></div>
+
+    <button id="check-button">Verificar Solução</button>
+    <div id="message-area"></div>
+
+    {{ puzzle.id|json_script:"puzzle-id" }}
+    {{ problem_board_json|json_script:"problem-board" }}
+
 </div>
+{% endblock %}
 
-<div id="sudoku-grid"></div>
 
-<button id="check-button">Verificar Solução</button>
-<div id="message-area" style="font-weight: bold;"></div>
-
-{{ problem_board_json|json_script:"problem-board" }}
-{{ puzzle.id|json_script:"puzzle-id" }}
-{% csrf_token %} <script>
+{% block extra_js %}
+    {{ block.super }} 
+    
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const grid = document.getElementById('sudoku-grid');
-        const problemBoard = JSON.parse(document.getElementById('problem-board').textContent);
-        const puzzleId = JSON.parse(document.getElementById('puzzle-id').textContent);
-        const checkButton = document.getElementById('check-button');
-        const messageArea = document.getElementById('message-area');
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const grade = document.getElementById('sudoku-grid');
+        
+        const tabuleiroProblema = JSON.parse(document.getElementById('problem-board').textContent);
+        const desafioId = JSON.parse(document.getElementById('puzzle-id').textContent);
+        const botaoVerificar = document.getElementById('check-button');
+        const areaMensagem = document.getElementById('message-area');
+        
+        const tokenCSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-        // --- LÓGICA DO TIMER ---
-        const timerElement = document.getElementById('timer');
-        let startTime = Date.now(); // Grava o tempo exato de início
-        let timerInterval;
+        const elementoTimer = document.getElementById('timer');
+        let inicioTempo = Date.now();
+        let intervaloTimer;
 
-        function updateTimer() {
-            // Calcula o tempo total em segundos
-            let elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        function atualizarTimer() {
+            let segundosPassados = Math.floor((Date.now() - inicioTempo) / 1000);
+            let minutos = Math.floor(segundosPassados / 60);
+            let segundos = segundosPassados % 60;
+            elementoTimer.textContent = 
+                `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+        }
+        intervaloTimer = setInterval(atualizarTimer, 1000);
+
+        for (let r = 0; r < 9; r++) {
+            const divLinha = document.createElement('div');
+            divLinha.classList.add('grid-row');
             
-            let minutes = Math.floor(elapsedSeconds / 60);
-            let seconds = elapsedSeconds % 60;
+            for (let c = 0; c < 9; c++) {
+                const i = r * 9 + c;
+                const celula = document.createElement('div');
+                celula.classList.add('sudoku-cell');
+                
+                const campoInput = document.createElement('input');
+                campoInput.setAttribute('type', 'tel'); 
+                campoInput.setAttribute('maxlength', '1');
+                
+                const caractere = tabuleiroProblema[i];
+                if (caractere !== '.') {
+                    campoInput.value = caractere;
+                    campoInput.readOnly = true;
+                    campoInput.classList.add('clue');
+                }
 
-            // Formata para "MM:SS"
-            timerElement.textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                campoInput.addEventListener('input', function(e) {
+                    if (e.target.value === '' || /^[1-9]$/.test(e.target.value)) {
+                    } else {
+                        e.target.value = '';
+                    }
+                });
+
+                celula.appendChild(campoInput);
+                divLinha.appendChild(celula);
+            }
+            grade.appendChild(divLinha);
         }
 
-        // Inicia o timer, atualizando a cada segundo
-        timerInterval = setInterval(updateTimer, 1000);
-        // -------------------------
-
-        // Desenha o tabuleiro
-        for (let i = 0; i < 81; i++) {
-            const cell = document.createElement('div');
-            cell.classList.add('sudoku-cell');
+        botaoVerificar.addEventListener('click', function() {
+            let solucaoUsuarioStr = '';
+            const camposInput = grade.querySelectorAll('input');
             
-            // Adiciona classe para estilizar as linhas dos blocos
-            const row = Math.floor(i / 9);
-            cell.classList.add(`row-${row}`);
-
-            const input = document.createElement('input');
-            input.setAttribute('type', 'text');
-            input.setAttribute('maxlength', '1');
-            
-            const char = problemBoard[i];
-            if (char !== '.') {
-                // É uma pista (número inicial)
-                input.value = char;
-                input.readOnly = true; // Não pode ser alterado
-                input.classList.add('clue');
-            }
-
-            // Validação de input (só permite 1-9)
-            input.addEventListener('input', function(e) {
-                // Permite apagar o campo ou digitar 1-9
-                if (e.target.value === '' || /^[1-9]$/.test(e.target.value)) {
-                    // válido
-                } else {
-                    e.target.value = '';
+            let estaCompleto = true;
+            camposInput.forEach(campo => {
+                if (campo.value === '') {
+                    estaCompleto = false;
                 }
+                solucaoUsuarioStr += (campo.value || '0'); 
             });
 
-            cell.appendChild(input);
-            grid.appendChild(cell);
-        }
-
-        // Lógica para verificar a solução
-        checkButton.addEventListener('click', function() {
-            let userSolutionStr = '';
-            const inputs = grid.querySelectorAll('input');
-            
-            let isComplete = true;
-            inputs.forEach(input => {
-                if (input.value === '') {
-                    isComplete = false;
-                }
-                userSolutionStr += (input.value || '.'); // Usa '.' para células vazias
-            });
-
-            if (!isComplete) {
-                messageArea.textContent = 'Por favor, preencha todas as células.';
-                messageArea.style.color = 'red';
-                return;
+            if (!estaCompleto) {
+                areaMensagem.textContent = 'Por favor, preencha todas as células.';
+                areaMensagem.className = 'error';
             }
 
-            // Captura o tempo no momento do clique
-            let finalElapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+            let segundosPassadosFinal = Math.floor((Date.now() - inicioTempo) / 1000);
 
-            messageArea.textContent = 'Verificando...';
-            messageArea.style.color = '#333';
+            areaMensagem.textContent = 'Verificando...';
+            areaMensagem.className = '';
+            botaoVerificar.disabled = true;
 
-            // Envia para a view do Django
             fetch("{% url 'sudoku:check_solution' %}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
+                    'X-CSRFToken': tokenCSRF
                 },
                 body: JSON.stringify({
-                    'puzzle_id': puzzleId,
-                    'solution': userSolutionStr,
-                    'elapsed_seconds': finalElapsedSeconds // <-- Envia o tempo para o backend
+                    'puzzle_id': desafioId,
+                    'solution': solucaoUsuarioStr,
+                    'elapsed_seconds': segundosPassadosFinal
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Para o timer
-                    clearInterval(timerInterval);
-                    
-                    messageArea.textContent = 'Parabéns! Solução correta!';
-                    messageArea.style.color = 'green';
-                    
-                    // Desabilita o botão para evitar re-envio
-                    checkButton.disabled = true;
+            .then(resposta => resposta.json())
+            .then(dados => {
+                if (dados.success) {
+                    clearInterval(intervaloTimer);
+                    areaMensagem.textContent = 'Parabéns! Solução correta!';
+                    areaMensagem.className = 'success';
+                    botaoVerificar.disabled = true;
 
-                    if (data.next_level) {
+                    if (dados.next_level) {
                         alert('Correto! Você será redirecionado para o próximo nível.');
-                        window.location.href = `/sudoku/${data.next_level}/`;
+                        window.location.href = `/sudoku/${dados.next_level}/`;
                     } else {
                         alert('Você completou todos os desafios de hoje!');
                     }
                 } else {
-                    messageArea.textContent = data.message || 'Solução incorreta. Tente novamente!';
-                    messageArea.style.color = 'red';
+                    areaMensagem.textContent = dados.message || 'Solução incorreta. Tente novamente!';
+                    areaMensagem.className = 'error';
+                    botaoVerificar.disabled = false;
                 }
             })
-            .catch(error => {
-                messageArea.textContent = 'Erro ao verificar. Tente novamente.';
-                messageArea.style.color = 'red';
-                console.error('Error:', error);
+            .catch(erro => {
+                areaMensagem.textContent = 'Erro de comunicação. Tente novamente.';
+                areaMensagem.className = 'error';
+                botaoVerificar.disabled = false;
             });
         });
     });
-</script>
+    </script>
 {% endblock %}

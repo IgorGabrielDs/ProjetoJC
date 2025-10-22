@@ -8,7 +8,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = False #mudar quando estiver em dev / produção
+DEBUG = True #mudar quando estiver em dev / produção
 
 ALLOWED_HOSTS = ['jornaldocommercio.azurewebsites.net', '127.0.0.1', 'localhost']
 
@@ -119,3 +119,5 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 os.makedirs(MEDIA_ROOT, exist_ok=True)
+
+LOGIN_URL = 'login'
