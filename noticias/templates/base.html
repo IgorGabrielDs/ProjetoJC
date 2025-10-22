@@ -17,12 +17,12 @@
   top: 0;
   left: 0;
   right: 0;
-  background: #262626; /* fundo mais escuro */
+  background: #262626;
   color: #fff;
   height: 48px;
   display: flex;
   align-items: center;
-  z-index: 1200; /* por cima do nav e da barra lateral */
+  z-index: 1200;
   font-family: Arial, sans-serif;
 }
 
@@ -86,6 +86,14 @@
   opacity: 0.75;
 }
 
+.uol-icon img {
+  display: inline-block;
+  vertical-align: middle;
+  height: 18px;
+  width: auto;
+  margin-right: 4px;
+}
+
 /* Ajuste para não cobrir o conteúdo */
 body {
   padding-top: 48px;
@@ -101,7 +109,7 @@ body {
   background: #fff;
   box-shadow: 0 0 0 1px #e5e7eb, 0 10px 30px rgba(0,0,0,.12);
   transition: left .25s ease;
-  z-index: 1300; /* sobre o nav e a UOL bar */
+  z-index: 1300;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -281,9 +289,15 @@ body.no-scroll {
     </div>
 
     <div class="uol-right">
-      <a href="https://busca.uol.com.br" class="uol-icon"><span>🔍</span> BUSCA</a>
-      <a href="https://batepapo.uol.com.br/" class="uol-icon">💬 BATE-PAPO</a>
-      <a href="https://conta.uol.com.br/login?t=uol_webmail&env=visitante&dest=https://mail.uol.com.br/login/check_session" class="uol-icon">✉️ EMAIL</a>
+      <a href="https://busca.uol.com.br" class="uol-icon">
+        <img src="{% static 'noticias/img/lupa-uol.png' %}" alt="Buscar"> BUSCA
+      </a>
+      <a href="https://batepapo.uol.com.br/" class="uol-icon">
+        <img src="{% static 'noticias/img/carta-uol.png' %}" alt="Bate-papo"> BATE-PAPO
+      </a>
+      <a href="https://conta.uol.com.br/login?t=uol_webmail&env=visitante&dest=https://mail.uol.com.br/login/check_session" class="uol-icon">
+        <img src="{% static 'noticias/img/card-uol.png' %}" alt="Email"> EMAIL
+      </a>
     </div>
   </div>
 </div>
@@ -308,6 +322,7 @@ body.no-scroll {
 
   <div id="menu-overlay" class="menu-overlay" hidden></div>
 
+  <!-- ===== MENU LATERAL ===== -->
   <nav id="menu" class="menu" aria-hidden="true">
     <div class="menu-header">
       <img src="{% static 'noticias/img/logo-jc-pe.svg' %}" alt="JC" class="menu-logo" onerror="this.style.display='none'">
@@ -393,6 +408,7 @@ body.no-scroll {
 
     </ul>
   </nav>
+  <!-- ===== /MENU LATERAL ===== -->
 
   <main class="container">
     {% block content %}{% endblock %}
