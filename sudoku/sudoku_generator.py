@@ -61,7 +61,7 @@ class SudokuGenerator:
             self.board[r][c] = 0
 
     def get_boards_as_strings(self):
-        problem_str = "".join(str(c) if c != 0 else '.' for row in self.board for c in row)
+        problem_str = "".join(str(c) for row in self.board for c in row)
         solution_str = "".join(str(c) for row in self.solution for c in row)
         return problem_str, solution_str
 

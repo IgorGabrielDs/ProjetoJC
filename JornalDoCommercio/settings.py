@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "caca_links",
     'sudoku',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +58,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'JornalDoCommercio.wsgi.application'
 
+CRONJOBS = [
+    ('0 0 * * *', 'JornalDoCommercio.sudoku.tasks.gerar_sudokus_diarios', '>> /tmp/sudoku_cron.log 2>&1')
+]
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

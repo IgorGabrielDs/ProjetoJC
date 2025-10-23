@@ -15,7 +15,7 @@ def is_solution_valid(board_str):
     try:
         for i in range(0, 81, 9):
             row = [int(c) for c in board_str[i:i+9]]
-            if 0 in row:
+            if 0 in row: 
                 return False
             board.append(row)
     except ValueError:
@@ -28,10 +28,12 @@ def is_solution_valid(board_str):
         if has_duplicates(board[r]):
             return False
 
+
     for c in range(9):
         col = [board[r][c] for r in range(9)]
         if has_duplicates(col):
             return False
+
 
     for br in range(3):
         for bc in range(3):
@@ -53,13 +55,13 @@ def play_sudoku(request, difficulty):
     progress.check_and_reset_progress()
 
     if difficulty == 'medium' and not progress.completed_easy:
-        return redirect('play_sudoku', difficulty='easy')
+        return redirect('sudoku:play_sudoku', difficulty='easy') 
     
     if difficulty == 'difficult' and not (progress.completed_easy and progress.completed_medium):
         if not progress.completed_easy:
-            return redirect('play_sudoku', difficulty='easy')
+            return redirect('sudoku:play_sudoku', difficulty='easy') 
         else:
-            return redirect('play_sudoku', difficulty='medium')
+            return redirect('sudoku:play_sudoku', difficulty='medium') 
  
     try:
         puzzle = SudokuPuzzle.objects.get(date=today, difficulty=difficulty)
@@ -68,7 +70,7 @@ def play_sudoku(request, difficulty):
     
     context = {
         'puzzle': puzzle,
-        'problem_board_json': puzzle.problem_board,
+        'problem_board_json': puzzle.problem_board, 
         'difficulty': difficulty,
         'progress': progress,
     }
@@ -90,6 +92,10 @@ def check_solution(request):
         puzzle = get_object_or_404(SudokuPuzzle, id=puzzle_id)
 
         if is_solution_valid(user_solution_str):
+            
+            if user_solution_str != puzzle.solution_board:
+                return JsonResponse({'success': False, 'message': 'Solução incorreta. Tente novamente!'})
+                
             progress = UserSudokuProgress.objects.get(user=request.user)
             next_level = None
             
@@ -121,7 +127,7 @@ def check_solution(request):
             
             return JsonResponse({'success': True, 'next_level': next_level})
         else:
-            return JsonResponse({'success': False, 'message': 'Solução incorreta. Tente novamente!'})
+            return JsonResponse({'success': False, 'message': 'Solução incorreta ou incompleta. Tente novamente!'})
 
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
