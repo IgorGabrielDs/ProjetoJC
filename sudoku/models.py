@@ -10,8 +10,7 @@ class SudokuPuzzle(models.Model):
         ('difficult', 'Difícil'),
     ]
     
-
-    date = models.DateField(default=timezone.now().date) 
+    date = models.DateField(default=timezone.localdate) 
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES)
     
     problem_board = models.CharField(max_length=81)
@@ -26,7 +25,8 @@ class SudokuPuzzle(models.Model):
 
 class UserSudokuProgress(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="sudoku_progress")
-    last_puzzle_date = models.DateField(default=timezone.now().date)
+    
+    last_puzzle_date = models.DateField(default=timezone.localdate)
     completed_easy = models.BooleanField(default=False)
     completed_medium = models.BooleanField(default=False)
     completed_difficult = models.BooleanField(default=False)
@@ -39,7 +39,7 @@ class UserSudokuProgress(models.Model):
         return f"Progresso de {self.user.username}"
     
     def check_and_reset_progress(self):
-        today = timezone.now().date()
+        today = timezone.now().date() 
         if self.last_puzzle_date < today:
             self.last_puzzle_date = today
             self.completed_easy = False

@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "caca_links",
     'sudoku',
-    'django_crontab',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -58,9 +58,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'JornalDoCommercio.wsgi.application'
 
-CRONJOBS = [
-    ('0 0 * * *', 'JornalDoCommercio.sudoku.tasks.gerar_sudokus_diarios', '>> /tmp/sudoku_cron.log 2>&1')
-]
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+
+APSCHEDULER_RUN_MIGRATIONS = True
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

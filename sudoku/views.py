@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from .models import SudokuPuzzle, UserSudokuProgress
 import json
 import datetime
+from datetime import timedelta
 
 def is_solution_valid(board_str):
     if len(board_str) != 81 or not board_str.isdigit():
@@ -78,6 +79,8 @@ def play_sudoku(request, difficulty):
 
 @login_required
 @require_POST
+@login_required
+@require_POST
 def check_solution(request):
     try:
         data = json.loads(request.body)
@@ -93,41 +96,42 @@ def check_solution(request):
 
         if is_solution_valid(user_solution_str):
             
-            if user_solution_str != puzzle.solution_board:
-                return JsonResponse({'success': False, 'message': 'Solução incorreta. Tente novamente!'})
-                
             progress = UserSudokuProgress.objects.get(user=request.user)
-            next_level = None
+            progress.check_and_reset_progress() 
             
+            next_level = None
             completion_time = None
+            
             if elapsed_seconds is not None:
                 try:
+                    # NOTE: Certifique-se de que 'timedelta' foi importado de 'datetime'
                     completion_time = datetime.timedelta(seconds=int(elapsed_seconds))
                 except ValueError:
                     pass
 
-            if puzzle.difficulty == 'easy' and not progress.completed_easy:
-                progress.completed_easy = True
-                if completion_time:
-                    progress.easy_completion_time = completion_time
-                next_level = 'medium'
-                
-            elif puzzle.difficulty == 'medium' and not progress.completed_medium:
-                progress.completed_medium = True
-                if completion_time:
-                    progress.medium_completion_time = completion_time
-                next_level = 'difficult'
-                
-            elif puzzle.difficulty == 'difficult' and not progress.completed_difficult:
-                progress.completed_difficult = True
-                if completion_time:
-                    progress.difficult_completion_time = completion_time
+            difficulty = puzzle.difficulty
+            completed_attr = f'completed_{difficulty}'
+            time_attr = f'{difficulty}_completion_time'
+
+            if not getattr(progress, completed_attr):
             
-            progress.save()
+                setattr(progress, completed_attr, True)
             
-            return JsonResponse({'success': True, 'next_level': next_level})
+                if completion_time:
+                    setattr(progress, time_attr, completion_time)
+                
+                if difficulty == 'easy':
+                    next_level = 'medium'
+                elif difficulty == 'medium':
+                    next_level = 'difficult'
+                
+                progress.save()
+                
+                return JsonResponse({'success': True, 'next_level': next_level})
+            else:
+                return JsonResponse({'success': False, 'message': 'Puzzle já completado hoje.'})
         else:
-            return JsonResponse({'success': False, 'message': 'Solução incorreta ou incompleta. Tente novamente!'})
+            return JsonResponse({'success': False, 'message': 'Solução incorreta pelas regras do Sudoku.'})
 
     except Exception as e:
-        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+        return JsonResponse({'success': False, 'message': f'Erro interno: {str(e)}'}, status=500)
