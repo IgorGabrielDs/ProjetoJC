@@ -104,7 +104,6 @@ def check_solution(request):
             
             if elapsed_seconds is not None:
                 try:
-                    # NOTE: Certifique-se de que 'timedelta' foi importado de 'datetime'
                     completion_time = datetime.timedelta(seconds=int(elapsed_seconds))
                 except ValueError:
                     pass
