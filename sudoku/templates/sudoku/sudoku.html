@@ -166,7 +166,7 @@
     <div id="message-area"></div>
 
     {{ puzzle.id|json_script:"puzzle-id" }}
-    {{ problem_board_json|json_script:"problem-board" }}
+    <span id="problem-board" style="display: none;">{{ problem_board_string }}</span>
 
 </div>
 {% endblock %}
@@ -179,7 +179,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const grade = document.getElementById('sudoku-grid');
         
-        const tabuleiroProblema = JSON.parse(document.getElementById('problem-board').textContent);
+        const tabuleiroProblema = document.getElementById('problem-board').textContent.trim();
         const desafioId = JSON.parse(document.getElementById('puzzle-id').textContent);
         const botaoVerificar = document.getElementById('check-button');
         const areaMensagem = document.getElementById('message-area');

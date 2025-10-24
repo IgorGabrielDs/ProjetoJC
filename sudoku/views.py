@@ -1,3 +1,5 @@
+# sudoku/views.py (REMOVIDO json.dumps para corrigir a aspas)
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseBadRequest
@@ -5,37 +7,43 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from .models import SudokuPuzzle, UserSudokuProgress
 import json
-import datetime
 from datetime import timedelta
 
 def is_solution_valid(board_str):
+    """
+    Verifica se a string de 81 caracteres (submetida pelo usuário) é uma solução válida.
+    """
     if len(board_str) != 81 or not board_str.isdigit():
         return False
 
+    # 1. Checa se há zeros (células vazias): Não pode haver para uma solução final.
+    if '0' in board_str: 
+        return False
+             
     board = []
     try:
         for i in range(0, 81, 9):
             row = [int(c) for c in board_str[i:i+9]]
-            if 0 in row: 
-                return False
             board.append(row)
     except ValueError:
         return False
 
     def has_duplicates(block):
+        """Verifica se há repetição em um bloco de 9 números (1-9)."""
         return len(set(block)) != 9
 
+    # 2. Checagem de Linhas
     for r in range(9):
         if has_duplicates(board[r]):
             return False
 
-
+    # 3. Checagem de Colunas
     for c in range(9):
         col = [board[r][c] for r in range(9)]
         if has_duplicates(col):
             return False
 
-
+    # 4. Checagem de Blocos 3x3
     for br in range(3):
         for bc in range(3):
             block = []
@@ -49,10 +57,9 @@ def is_solution_valid(board_str):
 
 @login_required
 def play_sudoku(request, difficulty):
-    today = timezone.now().date()
+    today = timezone.localdate()
     
     progress, created = UserSudokuProgress.objects.get_or_create(user=request.user)
-    
     progress.check_and_reset_progress()
 
     if difficulty == 'medium' and not progress.completed_easy:
@@ -63,22 +70,21 @@ def play_sudoku(request, difficulty):
             return redirect('sudoku:play_sudoku', difficulty='easy') 
         else:
             return redirect('sudoku:play_sudoku', difficulty='medium') 
- 
+
     try:
         puzzle = SudokuPuzzle.objects.get(date=today, difficulty=difficulty)
     except SudokuPuzzle.DoesNotExist:
-        return render(request, 'sudoku/sudoku_error.html', {'message': 'O puzzle de hoje ainda não foi gerado. Avise a administração.'})
+        return render(request, 'sudoku/sudoku_error.html', {'message': 'O puzzle de hoje ainda não foi gerado.'})
     
     context = {
         'puzzle': puzzle,
-        'problem_board_json': puzzle.problem_board, 
+        # CORREÇÃO CRÍTICA: Passa a string diretamente (sem json.dumps)
+        'problem_board_string': puzzle.problem_board, 
         'difficulty': difficulty,
         'progress': progress,
     }
     return render(request, 'sudoku/sudoku.html', context)
 
-@login_required
-@require_POST
 @login_required
 @require_POST
 def check_solution(request):
@@ -104,7 +110,7 @@ def check_solution(request):
             
             if elapsed_seconds is not None:
                 try:
-                    completion_time = datetime.timedelta(seconds=int(elapsed_seconds))
+                    completion_time = timedelta(seconds=int(elapsed_seconds))
                 except ValueError:
                     pass
 

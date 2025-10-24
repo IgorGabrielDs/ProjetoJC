@@ -45,7 +45,7 @@ class UserSudokuProgress(models.Model):
             self.completed_easy = False
             self.completed_medium = False
             self.completed_difficult = False
-       
+        
             self.easy_completion_time = None
             self.medium_completion_time = None
             self.difficult_completion_time = None

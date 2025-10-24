@@ -1,7 +1,8 @@
-# sudoku/apps.py
-
 from django.apps import AppConfig
+from django.conf import settings
 import logging
+import sys
+import os 
 
 logger = logging.getLogger(__name__)
 
@@ -10,33 +11,19 @@ class SudokuConfig(AppConfig):
     name = 'sudoku'
 
     def ready(self):
-        from django_apscheduler.jobstores import DjangoJobStore
-        from django_apscheduler import util
-        from apscheduler.schedulers.background import BackgroundScheduler
-        from .tasks import gerar_sudokus_diarios
-        from django.conf import settings
-
-        if settings.DEBUG:
-            
-            logger.info("APSScheduler desabilitado em modo DEBUG.")
-            return 
+        is_running_server = 'runserver' in sys.argv
         
-        try:
-            scheduler = BackgroundScheduler(timezone=settings.TIME_ZONE)
-            scheduler.add_jobstore(DjangoJobStore(), "default")
+        is_reloader_process = os.environ.get('RUN_MAIN') != 'true'
+        if is_running_server and not is_reloader_process:
             
-            scheduler.add_job(
-                gerar_sudokus_diarios,
-                trigger="cron",
-                hour=0,
-                minute=0,
-                id="sudoku_geracao_diaria",  
-                max_instances=1, 
-                replace_existing=True,
-                misfire_grace_time=3600 
-            )
-            scheduler.start()
-            logger.info("APSScheduler iniciado e Sudoku job agendado.")
+            from .tasks import start_scheduler 
 
-        except Exception as e:
-            logger.error(f"Erro ao iniciar o APScheduler: {e}")
+            if settings.DEBUG:
+                logger.info("APSScheduler: Iniciando no processo principal (Modo DEBUG).")
+            
+            try:
+                start_scheduler()
+            except Exception as e:
+                logger.error(f"Falha CRÍTICA ao iniciar o APScheduler: {e}")
+        else:
+            logger.info("APSScheduler: Não iniciado (Processo de recarregamento ou comando de gerenciamento).")
