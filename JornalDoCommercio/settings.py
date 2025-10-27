@@ -125,4 +125,11 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 os.makedirs(MEDIA_ROOT, exist_ok=True)
 
-LOGIN_URL = 'login'
+AUTHENTICATION_BACKENDS = [
+    "noticias.backends.EmailOrUsernameModelBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"    
