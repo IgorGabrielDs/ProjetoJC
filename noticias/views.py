@@ -8,11 +8,13 @@ from django.contrib.auth import authenticate, login as auth_login, get_user_mode
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.db.models import Sum, Exists, OuterRef, Value, BooleanField, F
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django.apps import apps
 
 from django.conf import settings
 from .models import Noticia, Voto, Assunto, Salvo
@@ -32,6 +34,7 @@ def _annotate_is_saved(qs, user):
         )
     return qs.annotate(is_saved=Value(False, output_field=BooleanField()))
 
+
 def _split_full_name(full_name: str):
     parts = [p for p in (full_name or "").strip().split() if p]
     if not parts:
@@ -39,6 +42,23 @@ def _split_full_name(full_name: str):
     first = parts[0]
     last = " ".join(parts[1:]) if len(parts) > 1 else ""
     return first, last
+
+
+def _perfil_model_or_none():
+    """
+    Retorna o model Perfil se existir (no app atual ou em outro),
+    senão retorna None. Evita import circular/erros em ambientes
+    onde Perfil ainda não foi criado.
+    """
+    # tenta local (noticias.Perfil)
+    for label in ("noticias.Perfil", "usuarios.Perfil", "accounts.Perfil"):
+        try:
+            app_label, model_name = label.split(".")
+            return apps.get_model(app_label, model_name)
+        except Exception:
+            continue
+    return None
+
 
 # =======================
 # HOME
@@ -61,7 +81,10 @@ def index(request):
         noticias = noticias.filter(criado_em__gte=since)
 
     if sort == "populares":
-        noticias = noticias.annotate(score=Sum("votos__valor")).order_by("-score", "-criado_em")
+        # Coalesce para evitar NULL no SUM; score secundário por criado_em
+        noticias = noticias.annotate(
+            score=Coalesce(Sum("votos__valor"), Value(0))
+        ).order_by("-score", "-criado_em")
     else:
         noticias = noticias.order_by("-criado_em")
 
@@ -73,7 +96,10 @@ def index(request):
     # 1) Destaques (com fallback caso não haja imagem)
     destaques_qs = (
         all_qs.filter(imagem__isnull=False)
-        .annotate(score_calculado=Sum("votos__valor", default=0) + (F("visualizacoes") * 0.01))
+        .annotate(
+            score_calculado=Coalesce(Sum("votos__valor"), Value(0))
+            + (F("visualizacoes") * Value(0.01))
+        )
         .order_by("-score_calculado", "-criado_em")
     )
     destaques = _annotate_is_saved(destaques_qs, request.user)[:3]
@@ -152,7 +178,10 @@ def index(request):
         inicio = hoje - timedelta(days=6)
         top3_qs = (
             Noticia.objects.filter(criado_em__date__gte=inicio)
-            .annotate(score_calculado=Sum("votos__valor", default=0) + (F("visualizacoes") * 0.01))
+            .annotate(
+                score_calculado=Coalesce(Sum("votos__valor"), Value(0))
+                + (F("visualizacoes") * Value(0.01))
+            )
             .order_by("-score_calculado", "-criado_em")[:3]
         )
         top3 = list(top3_qs)
@@ -182,6 +211,7 @@ def index(request):
         "welcome_next": welcome_next,
     }
     return render(request, "noticias/index.html", ctx)
+
 
 # =======================
 # DETALHE
@@ -225,6 +255,7 @@ def noticia_detalhe(request, pk):
         "relacionadas": relacionadas,
     }
     return render(request, "noticias/detalhe.html", ctx)
+
 
 # =======================
 # VOTO (AJAX)
@@ -275,6 +306,7 @@ def votar(request, pk):
 
     return redirect("noticias:noticia_detalhe", pk=pk)
 
+
 # =======================
 # SALVOS
 # =======================
@@ -286,6 +318,7 @@ def minhas_salvas(request):
         .distinct()
     )
     return render(request, "noticias/noticias_salvas.html", {"noticias": noticias})
+
 
 @login_required
 @require_http_methods(["POST"])
@@ -310,9 +343,10 @@ def toggle_salvo(request, pk):
     messages.success(request, msg)
     return redirect("noticias:noticia_detalhe", pk=pk)
 
-# =======================  
-# SIGNUP (custom)  
-# =======================  
+
+# =======================
+# SIGNUP (custom)
+# =======================
 @require_http_methods(["GET", "POST"])
 def signup(request):
     """
@@ -385,13 +419,14 @@ def signup(request):
         )
 
         # opcional: salvar DOB em Perfil, se existir
-        try:
-            from .models import Perfil
-            Perfil.objects.update_or_create(
-                user=user, defaults={"data_nascimento": data_nascimento}
-            )
-        except Exception:
-            pass  # não quebra o fluxo
+        Perfil = _perfil_model_or_none()
+        if Perfil is not None:
+            try:
+                Perfil.objects.update_or_create(
+                    user=user, defaults={"data_nascimento": data_nascimento or None}
+                )
+            except Exception as e:
+                logger.warning("Falha ao atualizar/criar Perfil: %s", e)
 
         # login automático
         user = authenticate(username=username, password=password1)
@@ -409,6 +444,7 @@ def signup(request):
 
     return render(request, "registration/signup.html", {"next": next_url})
 
+
 # =======================
 # RESUMO (Gemini)
 # =======================
@@ -416,7 +452,7 @@ def signup(request):
 def resumir_noticia(request, pk):
     api_key = getattr(settings, "GEMINI_API_KEY", "")
     if not api_key:
-        return JsonResponse({"error": "Chave da API não encontrada."}, status=500)
+        return JsonResponse({"error": "Chave da API GEMINI_API_KEY não configurada no ambiente."}, status=500)
 
     noticia = get_object_or_404(Noticia, pk=pk)
 
@@ -424,19 +460,23 @@ def resumir_noticia(request, pk):
     # A UX de "texto curto demais" é tratada no front (botão desabilitado/tooltip)
     # e já coberta pelo teste de detalhe. Aqui seguimos com a geração.
 
-    import google.generativeai as genai
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-flash-latest")
-
-    prompt = f"""
-    Você é um assistente de jornalismo. Resuma a notícia abaixo de forma clara, objetiva e em português:
-    <noticia>
-    Título: {noticia.titulo}
-    Conteúdo: {noticia.conteudo}
-    </noticia>
-    """
+    try:
+        import google.generativeai as genai
+    except Exception:
+        return JsonResponse({"error": "Biblioteca google-generativeai não está instalada."}, status=500)
 
     try:
+        genai.configure(api_key=api_key) #type: ignore
+        model = genai.GenerativeModel("gemini-flash-latest") #type: ignore
+
+        prompt = f"""
+        Você é um assistente de jornalismo. Resuma a notícia abaixo de forma clara, objetiva e em português:
+        <noticia>
+        Título: {noticia.titulo}
+        Conteúdo: {noticia.conteudo}
+        </noticia>
+        """
+
         response = model.generate_content(prompt)
         resumo = (getattr(response, "text", "") or "").strip()
         if resumo:
@@ -444,4 +484,6 @@ def resumir_noticia(request, pk):
             noticia.save(update_fields=["resumo"])
         return JsonResponse({"resumo": resumo})
     except Exception as e:
+        # Loga no servidor e devolve causa visível no JSON
+        logger.exception("Erro ao resumir notícia %s: %s", pk, e)
         return JsonResponse({"error": f"Erro ao conectar com a API: {e}"}, status=500)
