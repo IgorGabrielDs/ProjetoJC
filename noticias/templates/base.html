@@ -135,6 +135,15 @@
   <!-- ===== /MENU LATERAL ===== -->
 
   <main class="container">
+    {# ==== FLASH MESSAGES (Django messages) ==== #}
+    {% if messages %}
+      <div class="flash-wrap" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="flash {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
   </main>
 
