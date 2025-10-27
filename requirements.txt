@@ -17,6 +17,7 @@ django-apscheduler
 
 google-generativeai
 
-django-apscheduler
-APScheduler
+pytz
 tzlocal
+APScheduler
+django-apscheduler
