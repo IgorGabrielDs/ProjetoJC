@@ -24,8 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "caca_links",
-    'sudoku',
     'django_apscheduler',
+    "sudoku",
 ]
 
 MIDDLEWARE = [
