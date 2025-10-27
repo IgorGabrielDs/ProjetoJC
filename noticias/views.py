@@ -410,7 +410,7 @@ def signup(request):
 
         # cria usuário
         first_name, last_name = _split_full_name(nome)
-        user = User.objects.create_user(
+        user = User.objects.create_user( # type: ignore
             username=username,
             email=email,
             password=password1,
