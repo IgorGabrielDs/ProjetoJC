@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, views_auth
 
 app_name = "noticias"
 
@@ -11,4 +11,7 @@ urlpatterns = [
     path("minhas-salvas/", views.minhas_salvas, name="minhas_salvas"),
     path("signup/", views.signup, name="signup"),
     path("noticia/<int:pk>/resumir/", views.resumir_noticia, name="resumir_noticia"),
+    path("accounts/password/reset/", views_auth.request_reset_code, name="password_reset"),
+    path("accounts/password/code/",  views_auth.verify_reset_code,   name="password_reset_code"),
+    path("accounts/password/new/",   views_auth.set_new_password,    name="password_reset_new"),
 ]
