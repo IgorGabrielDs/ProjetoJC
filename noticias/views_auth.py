@@ -60,7 +60,8 @@ def request_reset_code(request):
                 )
             request.session["pwd_reset_email"] = email
             messages.success(request, "Enviamos um código de 6 dígitos para o seu e-mail, se ele existir.")
-            return redirect("password_reset_code")
+            # 🔧 namespace 'noticias:'
+            return redirect("noticias:password_reset_code")
     else:
         form = ResetEmailForm()
     return render(request, "registration/password_reset_form.html", {"form": form})
@@ -69,7 +70,7 @@ def verify_reset_code(request):
     # Passo 2 — valida código de 6 dígitos
     email = request.session.get("pwd_reset_email")
     if not email:
-        return redirect("password_reset")
+        return redirect("noticias:password_reset")
 
     bundle = _get_code_bundle(email)
 
@@ -80,12 +81,12 @@ def verify_reset_code(request):
             if not bundle or timezone.now() > bundle["expires_at"]:
                 _clear_code(email)
                 messages.error(request, "Código expirado. Peça um novo.")
-                return redirect("password_reset")
+                return redirect("noticias:password_reset")
             if code != bundle["code"]:
                 messages.error(request, "Código inválido. Tente novamente.")
                 return render(request, "registration/password_reset_code.html", {"form": form, "email": email})
             request.session["pwd_reset_verified"] = True
-            return redirect("password_reset_new")
+            return redirect("noticias:password_reset_new")
     else:
         form = CodeForm()
     return render(request, "registration/password_reset_code.html", {"form": form, "email": email})
@@ -95,12 +96,12 @@ def set_new_password(request):
     email = request.session.get("pwd_reset_email")
     verified = request.session.get("pwd_reset_verified")
     if not (email and verified):
-        return redirect("password_reset")
+        return redirect("noticias:password_reset")
 
     try:
         user = User.objects.get(email__iexact=email)
     except User.DoesNotExist:
-        return redirect("password_reset")
+        return redirect("noticias:password_reset")
 
     if request.method == "POST":
         form = SetPasswordForm(user, request.POST)

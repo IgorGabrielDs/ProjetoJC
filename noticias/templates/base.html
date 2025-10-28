@@ -1,307 +1,55 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}JC{% endblock %}</title>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
+  <link rel="stylesheet" href="{% static 'noticias/css/menu.css' %}">
   <meta name="csrf-token" content="{{ csrf_token }}">
   {% block extra_head %}{% endblock %}
-
-  <!-- ===== CSS CRÍTICO (fallback se o menu.css não carregar) ===== -->
-  <style>
-    /* ===== BARRA UOL ===== */
-.uol-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: #262626;
-  color: #fff;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  z-index: 1200;
-  font-family: Arial, sans-serif;
-}
-
-.uol-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 0 16px;
-}
-
-.uol-left {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
-
-.uol-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 48px;
-}
-
-.uol-logo img {
-  display: block;
-  height: 60px;
-}
-
-.uol-nav a {
-  color: #fff;
-  font-size: 0.9rem;
-  text-decoration: none;
-  margin-right: 16px;
-  transition: opacity 0.2s;
-}
-
-.uol-nav a:hover {
-  opacity: 0.75;
-}
-
-.uol-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.uol-icon {
-  color: #fff;
-  text-decoration: none;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: opacity 0.2s;
-}
-
-.uol-icon:hover {
-  opacity: 0.75;
-}
-
-.uol-icon img {
-  display: inline-block;
-  vertical-align: middle;
-  height: 18px;
-  width: auto;
-  margin-right: 4px;
-}
-
-/* Ajuste para não cobrir o conteúdo */
-body {
-  padding-top: 48px;
-}
-/* ===== /BARRA UOL ===== */
-
-.menu {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: -320px;
-  width: 320px;
-  background: #fff;
-  box-shadow: 0 0 0 1px #e5e7eb, 0 10px 30px rgba(0,0,0,.12);
-  transition: left .25s ease;
-  z-index: 1300;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.menu.is-open {
-  left: 0;
-}
-
-.menu-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.45);
-  z-index: 1250;
-}
-
-body.no-scroll {
-  overflow: hidden;
-}
-
-.menu-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  background: #2C65C8;
-  color: #fff;
-}
-
-.menu-logo {
-  height: 28px;
-}
-
-.menu-close {
-  background: transparent;
-  border: 0;
-  color: #fff;
-  font-size: 22px;
-  cursor: pointer;
-}
-
-.menu-user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.menu-user .avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #e5e7eb;
-}
-
-.menu-user .user-name {
-  font-weight: 600;
-  margin: 0;
-}
-
-.menu-links {
-  list-style: none;
-  margin: 0;
-  padding: 8px 0 32px;
-}
-
-.menu-links>li {
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.menu a {
-  display: block;
-  text-decoration: none;
-  color: #111827;
-  padding: 14px 16px;
-  font-weight: 500;
-}
-
-.dropdown .drop-btn {
-  width: 100%;
-  text-align: left;
-  padding: 14px 16px;
-  background: #fff;
-  border: 0;
-  font: inherit;
-  color: #111827;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-}
-
-.dropdown .drop-btn::after {
-  content: "▾";
-  transition: transform .2s ease;
-  font-size: .9rem;
-  opacity: .8;
-}
-
-.dropdown.open .drop-btn::after {
-  transform: rotate(-180deg);
-}
-
-.submenu {
-  list-style: none;
-  margin: 0;
-  padding: 0 0 8px 0;
-  display: none;
-}
-
-.dropdown.open .submenu {
-  display: block;
-}
-
-.submenu a {
-  padding: 10px 20px 10px 28px;
-  color: #374151;
-  font-weight: 500;
-}
-
-.submenu a:hover {
-  background: #f3f4f6;
-}
-
-.topbar {
-  background: #000;
-  color: #fff;
-  font-size: .85rem;
-  text-align: center;
-  padding: 6px 0;
-}
-
-.icon-btn {
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  border-radius: 999px;
-  padding: 6px 10px;
-  cursor: pointer;
-}
-
-.header .container.row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: 1140px;
-  margin: 0 auto;
-  padding: 10px 16px;
-}
-
-@media (min-width:1024px){
-  .menu {
-    width: 360px;
-    left: -360px;
-  }
-}
-  </style>
-  <!-- ===== /CSS CRÍTICO ===== -->
 </head>
+
 <body>
   <!-- ===== BARRA UOL ===== -->
-<div class="uol-bar">
-  <div class="uol-container">
-    <div class="uol-left">
-       <a href="https://www.uol.com.br/" class="uol-logo" aria-label="UOL">
+  <div class="uol-bar">
+    <div class="uol-container">
+      <div class="uol-left">
+        <a href="https://www.uol.com.br/" class="uol-logo" aria-label="UOL">
           <img src="{% static 'noticias/img/logo-uol.png' %}" alt="UOL">
-      </a>
+        </a>
 
-      <nav class="uol-nav">
-        <a href="https://www.ingresso.com/?utm_source=uol-parceiros&utm_medium=barrauol&utm_campaign=linkfixo_barrauol&utm_content=barrauol-link-ingressocom&utm_term=barrauol-ingressocom" target="_blank">INGRESSO.COM</a>
-        <a href="https://uolhost.uol.com.br/?utm_source=midia-interna&utm_medium=barra_uol&utm_campaign=link_fixo_host&utm_content=parceiro" target="_blank">UOL HOST</a>
-        <a href="https://pagbank.com.br/?af_force_deeplink=true&pid=midia-interna&utm_content=parceiros&utm_source=appsflyer-midia-interna&utm_medium=uol&af_adset=parceiros&utm_campaign=26052023_uol_linkfixo&af_channel=uol&c=26052023_uol_linkfixo" target="_blank">PAGBANK</a>
-        <a href="https://www.portaleducacao.com.br/cursos?utm_source=uol&utm_medium=header-menu&utm_campaign=cursos" target="_blank">CURSOS</a>
-        <a href="https://play.uol.com.br/?utm_source=jc.uol.com.br&utm_medium=barrauol&utm_campaign=linkfixo_barrauol&utm_term=barrauol-uolplay&utm_content=barrauol#rmcl" target="_blank">UOL PLAY</a>
-        <a href="https://ads.uol.com.br/?utm_source=midia-interna&utm_medium=barra_uol&utm_campaign=link_fixo_ads_uol&utm_content=parceiro" target="_blank">UOL ADS</a>
-      </nav>
-    </div>
+        <nav class="uol-nav">
+          <a href="https://www.ingresso.com/" target="_blank">INGRESSO.COM</a>
+          <a href="https://uolhost.uol.com.br/" target="_blank">UOL HOST</a>
+          <a href="https://pagbank.com.br/" target="_blank">PAGBANK</a>
+          <a href="https://www.portaleducacao.com.br/" target="_blank">CURSOS</a>
+          <a href="https://play.uol.com.br/" target="_blank">UOL PLAY</a>
+          <a href="https://ads.uol.com.br/" target="_blank">UOL ADS</a>
+        </nav>
+      </div>
 
-    <div class="uol-right">
-      <a href="https://busca.uol.com.br" class="uol-icon">
-        <img src="{% static 'noticias/img/lupa-uol.png' %}" alt="Buscar"> BUSCA
-      </a>
-      <a href="https://batepapo.uol.com.br/" class="uol-icon">
-        <img src="{% static 'noticias/img/carta-uol.png' %}" alt="Bate-papo"> BATE-PAPO
-      </a>
-      <a href="https://conta.uol.com.br/login?t=uol_webmail&env=visitante&dest=https://mail.uol.com.br/login/check_session" class="uol-icon">
-        <img src="{% static 'noticias/img/card-uol.png' %}" alt="Email"> EMAIL
-      </a>
+      <div class="uol-right">
+        <a href="https://busca.uol.com.br" class="uol-icon">
+          <img src="{% static 'noticias/img/lupa-uol.png' %}" alt="Buscar">
+          <span>BUSCA</span>
+        </a>
+        <a href="https://batepapo.uol.com.br/" class="uol-icon">
+          <img src="{% static 'noticias/img/carta-uol.png' %}" alt="Bate-papo">
+          <span>BATE-PAPO</span>
+        </a>
+        <a href="https://conta.uol.com.br/login" class="uol-icon">
+          <img src="{% static 'noticias/img/card-uol.png' %}" alt="Email">
+          <span>EMAIL</span>
+        </a>
+      </div>
     </div>
   </div>
-</div>
-<!-- ===== /BARRA UOL ===== -->
+  <!-- ===== /BARRA UOL ===== -->
 
   <header class="header">
     <div class="container row">
@@ -324,32 +72,29 @@ body.no-scroll {
 
   <!-- ===== MENU LATERAL ===== -->
   <nav id="menu" class="menu" aria-hidden="true">
-    <div class="menu-header">
-      <img src="{% static 'noticias/img/logo-jc-pe.svg' %}" alt="JC" class="menu-logo" onerror="this.style.display='none'">
+    <div class="menu-top">
+      <img src="{% static 'noticias/img/logo-jc-pe.svg' %}" alt="JC" class="menu-logo">
       <button id="menu-close" class="menu-close" aria-label="Fechar menu">✕</button>
     </div>
 
     <div class="menu-user">
-      <div class="avatar" aria-hidden="true"></div>
       {% if user.is_authenticated %}
+        <div class="menu-user-icons">
+          <span class="edit-icon">✎</span>
+          <div class="avatar"></div>
+          <span class="logout-icon">⎋</span>
+        </div>
         <p class="user-name">{{ user.get_full_name|default:user.username }}</p>
       {% else %}
-        <p class="user-name">Visitante</p>
+        <a href="{% url 'login' %}" class="login-btn">Login</a>
       {% endif %}
     </div>
 
     <ul class="menu-links">
-
-      <li class="dropdown">
+      <li class="dropdown active">
         <button class="drop-btn" aria-expanded="false">AO VIVO</button>
-        <ul class="submenu">
-          <li><a href="#">Faltou</a></li>
-          <li><a href="#">no Wireframe</a></li>
-        </ul>
       </li>
-
       <li><a href="#">Jornal Digital</a></li>
-
       <li class="dropdown">
         <button class="drop-btn" aria-expanded="false">Jogos</button>
         <ul class="submenu">
@@ -357,60 +102,48 @@ body.no-scroll {
           <li><a href="#">Sudoku</a></li>
         </ul>
       </li>
-
       <li><a href="#">Últimas</a></li>
-
       <li class="dropdown">
         <button class="drop-btn" aria-expanded="false">Conteúdos</button>
         <ul class="submenu">
           <li><a href="#">Cultura</a></li>
           <li><a href="#">Economia</a></li>
-          <li><a href="#">Enem e Educação</a></li>
-          <li><a href="#">Interior</a></li>
-          <li><a href="#">Mobilidade</a></li>
-          <li><a href="#">Mundo</a></li>
-          <li><a href="#">Opinião</a></li>
-          <li><a href="#">Pernambuco</a></li>
-          <li><a href="#">Política</a></li>
-          <li><a href="#">Publicidade Legal</a></li>
-          <li><a href="#">Recall de Marca</a></li>
-          <li><a href="#">Saúde e Bem-Estar</a></li>
-          <li><a href="#">Segurança</a></li>
+          <li><a href="#">Educação</a></li>
         </ul>
       </li>
-
       <li><a href="#">Colunistas</a></li>
-
       <li class="dropdown">
         <button class="drop-btn" aria-expanded="false">Nossos Produtos</button>
         <ul class="submenu">
           <li><a href="#">Produto 1</a></li>
-          <li><a href="#">Produto 2</a></li>
         </ul>
       </li>
-
       <li class="dropdown">
         <button class="drop-btn" aria-expanded="false">Institucionais</button>
         <ul class="submenu">
           <li><a href="#">Sobre</a></li>
-          <li><a href="#">Contato</a></li>
         </ul>
       </li>
-
       <li class="dropdown">
         <button class="drop-btn" aria-expanded="false">Serviços</button>
         <ul class="submenu">
-          <li><a href="#">Notícias pelo WhatsApp</a></li>
-          <li><a href="#">Newsletter JC</a></li>
-          <li><a href="#">Anuncie conosco</a></li>
+          <li><a href="#">Anuncie</a></li>
         </ul>
       </li>
-
     </ul>
   </nav>
   <!-- ===== /MENU LATERAL ===== -->
 
   <main class="container">
+    {# ==== FLASH MESSAGES (Django messages) ==== #}
+    {% if messages %}
+      <div class="flash-wrap" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="flash {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
   </main>
 
@@ -418,102 +151,9 @@ body.no-scroll {
     <p class="caption" style="text-align:center">© JC Pernambuco</p>
   </footer>
 
-  {% url 'caca_links:escolher_tema' as caca_url %}
-  <div id="welcomeModal"
-       class="modal{% if show_welcome %} is-open{% endif %}"
-       aria-hidden="{% if show_welcome %}false{% else %}true{% endif %}">
-    <div class="modal__backdrop" data-close-modal></div>
-
-    <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
-      <button class="modal__close" id="welcomeClose" aria-label="Fechar">×</button>
-
-      <div class="modal__avatar" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="64" height="64">
-          <path d="M20 21a8 8 0 0 0-16 0"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-      </div>
-
-      <h2 id="welcome-title" class="modal__title">
-        {% if welcome_name %}
-          Olá, {{ welcome_name }}! Seja bem-vindo(a)!
-        {% elif user.is_authenticated %}
-          Olá, {{ user.get_full_name|default:user.username }}! Seja bem-vindo(a)!
-        {% else %}
-          Olá, Leitor(a)! Seja bem-vindo(a)!
-        {% endif %}
-      </h2>
-
-      <p class="modal__subtitle">Deseja personalizar sua experiência JC?</p>
-
-      <div class="modal__actions">
-        <a id="welcomeLater" class="modal__btn" href="{% url 'noticias:index' %}">Agora não</a>
-        <a class="modal_btn modal_btn--primary" href="{{ caca_url|default:'/caca-links/' }}">Sim! Vamos lá.</a>
-      </div>
-
-      <div class="modal__back">
-        <a href="{% url 'noticias:index' %}">‹ Voltar</a>
-      </div>
-    </div>
-  </div>
-
   {% block extra_js %}
-    <script src="{% static 'noticias/js/jc.js' %}"></script>
-    <script src="{% static 'noticias/js/menu.js' %}"></script>
-
-    <script>
-    (function () {
-      const menu = document.getElementById('menu');
-      const toggleBtn = document.getElementById('menu-toggle');
-      const closeBtn = document.getElementById('menu-close');
-      const overlay = document.getElementById('menu-overlay');
-      if (!menu || !toggleBtn || !overlay) return;
-
-      function openMenu(){
-        menu.classList.add('is-open');
-        menu.setAttribute('aria-hidden','false');
-        toggleBtn.setAttribute('aria-expanded','true');
-        overlay.hidden = false;
-        document.body.classList.add('no-scroll');
-      }
-      function closeMenu(){
-        menu.classList.remove('is-open');
-        menu.setAttribute('aria-hidden','true');
-        toggleBtn.setAttribute('aria-expanded','false');
-        overlay.hidden = true;
-        document.body.classList.remove('no-scroll');
-      }
-
-      toggleBtn.addEventListener('click', openMenu);
-      closeBtn?.addEventListener('click', closeMenu);
-      overlay.addEventListener('click', closeMenu);
-      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeMenu(); });
-
-      function closeAllExcept(exceptLi){
-        document.querySelectorAll('#menu .dropdown').forEach(li=>{
-          if(li!==exceptLi){
-            li.classList.remove('open');
-            li.querySelector('.drop-btn')?.setAttribute('aria-expanded','false');
-          }
-        });
-      }
-      document.querySelectorAll('#menu .dropdown .drop-btn').forEach(btn=>{
-        btn.addEventListener('click',()=>{
-          const li = btn.closest('.dropdown');
-          const isOpen = li.classList.contains('open');
-          if(isOpen){
-            li.classList.remove('open');
-            btn.setAttribute('aria-expanded','false');
-          } else {
-            closeAllExcept(li);
-            li.classList.add('open');
-            btn.setAttribute('aria-expanded','true');
-          }
-        });
-      });
-    })();
-    </script>
+  <script src="{% static 'noticias/js/jc.js' %}"></script>
+  <script src="{% static 'noticias/js/menu.js' %}"></script>
   {% endblock %}
 </body>
 </html>

@@ -8,7 +8,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = True #mudar quando estiver em dev / produção
+DEBUG = False #mudar quando estiver em dev / produção
 
 ALLOWED_HOSTS = ['jornaldocommercio.azurewebsites.net', '127.0.0.1', 'localhost']
 
@@ -24,7 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "caca_links",
-    'sudoku',
+    'django_apscheduler',
+    "sudoku",
 ]
 
 MIDDLEWARE = [
@@ -57,17 +58,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'JornalDoCommercio.wsgi.application'
 
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+
+APSCHEDULER_RUN_MIGRATIONS = True
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+        'OPTIONS': {
+            'sslmode': os.getenv('DB_SSLMODE', 'require'),
+        },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -120,4 +131,11 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 os.makedirs(MEDIA_ROOT, exist_ok=True)
 
-LOGIN_URL = 'login'
+AUTHENTICATION_BACKENDS = [
+    "noticias.backends.EmailOrUsernameModelBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"    

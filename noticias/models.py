@@ -3,7 +3,23 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
+
+class Perfil(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="perfil",
+    )
+    data_nascimento = models.DateField(null=True, blank=True)
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Perfil de {self.user}"
 
 class Assunto(models.Model):
     nome = models.CharField(max_length=80, unique=True)
@@ -114,3 +130,8 @@ class Salvo(models.Model):
 
     def __str__(self):
         return f"{self.usuario} salvou {self.noticia}"
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def criar_perfil_ao_criar_usuario(sender, instance, created, **kwargs):
+    if created:
+        Perfil.objects.get_or_create(user=instance)

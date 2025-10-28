@@ -1,0 +1,372 @@
+/* ===== BARRA UOL ===== */
+.uol-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #262626;
+  color: #fff;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  z-index: 1200;
+  font-family: Arial, sans-serif;
+}
+
+.uol-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.uol-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.uol-logo img {
+  height: 60px;
+  display: block;
+}
+
+.uol-nav a {
+  color: #fff;
+  font-size: 0.9rem;
+  text-decoration: none;
+  margin-right: 16px;
+  transition: opacity 0.2s;
+}
+
+.uol-nav a:hover {
+  opacity: 0.75;
+}
+
+.uol-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.uol-icon {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
+}
+
+.uol-icon img {
+  height: 18px;
+  margin-right: 6px;
+}
+
+.uol-icon:hover {
+  opacity: 0.75;
+}
+
+body {
+  padding-top: 48px;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+/* ===== MENU LATERAL ===== */
+.menu {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: -320px;
+  width: 320px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  transition: left .25s ease;
+  z-index: 1300;
+  overflow-y: auto;
+}
+
+.menu.is-open {
+  left: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 1250;
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+
+.menu-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+}
+
+.menu-logo {
+  height: 28px;
+}
+
+.menu-close {
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* ===== PERFIL DO USUÁRIO ===== */
+.menu-user {
+  text-align: center;
+  padding: 24px 0 18px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.menu-user-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 8px;
+}
+  
+.menu-user-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.menu-user-icons img:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #e5e7eb;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #111;
+  margin: 6px 0 0;
+  font-size: 16px;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+/* ===== BOTÃO LOGIN ===== */
+.login-btn {
+  display: inline-block;
+  padding: 6px 20px;
+  border: 2px solid #0033a0;
+  color: #0033a0;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.25s, color 0.25s;
+}
+
+.login-btn:hover {
+  background: #0033a0;
+  color: #fff;
+}
+
+/* ===== LINKS DO MENU ===== */
+.menu-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-links > li {
+  border-bottom: 1px solid #e5e7eb; /* divisórias cinzas */
+}
+
+/* Botões principais */
+.menu-links a,
+.drop-btn {
+  display: block;
+  text-decoration: none;
+  color: #111;
+  font-weight: 700;
+  font-family: 'Inter', Arial, sans-serif;
+  letter-spacing: 0.3px;
+  padding: 14px 16px;
+  background: #fff;
+  width: 100%;
+  text-align: left;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+  border: none;
+}
+
+/* Ícone de seta */
+.dropdown .drop-btn::after {
+  content: "▾";
+  float: right;
+  font-size: 18px;
+  line-height: 1;
+  transition: transform .2s ease;
+  opacity: 0.8;
+}
+
+/* Botão ativo (AO VIVO) */
+.dropdown.active .drop-btn {
+  background: #404040;
+  color: #fff;
+  border-radius: 6px;
+}
+
+/* Hover vermelho */
+.menu-links a:hover,
+.drop-btn:hover {
+  background: #e30613;
+  color: #fff;
+}
+
+/* Animação seta */
+.dropdown.open .drop-btn::after {
+  transform: rotate(-180deg);
+}
+
+/* Submenus */
+.submenu {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dropdown.open .submenu {
+  display: block;
+}
+
+.submenu a {
+  padding: 10px 20px 10px 32px;
+  font-weight: 500;
+  color: #333;
+  background: #fff;
+  transition: background 0.25s, color 0.25s;
+}
+
+.submenu a:hover {
+  background: #e30613;
+  color: #fff;
+}
+
+/* ===== QUADRADO VERMELHO FINAL ===== */
+.menu::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 12px;
+  background: #e30613;
+  position: sticky;
+  bottom: 0;
+}
+
+/* HEADER */
+.icon-btn {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.header .container.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 10px 16px;
+}
+
+/* ===== RESPONSIVIDADE DESKTOP ===== */
+@media (min-width:1024px) {
+  .menu {
+    width: 360px;
+    left: -360px;
+  }
+}
+
+/* ===== RESPONSIVIDADE CELULAR ===== */
+@media (max-width: 768px) {
+  /* Esconde tudo da barra, exceto o logo */
+  .uol-bar .uol-right,
+  .uol-bar .uol-nav,
+  .uol-bar .uol-left > *:not(.uol-logo) {
+    display: none !important;
+  }
+
+  /* Centraliza o logo */
+  .uol-bar .uol-container {
+    justify-content: center !important;
+  }
+
+  .uol-bar .uol-left {
+    width: 100%;
+    gap: 0;
+    display: flex;
+    justify-content: center !important;
+    align-items: center;
+  }
+
+  .uol-bar .uol-logo { 
+    display: block;
+    margin: 0 auto;
+  }
+
+  .uol-bar .uol-logo img {
+    height: 40px;
+    display: block;
+  }
+}
+/* ===== FORÇA MODO CELULAR ===== */
+@media screen and (max-width: 768px) {
+  /* esconde tudo da barra UOL, menos o logo */
+  .uol-bar .uol-nav,
+  .uol-bar .uol-right,
+  .uol-bar .uol-left > *:not(.uol-logo) {
+    display: none !important;
+  }
+
+  /* centraliza o logo */
+  .uol-bar .uol-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
+  .uol-bar .uol-left {
+    width: 100%;
+    justify-content: center !important;
+  }
+
+  .uol-bar .uol-logo {
+    display: block !important;
+    margin: 0 auto !important;
+  }
+
+  .uol-bar .uol-logo img {
+    height: 42px !important;
+    display: block !important;
+  }
+}
