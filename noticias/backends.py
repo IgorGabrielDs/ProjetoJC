@@ -7,14 +7,14 @@ class EmailOrUsernameModelBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         User = get_user_model()
         if username is None:
-            username = kwargs.get(User.USERNAME_FIELD)
+            username = kwargs.get(User.USERNAME_FIELD) #type: ignore
 
         if not username or not password:
             return None
 
         user = (
             User.objects
-            .filter(Q(email__iexact=username) | Q(**{User.USERNAME_FIELD: username}))
+            .filter(Q(email__iexact=username) | Q(**{User.USERNAME_FIELD: username})) #type: ignore
             .order_by("id")
             .first()
         )

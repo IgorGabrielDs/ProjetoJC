@@ -54,34 +54,45 @@ def is_solution_valid(board_str):
 
 @login_required
 def play_sudoku(request, difficulty):
+    print(f"🔹 Entrou na view play_sudoku (dificuldade={difficulty})")
+
     today = timezone.now().date()
     progress, created = UserSudokuProgress.objects.get_or_create(user=request.user)
+    print("🟢 Progresso carregado:", progress)
+
     progress.check_and_reset_progress()
 
     if difficulty == 'medium' and not progress.completed_easy:
+        print("🔸 Redirecionando para easy (não completou fácil ainda)")
         return redirect('play_sudoku', difficulty='easy')
 
     if difficulty == 'difficult' and not (progress.completed_easy and progress.completed_medium):
         if not progress.completed_easy:
+            print("🔸 Redirecionando para easy (não completou fácil ainda)")
             return redirect('sudoku:play_sudoku', difficulty='easy') 
         else:
+            print("🔸 Redirecionando para medium (não completou médio ainda)")
             return redirect('play_sudoku', difficulty='medium')
 
     try:
         puzzle = SudokuPuzzle.objects.get(date=today, difficulty=difficulty)
+        print("🧩 Puzzle encontrado:", puzzle)
     except SudokuPuzzle.DoesNotExist:
+        print("❌ Puzzle de hoje não existe.")
         return render(request, 'sudoku/sudoku_error.html', {
             'message': 'O puzzle de hoje ainda não foi gerado. Avise a administração.'
         })
     
     context = {
         'puzzle': puzzle,
-        # CORREÇÃO CRÍTICA: Passa a string diretamente (sem json.dumps)
         'problem_board_string': puzzle.problem_board, 
         'difficulty': difficulty,
         'progress': progress,
     }
+
+    print("🔹 Tentando renderizar sudoku/sudoku.html")
     return render(request, 'sudoku/sudoku.html', context)
+
 
 
 @login_required
