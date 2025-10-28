@@ -29,11 +29,11 @@ class UserSudokuProgress(models.Model):
 
     completed_easy = models.BooleanField(default=False)
     completed_medium = models.BooleanField(default=False)
-    completed_difficult = models.BooleanField(default=False)
+    completed_hard = models.BooleanField(default=False)
 
     easy_completion_time = models.DurationField(null=True, blank=True)
     medium_completion_time = models.DurationField(null=True, blank=True)
-    difficult_completion_time = models.DurationField(null=True, blank=True)
+    hard_completion_time = models.DurationField(null=True, blank=True)
 
     def __str__(self):
         return f"Progresso de {self.user.username}"

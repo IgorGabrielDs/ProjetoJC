@@ -1,5 +1,3 @@
-# sudoku/views.py (REMOVIDO json.dumps para corrigir a aspas)
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseBadRequest
@@ -37,10 +35,14 @@ def is_solution_valid(board_str):
     for r in range(9):
         if has_duplicates(board[r]):
             return False
+
+    # 3. Checagem de Colunas
     for c in range(9):
         col = [board[r][c] for r in range(9)]
         if has_duplicates(col):
             return False
+
+    # 4. Checagem de Blocos 3x3
     for br in range(3):
         for bc in range(3):
             block = []
@@ -49,6 +51,7 @@ def is_solution_valid(board_str):
                     block.append(board[r][c])
             if has_duplicates(block):
                 return False
+
     return True
 
 
@@ -56,17 +59,29 @@ def is_solution_valid(board_str):
 def play_sudoku(request, difficulty):
     print(f"🔹 Entrou na view play_sudoku (dificuldade={difficulty})")
 
-    today = timezone.now().date()
+    difficulty_map = {
+    "easy": "easy",
+    "medium": "medium",
+    "hard": "hard",
+    "fácil": "easy",
+    "médio": "medium",
+    "difícil": "hard",
+}
+    
+    difficulty_normalized = difficulty_map.get(difficulty.lower(), "easy")
+
+    today = timezone.localdate()
     progress, created = UserSudokuProgress.objects.get_or_create(user=request.user)
     print("🟢 Progresso carregado:", progress)
 
     progress.check_and_reset_progress()
 
-    if difficulty == 'medium' and not progress.completed_easy:
+    # Lógica de bloqueio por progresso
+    if difficulty_normalized == 'medium' and not progress.completed_easy:
         print("🔸 Redirecionando para easy (não completou fácil ainda)")
         return redirect('play_sudoku', difficulty='easy')
 
-    if difficulty == 'difficult' and not (progress.completed_easy and progress.completed_medium):
+    if difficulty_normalized == 'hard' and not (progress.completed_easy and progress.completed_medium):
         if not progress.completed_easy:
             print("🔸 Redirecionando para easy (não completou fácil ainda)")
             return redirect('sudoku:play_sudoku', difficulty='easy') 
@@ -74,8 +89,10 @@ def play_sudoku(request, difficulty):
             print("🔸 Redirecionando para medium (não completou médio ainda)")
             return redirect('play_sudoku', difficulty='medium')
 
+
+    # Busca o puzzle do dia
     try:
-        puzzle = SudokuPuzzle.objects.get(date=today, difficulty=difficulty)
+        puzzle = SudokuPuzzle.objects.get(date=today, difficulty=difficulty_normalized)
         print("🧩 Puzzle encontrado:", puzzle)
     except SudokuPuzzle.DoesNotExist:
         print("❌ Puzzle de hoje não existe.")
@@ -86,13 +103,12 @@ def play_sudoku(request, difficulty):
     context = {
         'puzzle': puzzle,
         'problem_board_string': puzzle.problem_board, 
-        'difficulty': difficulty,
+        'difficulty': difficulty_normalized,
         'progress': progress,
     }
 
     print("🔹 Tentando renderizar sudoku/sudoku.html")
     return render(request, 'sudoku/sudoku.html', context)
-
 
 
 @login_required
@@ -130,12 +146,13 @@ def check_solution(request):
                 progress.completed_medium = True
                 if completion_time:
                     progress.medium_completion_time = completion_time
-                next_level = 'difficult'
+                next_level = 'hard'
 
-            elif puzzle.difficulty == 'difficult' and not progress.completed_difficult:
-                progress.completed_difficult = True
+            elif puzzle.difficulty == 'hard' and not progress.completed_hard:
+                progress.completed_hard = True
                 if completion_time:
-                    progress.difficult_completion_time = completion_time
+                    progress.hard_completion_time = completion_time
+
 
             progress.save()
             return JsonResponse({'success': True, 'next_level': next_level})
