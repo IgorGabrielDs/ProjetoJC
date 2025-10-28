@@ -83,7 +83,7 @@ body {
   left: -320px;
   width: 320px;
   background: #fff;
-  box-shadow: 0 0 0 1px #e5e7eb, 0 10px 30px rgba(0,0,0,.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
   transition: left .25s ease;
   z-index: 1300;
   overflow-y: auto;
@@ -127,43 +127,52 @@ body.no-scroll {
 /* ===== PERFIL DO USUÁRIO ===== */
 .menu-user {
   text-align: center;
+  padding: 24px 0 18px;
+  background: #fff;
   border-bottom: 1px solid #e5e7eb;
-  padding: 20px 0 16px;
 }
 
 .menu-user-icons {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 32px;
   margin-bottom: 8px;
 }
-
-.menu-user .avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #e5e7eb;
+  
+.menu-user-icons img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  opacity: 0.85;
 }
 
-.edit-icon, .logout-icon {
-  font-size: 18px;
-  color: #444;
-  cursor: pointer;
+.menu-user-icons img:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #e5e7eb;
 }
 
 .user-name {
   font-weight: 600;
   color: #111;
-  margin: 0;
-  font-size: 15px;
+  margin: 6px 0 0;
+  font-size: 16px;
+  font-family: 'Inter', Arial, sans-serif;
 }
 
 /* ===== BOTÃO LOGIN ===== */
 .login-btn {
   display: inline-block;
   padding: 6px 20px;
-  border: 2px solid #0033a0; /* Azul escuro */
+  border: 2px solid #0033a0;
   color: #0033a0;
   border-radius: 999px;
   font-weight: 600;
@@ -185,45 +194,55 @@ body.no-scroll {
 }
 
 .menu-links > li {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb; /* divisórias cinzas */
 }
 
+/* Botões principais */
 .menu-links a,
 .drop-btn {
   display: block;
   text-decoration: none;
-  color: #111827;
-  font-weight: 600;
-  padding: 12px 16px;
+  color: #111;
+  font-weight: 700;
+  font-family: 'Inter', Arial, sans-serif;
+  letter-spacing: 0.3px;
+  padding: 14px 16px;
   background: #fff;
   width: 100%;
   text-align: left;
+  font-size: 15px;
   cursor: pointer;
   transition: background 0.25s, color 0.25s;
+  border: none;
 }
 
-/* EFEITO AO PASSAR O MOUSE */
-.menu-links a:hover,
-.drop-btn:hover {
-  background: #cc0000;
-  color: #fff;
-}
-
-/* Dropdown setinha */
+/* Ícone de seta */
 .dropdown .drop-btn::after {
   content: "▾";
   float: right;
+  font-size: 18px;
+  line-height: 1;
   transition: transform .2s ease;
-  opacity: .8;
+  opacity: 0.8;
 }
 
-.dropdown.open .drop-btn::after {
-  transform: rotate(-180deg);
-}
-
+/* Botão ativo (AO VIVO) */
 .dropdown.active .drop-btn {
   background: #404040;
   color: #fff;
+  border-radius: 6px;
+}
+
+/* Hover vermelho */
+.menu-links a:hover,
+.drop-btn:hover {
+  background: #e30613;
+  color: #fff;
+}
+
+/* Animação seta */
+.dropdown.open .drop-btn::after {
+  transform: rotate(-180deg);
 }
 
 /* Submenus */
@@ -241,17 +260,28 @@ body.no-scroll {
 .submenu a {
   padding: 10px 20px 10px 32px;
   font-weight: 500;
-  color: #374151;
+  color: #333;
   background: #fff;
   transition: background 0.25s, color 0.25s;
 }
 
 .submenu a:hover {
-  background: #cc0000;
+  background: #e30613;
   color: #fff;
 }
 
-/* HEADER E BOTÕES */
+/* ===== QUADRADO VERMELHO FINAL ===== */
+.menu::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 12px;
+  background: #e30613;
+  position: sticky;
+  bottom: 0;
+}
+
+/* HEADER */
 .icon-btn {
   border: 1px solid #e5e7eb;
   background: #fff;
@@ -269,10 +299,74 @@ body.no-scroll {
   padding: 10px 16px;
 }
 
-/* RESPONSIVIDADE */
+/* ===== RESPONSIVIDADE DESKTOP ===== */
 @media (min-width:1024px) {
   .menu {
     width: 360px;
     left: -360px;
   }
-} 
+}
+
+/* ===== RESPONSIVIDADE CELULAR ===== */
+@media (max-width: 768px) {
+  /* Esconde tudo da barra, exceto o logo */
+  .uol-bar .uol-right,
+  .uol-bar .uol-nav,
+  .uol-bar .uol-left > *:not(.uol-logo) {
+    display: none !important;
+  }
+
+  /* Centraliza o logo */
+  .uol-bar .uol-container {
+    justify-content: center !important;
+  }
+
+  .uol-bar .uol-left {
+    width: 100%;
+    gap: 0;
+    display: flex;
+    justify-content: center !important;
+    align-items: center;
+  }
+
+  .uol-bar .uol-logo { 
+    display: block;
+    margin: 0 auto;
+  }
+
+  .uol-bar .uol-logo img {
+    height: 40px;
+    display: block;
+  }
+}
+/* ===== FORÇA MODO CELULAR ===== */
+@media screen and (max-width: 768px) {
+  /* esconde tudo da barra UOL, menos o logo */
+  .uol-bar .uol-nav,
+  .uol-bar .uol-right,
+  .uol-bar .uol-left > *:not(.uol-logo) {
+    display: none !important;
+  }
+
+  /* centraliza o logo */
+  .uol-bar .uol-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
+  .uol-bar .uol-left {
+    width: 100%;
+    justify-content: center !important;
+  }
+
+  .uol-bar .uol-logo {
+    display: block !important;
+    margin: 0 auto !important;
+  }
+
+  .uol-bar .uol-logo img {
+    height: 42px !important;
+    display: block !important;
+  }
+}
