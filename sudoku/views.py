@@ -78,16 +78,13 @@ def play_sudoku(request, difficulty):
 
     # Lógica de bloqueio por progresso
     if difficulty_normalized == 'medium' and not progress.completed_easy:
-        print("🔸 Redirecionando para easy (não completou fácil ainda)")
-        return redirect('play_sudoku', difficulty='easy')
+        return redirect('sudoku:play_sudoku', difficulty='easy')
 
     if difficulty_normalized == 'hard' and not (progress.completed_easy and progress.completed_medium):
         if not progress.completed_easy:
-            print("🔸 Redirecionando para easy (não completou fácil ainda)")
-            return redirect('sudoku:play_sudoku', difficulty='easy') 
-        else:
-            print("🔸 Redirecionando para medium (não completou médio ainda)")
-            return redirect('play_sudoku', difficulty='medium')
+            return redirect('sudoku:play_sudoku', difficulty='easy')
+        return redirect('sudoku:play_sudoku', difficulty='medium')
+
 
 
     # Busca o puzzle do dia

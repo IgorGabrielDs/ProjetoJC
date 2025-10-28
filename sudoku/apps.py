@@ -1,5 +1,6 @@
-import os
+# sudoku/apps.py
 import sys
+import os
 from django.apps import AppConfig
 
 class SudokuConfig(AppConfig):
@@ -7,11 +8,12 @@ class SudokuConfig(AppConfig):
     name = 'sudoku'
 
     def ready(self):
-        """Inicializa o scheduler apenas quando o servidor está realmente rodando."""
-        if os.environ.get('RUN_MAIN') != 'true':
-            return
-
-        is_running_server = any(cmd in sys.argv for cmd in ['runserver', 'gunicorn'])
-        if is_running_server:
-            from .scheduler import start
-            start()
+        try:
+            # Só inicia em runserver/gunicorn e no processo principal
+            is_server = any(cmd in sys.argv for cmd in ['runserver', 'gunicorn'])
+            is_main = os.environ.get("RUN_MAIN") == "true" or 'gunicorn' in " ".join(sys.argv)
+            if is_server and is_main:
+                from .scheduler import start
+                start()
+        except Exception as e:
+            print(f"Erro ao iniciar scheduler: {e}")

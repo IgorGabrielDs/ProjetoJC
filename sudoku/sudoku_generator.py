@@ -2,9 +2,9 @@ import random
 
 class SudokuGenerator:
     """
-    Gera um puzzle Sudoku garantindo que ele tenha uma solução única.
+    Gera um puzzle Sudoku garantindo solução única.
     """
-    def __init__(self, num_clues: int):
+    def __init__(self, num_clues: int): 
         self.num_clues = num_clues
         self.board = [[0] * 9 for _ in range(9)]
         self.solution = []
@@ -97,19 +97,18 @@ class SudokuGenerator:
                 removed_count += 1
 
     def get_boards_as_strings(self):
-        """Converte os tabuleiros para strings de 81 caracteres."""
+        """Strings de 81 chars. Use '.' para vazio (ou troque por '0' se preferir)."""
         problem_str = "".join(str(c) if c != 0 else '.' for row in self.board for c in row)
         solution_str = "".join(str(c) for row in self.solution for c in row)
         return problem_str, solution_str
 
 
 def generate_puzzle(difficulty: str):
-    """Função principal que cria e retorna um puzzle."""
     if difficulty == 'easy':
         clues = random.randint(33, 38)
     elif difficulty == 'medium':
         clues = random.randint(29, 32)
-    elif difficulty == 'difficult': 
+    elif difficulty == 'hard':
         clues = random.randint(24, 28)
     else:
         raise ValueError(f"Dificuldade '{difficulty}' inválida.")

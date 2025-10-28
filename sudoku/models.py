@@ -1,16 +1,15 @@
+# sudoku/models.py
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-
 
 class SudokuPuzzle(models.Model):
     DIFFICULTY_CHOICES = [
         ('easy', 'Fácil'),
         ('medium', 'Médio'),
-        ('difficult', 'Difícil'),
+        ('hard', 'Difícil'),
     ]
-    
-    date = models.DateField(default=timezone.localdate) 
+    date = models.DateField(default=timezone.localdate)
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES)
     problem_board = models.CharField(max_length=81)
     solution_board = models.CharField(max_length=81)
@@ -21,10 +20,8 @@ class SudokuPuzzle(models.Model):
     def __str__(self):
         return f"Sudoku {self.get_difficulty_display()} - {self.date}" # type: ignore
 
-
 class UserSudokuProgress(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="sudoku_progress")
-    
     last_puzzle_date = models.DateField(default=timezone.localdate)
 
     completed_easy = models.BooleanField(default=False)
@@ -37,15 +34,15 @@ class UserSudokuProgress(models.Model):
 
     def __str__(self):
         return f"Progresso de {self.user.username}"
-    
+
     def check_and_reset_progress(self):
-        today = timezone.now().date() 
+        today = timezone.now().date()
         if self.last_puzzle_date < today:
             self.completed_easy = False
             self.completed_medium = False
-            self.completed_difficult = False
+            self.completed_hard = False
             self.easy_completion_time = None
             self.medium_completion_time = None
-            self.difficult_completion_time = None
+            self.hard_completion_time = None
         self.last_puzzle_date = today
         self.save()
