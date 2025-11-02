@@ -6,11 +6,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}JC{% endblock %}</title>
-
-  <!-- CSS -->
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'noticias/img/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'noticias/img/favicon-16x16.png' %}">
   <link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
   <link rel="stylesheet" href="{% static 'noticias/css/menu.css' %}">
   <meta name="csrf-token" content="{{ csrf_token }}">
+  
   {% block extra_head %}{% endblock %}
 </head>
 
@@ -51,20 +52,27 @@
   </div>
   <!-- ===== /BARRA UOL ===== -->
 
+  <!-- ===== HEADER ===== -->
   <header class="header">
     <div class="container row">
+      <!-- Botão do menu lateral -->
       <button class="icon-btn" id="menu-toggle" aria-label="Abrir menu" aria-controls="menu" aria-expanded="false">
-        <span>☰</span>
+        <img src="{% static 'noticias/img/menu_hamburguer.svg' %}" alt="Abrir menu" width="28" height="28">
       </button>
 
+      <!-- Logo JC -->
       <a href="{% url 'noticias:index' %}" class="logo-link" aria-label="Voltar para a página inicial">
         <img class="logo"
-             src="https://upload.wikimedia.org/wikipedia/pt/f/fd/Logotipo_do_Jornal_do_Commercio_%28Recife%29.png"
-             alt="JC Pernambuco" style="height:40px;">
+             src="{% static 'noticias/img/logo-menor-jc.png' %}"
+             alt="JC Pernambuco">
       </a>
 
       <div style="flex:1"></div>
-      <button class="icon-btn" aria-label="Buscar"><span>🔍</span></button>
+
+      <!-- Botão de busca -->
+      <button class="icon-btn" aria-label="Buscar">
+        <img src="{% static 'noticias/img/lupa.svg' %}" alt="Buscar" width="28" height="28">
+      </button>
     </div>
   </header>
 
@@ -73,16 +81,18 @@
   <!-- ===== MENU LATERAL ===== -->
   <nav id="menu" class="menu" aria-hidden="true">
     <div class="menu-top">
-      <img src="{% static 'noticias/img/logo-jc-pe.svg' %}" alt="JC" class="menu-logo">
+      <img src="{% static 'noticias/img/logo-jornalcommercio.png' %}" alt="Jornal do Commercio" class="menu-logo">
       <button id="menu-close" class="menu-close" aria-label="Fechar menu">✕</button>
     </div>
 
     <div class="menu-user">
       {% if user.is_authenticated %}
         <div class="menu-user-icons">
-          <span class="edit-icon">✎</span>
-          <div class="avatar"></div>
-          <span class="logout-icon">⎋</span>
+          <img src="{% static 'noticias/img/editarperfil_uol.png' %}" alt="Editar perfil" class="edit-icon" title="Editar perfil">
+          <img src="{% static 'noticias/img/perfil_uol.png' %}" alt="Foto de perfil" class="avatar" title="Meu perfil">
+          <a href="{% url 'logout' %}" title="Sair da conta">
+            <img src="{% static 'noticias/img/sair_uol.png' %}" alt="Sair" class="logout-icon">
+          </a>
         </div>
         <p class="user-name">{{ user.get_full_name|default:user.username }}</p>
       {% else %}
@@ -132,21 +142,13 @@
       </li>
     </ul>
   </nav>
-  <!-- ===== /MENU LATERAL ===== -->
 
+  <!-- ===== CONTEÚDO PRINCIPAL ===== -->
   <main class="container">
-    {# ==== FLASH MESSAGES (Django messages) ==== #}
-    {% if messages %}
-      <div class="flash-wrap" role="status" aria-live="polite">
-        {% for message in messages %}
-          <div class="flash {{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-
     {% block content %}{% endblock %}
   </main>
 
+  <!-- ===== RODAPÉ ===== -->
   <footer class="container" style="padding:32px 0">
     <p class="caption" style="text-align:center">© JC Pernambuco</p>
   </footer>
