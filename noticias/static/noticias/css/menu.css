@@ -1,0 +1,463 @@
+/* ===== BARRA UOL ===== */
+.uol-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #262626;
+  color: #fff;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  z-index: 1200;
+  font-family: Arial, sans-serif;
+}
+
+.uol-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.uol-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.uol-logo img {
+  height: 60px;
+  display: block;
+}
+
+.uol-nav a {
+  color: #fff;
+  font-size: 0.9rem;
+  text-decoration: none;
+  margin-right: 16px;
+  transition: opacity 0.2s;
+}
+
+.uol-nav a:hover {
+  opacity: 0.75;
+}
+
+.uol-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.uol-icon {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
+}
+
+.uol-icon img {
+  height: 18px;
+  margin-right: 6px;
+}
+
+.uol-icon:hover {
+  opacity: 0.75;
+}
+
+body {
+  padding-top: 48px;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+/* ===== MENU LATERAL ===== */
+.menu {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: -320px;
+  width: 320px;
+  background: #fff;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.25);
+  transition: left .25s ease;
+  z-index: 1300;
+  overflow-y: auto;
+}
+
+.menu.is-open {
+  left: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 1250;
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* ===== TOPO DO MENU ===== (CORRIGIDO) */
+.menu-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  background: #fff;
+  height: 72px;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  overflow: visible;
+}
+
+/* remove o pseudo-elemento anterior */
+.menu-top::after {
+  content: none;
+}
+
+/* LOGO */
+.menu-logo {
+  display: block;
+  height: 52px;
+  width: auto;
+  margin-left: 6px;
+  transform: translateY(2px);
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* BOTÃO FECHAR */
+.menu-close {
+  border: none;
+  background: transparent;
+  font-size: 34px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #000;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  line-height: 1;
+}
+
+.menu-close:hover {
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
+/* ===== PERFIL DO USUÁRIO ===== */
+.menu-user {
+  text-align: center;
+  padding: 28px 0 20px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  position: relative;
+}
+
+/* ===== ÍCONES LATERAIS (editar/sair) ===== */
+.menu-user-icons {
+  position: relative;
+}
+
+/* Ícone editarperfil_uol.png — canto superior esquerdo */
+.edit-icon {
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  z-index: 2;
+}
+
+.edit-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Ícone sair_uol.png — canto superior direito */
+.logout-icon {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  z-index: 2;
+}
+
+.logout-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Avatar central */
+.avatar {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #e5e7eb;
+  display: block;
+  margin: 0 auto;
+  transition: transform 0.2s ease;
+}
+
+.avatar:hover {
+  transform: scale(1.05);
+}
+
+/* Nome do usuário */
+.user-name {
+  font-weight: 600;
+  color: #111;
+  margin: 10px 0 0;
+  font-size: 18px;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+/* ===== BOTÃO LOGIN ===== */
+.login-btn {
+  display: inline-block;
+  padding: 6px 20px;
+  border: 2px solid #0033a0;
+  color: #0033a0;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.25s, color 0.25s;
+}
+
+.login-btn:hover {
+  background: #0033a0;
+  color: #fff;
+}
+
+/* ===== LINKS DO MENU ===== */
+.menu-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-links > li {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.menu-links a,
+.drop-btn {
+  display: block;
+  text-decoration: none;
+  color: #111;
+  font-weight: 700;
+  font-family: 'Inter', Arial, sans-serif;
+  padding: 14px 18px;
+  background: #fff;
+  width: 100%;
+  text-align: left;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+  border: none;
+}
+
+.dropdown .drop-btn::after {
+  content: "▾";
+  float: right;
+  font-size: 18px;
+  line-height: 1;
+  transition: transform .2s ease;
+  opacity: 0.8;
+}
+
+.dropdown.active .drop-btn {
+  background: #404040;
+  color: #fff;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.menu-links a:hover,
+.drop-btn:hover {
+  background: #e30613;
+  color: #fff;
+}
+
+.dropdown.open .drop-btn::after {
+  transform: rotate(-180deg);
+}
+
+.submenu {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dropdown.open .submenu {
+  display: block;
+}
+
+.submenu a {
+  padding: 10px 20px 10px 32px;
+  font-weight: 500;
+  color: #333;
+  background: #fff;
+}
+
+.submenu a:hover {
+  background: #e30613;
+  color: #fff;
+}
+
+/* ===== QUADRADO VERMELHO FINAL ===== */
+.menu::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 12px;
+  background: #e30613;
+  position: sticky;
+  bottom: 0;
+}
+
+/* ===== HEADER ===== */
+.header {
+  position: relative;
+  background: #fff;
+  z-index: 1000;
+  width: 100%;
+  height: 70px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.icon-btn {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn img {
+  width: 32px;
+  height: 32px;
+  display: block;
+  object-fit: contain;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.icon-btn:hover img {
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
+/* ===== POSICIONAMENTO HEADER ===== */
+.header .container.row {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.header .logo-link {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.header .logo {
+  height: 85px;
+  display: block;
+}
+
+.header .icon-btn:first-of-type {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+}
+
+.header .icon-btn:last-of-type {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+}
+
+/* ===== RESPONSIVIDADE CELULAR ===== */
+@media (max-width: 768px) {
+  .uol-bar .uol-right,
+  .uol-bar .uol-nav,
+  .uol-bar .uol-left > *:not(.uol-logo) {
+    display: none !important;
+  }
+
+  .uol-bar .uol-container {
+    justify-content: center !important;
+  }
+
+  .uol-bar .uol-left {
+    width: 100%;
+    justify-content: center !important;
+  }
+
+  .uol-bar .uol-logo img {
+    height: 40px;
+  }
+
+  .header .logo {
+    height: 70px;
+  }
+
+  .header .icon-btn img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .menu-logo {
+    height: 50px;
+  }
+}
+
+.menu-logo {
+  height: 120px !important;
+  width: auto !important;
+  object-fit: contain;
+  margin-bottom: 10px !important;
+  margin-left: -30px !important;
+}
+
+/* ===== MENU LATERAL - CELULAR ===== */
+@media (max-width: 768px) {
+  .menu {
+    width: 65vw;
+    left: -65vw;
+  }
+  .menu.is-open {
+    left: 0;
+  }
+  .menu-overlay {
+    background: rgba(0, 0, 0, 0.6);
+  }
+  .menu-top {
+    height: 80px;
+  }
+  .menu-logo {
+    height: 100px !important;
+    margin-left: -20px !important;
+  }
+}

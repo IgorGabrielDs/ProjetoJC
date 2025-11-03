@@ -15,71 +15,87 @@
 
   <p class="login-sub">Experiência completa em uma conta só.</p>
 
-  <!-- Marcas do ecossistema -->
-  <div class="brands">
-    <img src="{% static 'noticias/img/brand-ne10.svg' %}" alt="NE10" onerror="this.style.display='none'">
-    <img src="{% static 'noticias/img/brand-jornal.svg' %}" alt="Jornal" onerror="this.style.display='none'">
-    <img src="{% static 'noticias/img/brand-tvjornal.svg' %}" alt="TV Jornal" onerror="this.style.display='none'">
-    <img src="{% static 'noticias/img/logo-jc-pe.svg' %}" alt="JC PE">
-    <img src="{% static 'noticias/img/brand-torcedor.svg' %}" alt="Torcedor" onerror="this.style.display='none'">
-    <img src="{% static 'noticias/img/brand-social1.svg' %}" alt="Social1" onerror="this.style.display='none'">
-    <img src="{% static 'noticias/img/brand-receitaboa.svg' %}" alt="Receita Boa" onerror="this.style.display='none'">
-  </div>
+  {% if form.errors %}
+    <div class="errors" role="alert">Verifique seus dados e tente novamente.</div>
+  {% endif %}
 
-  <div class="login-card">
-    <h1 class="login-title">Entre ou crie uma conta</h1>
-
-    {% if form.errors %}
-      <div class="errors">Verifique seus dados e tente novamente.</div>
+  <form method="post" action="{% url 'login' %}" novalidate>
+    {% csrf_token %}
+    {% if next %}
+      <input type="hidden" name="next" value="{{ next }}">
     {% endif %}
 
-    <form method="post" action="{% url 'login' %}" novalidate>
-      {% csrf_token %}
-      {% if next %}
-        <input type="hidden" name="next" value="{{ next }}">
-      {% endif %}
-
-      <div class="form-row">
-        <label class="form-label" for="id_username">Endereço de e-mail</label>
-        <input class="input" type="text" name="username" id="id_username"
-               placeholder="Ex: @gmail, @yahoo, @outlook, etc."
-               value="{{ form.username.value|default:'' }}" autocomplete="username" required>
-        <div class="helper">Use seu e-mail (ou usuário) cadastrado.</div>
-      </div>
-
-      <div class="form-row">
-        <label class="form-label" for="id_password">Senha</label>
-        <input class="input" type="password" name="password" id="id_password"
-               placeholder="Sua senha" autocomplete="current-password" required>
-      </div>
-
-      <div class="form-row">
-        <button class="btn-primary" type="submit">Continuar</button>
-      </div>
-    </form>
-
-    <div class="divider"><span>ou</span></div>
-
-    <!-- Botões sociais (placeholders) -->
-    <div class="providers">
-      <a class="prov" href="#" aria-label="Entrar com Google">
-        <img src="{% static 'noticias/img/icon-google.svg' %}" alt="">
-      </a>
-      <a class="prov" href="#" aria-label="Entrar com Apple">
-        <img src="{% static 'noticias/img/icon-apple.svg' %}" alt="">
-      </a>
-      <a class="prov prov--full" href="#" aria-label="Entrar com Facebook">
-        <img src="{% static 'noticias/img/icon-facebook.svg' %}" alt="">
-      </a>
+    <div class="form-row">
+      <label class="form-label" for="id_username">Endereço de e-mail</label>
+      <input
+        class="input"
+        type="text"
+        name="username"
+        id="id_username"
+        placeholder="Ex: seuemail@provedor.com"
+        value="{{ form.username.value|default:'' }}"
+        autocomplete="username"
+        required
+      >
+      <div class="helper">Use seu e-mail (ou usuário, se configurado).</div>
     </div>
 
+    <div class="form-row">
+      <label class="form-label" for="id_password">Senha</label>
+      <input
+        class="input"
+        type="password"
+        name="password"
+        id="id_password"
+        autocomplete="current-password"
+        required
+      >
+    </div>
+
+    <button class="btn primary" type="submit">Entrar</button>
+  </form>
+
+  <!-- PROVEDORES OAUTH (placeholders) -->
+  <div class="oauth-providers" style="margin-top:16px">
+    <p class="hint">Entrar com</p>
+    <div class="oauth-row" style="display:flex; gap:12px; flex-wrap:wrap">
+
+      <a class="oauth-btn" href="#" aria-label="Entrar com Google"
+         style="display:inline-flex; align-items:center; padding:8px 12px; border:1px solid #ddd; border-radius:8px; text-decoration:none;">
+        <img src="{% static 'noticias/img/icon-google.svg' %}" alt="Google" width="28" height="28">
+        <span style="margin-left:8px">Google</span>
+      </a>
+
+      <a class="oauth-btn" href="#" aria-label="Entrar com Apple"
+         style="display:inline-flex; align-items:center; padding:8px 12px; border:1px solid #ddd; border-radius:8px; text-decoration:none;">
+        <img src="{% static 'noticias/img/icon-apple.svg' %}" alt="Apple" width="28" height="28">
+        <span style="margin-left:8px">Apple</span>
+      </a>
+
+      <a class="oauth-btn" href="#" aria-label="Entrar com GitHub"
+         style="display:inline-flex; align-items:center; padding:8px 12px; border:1px solid #ddd; border-radius:8px; text-decoration:none;">
+        <img src="{% static 'noticias/img/icon-github.svg' %}" alt="GitHub" width="28" height="28">
+        <span style="margin-left:8px">GitHub</span>
+      </a>
+
+      <a class="oauth-btn" href="#" aria-label="Entrar com Facebook"
+         style="display:inline-flex; align-items:center; padding:8px 12px; border:1px solid #ddd; border-radius:8px; text-decoration:none;">
+        <img src="{% static 'noticias/img/icon-facebook.svg' %}" alt="Facebook" width="28" height="28">
+        <span style="margin-left:8px">Facebook</span>
+      </a>
+
+    </div>
+  </div>
+  <!-- /PROVEDORES OAUTH -->
+
+  <div class="login-links" style="margin-top:12px">
     <p class="hint">
       Não tem conta?
       <a class="link" href="{% url 'noticias:signup' %}">Cadastre-se já!</a>
     </p>
 
     <p class="hint" style="margin-top:6px">
-      <a href="{% url 'password_reset' %}">Esqueceu sua senha?</a>
+      <a href="{% url 'noticias:password_reset' %}">Esqueceu sua senha?</a>
     </p>
   </div>
 </div>

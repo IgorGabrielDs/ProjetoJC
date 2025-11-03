@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Caça Links: {{ tema.nome }} - Nível {{ nivel }}{% endblock %}
+
+{% block extra_head %}
+    {{ block.super }}
+    <style>
+        body, html {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 20px auto; 
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #fff;
+        }
+        .game-header .back-link {
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            color: #333;
+        }
+        .game-header .timer {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .game-header .header-icons {
+            display: flex;
+            gap: 16px;
+            font-size: 20px; 
+        }
+
+        .game-main {
+            flex-grow: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            border: 1px solid #ccc;
+            user-select: none; 
+            aspect-ratio: 1 / 1; 
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .grid-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1vw; 
+            font-weight: bold;
+            border: 1px solid #eee;
+            text-transform: uppercase;
+            cursor: pointer;
+            aspect-ratio: 1 / 1; 
+        }
+        
+        .grid-cell.selected {
+            background-color: #b3d4fc;
+        }
+        .grid-cell.found {
+            background-color: #a3e9a4;
+            color: #fff;
+        }
+
+        @media (min-width: 450px) {
+            .grid-cell {
+                font-size: 18px; 
+            }
+        }
+        @media (max-width: 400px) {
+            .grid-cell {
+                font-size: 3.5vw;
+            }
+        }
+
+        .word-list {
+            margin-top: 20px;
+            padding: 0 10px;
+        }
+        .word-list h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #555;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .word-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+        }
+        .word-list li {
+            font-size: 14px;
+            font-weight: 500;
+            color: #444;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+        .word-list li.found {
+            text-decoration: line-through;
+            color: #999;
+            background-color: #e0e0e0;
+        }
+
+        .game-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #f9f9f9;
+        }
+        .game-footer span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5); 
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: auto;
+            padding: 24px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #2c7a7b; 
+        }
+        .noticia-preview {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            background-color: #fdfdfd;
+        }
+        .noticia-preview h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .noticia-preview p {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .btn-proximo {
+            display: block;
+            background-color: #319795; 
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 20px auto 0 auto;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        .btn-proximo:hover {
+            background-color: #2c7a7b; 
+        }
+        .btn-proximo:active {
+            transform: scale(0.98);
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    <div class="game-container">
+        <header class="game-header">
+            <a href="{% url 'cacalinks:escolher_tema' %}" class="back-link">&#8249;</a>
+            <span class="timer" id="timer">00:00</span>
+            <div class="header-icons">
+                <span>&#x2139;</span> 
+                <span>&#x2197;</span> 
+            </div>
+        </header>
+
+        <main class="game-main">
+            <div class="grid-container" id="game-grid">
+                {% for row in caca.grade %}
+                    {% for cell in row %}
+                        <div class="grid-cell" 
+                             data-row="{{ forloop.parentloop.counter0 }}" 
+                             data-col="{{ forloop.counter0 }}">
+                            {{ cell }}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+
+            <div class="word-list">
+                <h3>Palavras para encontrar:</h3>
+                <ul id="lista-palavras">
+                    {% for palavra in palavras %}
+                        <li data-palavra="{{ palavra }}">{{ palavra }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </main>
+
+        <footer class="game-footer">
+            <span>Nível: {{ nivel }}/3</span>
+            <span>Tema: {{ tema.nome }}</span>
+        </footer>
+    </div>
+
+    <div id="modal-concluido" class="modal">
+        <div class="modal-content">
+            <h3>Parabéns! Nível {{ nivel }} concluído!</h3>
+            
+            <div class="noticia-preview">
+                <h4>Notícia desbloqueada:</h4>
+                {% if caca.noticia %}
+                    <p>{{ caca.noticia.titulo|truncatewords:10 }}</p>
+                {% else %}
+                    <p>Notícia não encontrada.</p>
+                {% endif %}
+            </div>
+
+            <a href="{% url 'cacalinks:concluir_nivel' tema.id %}" class="btn-proximo">
+                {% if nivel < 3 %}
+                    Ir para o Nível {{ nivel|add:1 }}
+                {% else %}
+                    Concluir Tema
+                {% endif %}
+            </a>
+        </div>
+    </div>
+
+    {{ palavras|json_script:"palavras-data" }}
+
+{% endblock %}
+
+
+{% block extra_js %}
+    {{ block.super }} 
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        const grid = document.getElementById('game-grid');
+        const celulas = grid.querySelectorAll('.grid-cell');
+        const listaPalavras = document.getElementById('lista-palavras');
+        const modal = document.getElementById('modal-concluido');
+        const timerEl = document.getElementById('timer');
+
+        const palavrasParaEncontrar = JSON.parse(document.getElementById('palavras-data').textContent);
+        
+        let palavrasEncontradas = [];
+        let isSelecting = false;
+        let selecaoAtual = []; 
+        let tempoInicio = Date.now();
+        let timerInterval;
+
+        function iniciarTimer() {
+            tempoInicio = Date.now();
+            timerInterval = setInterval(() => {
+                const segundosPassados = Math.floor((Date.now() - tempoInicio) / 1000);
+                const minutos = Math.floor(segundosPassados / 60).toString().padStart(2, '0');
+                const segundos = (segundosPassados % 60).toString().padStart(2, '0');
+                timerEl.textContent = `${minutos}:${segundos}`;
+            }, 1000);
+        }
+        
+        grid.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('grid-cell')) {
+                isSelecting = true;
+                selecaoAtual = []; 
+                celulas.forEach(c => c.classList.remove('selected')); 
+                adicionarACelecao(e.target);
+            }
+        });
+
+        grid.addEventListener('mouseover', (e) => {
+            if (isSelecting && e.target.classList.contains('grid-cell')) {
+                adicionarACelecao(e.target);
+            }
+        });
+
+        grid.addEventListener('mouseleave', () => {
+             if (isSelecting) {
+                isSelecting = false;
+                verificarPalavra();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isSelecting) {
+                isSelecting = false;
+                verificarPalavra();
+            }
+        });
+        
+        function adicionarACelecao(celula) {
+            if (!selecaoAtual.includes(celula) && !celula.classList.contains('found')) {
+                selecaoAtual.push(celula);
+                celula.classList.add('selected');
+            }
+        }
+
+        function verificarPalavra() {
+            if (selecaoAtual.length === 0) return;
+
+            let palavraFormada = '';
+            selecaoAtual.forEach(celula => {
+                palavraFormada += celula.textContent.trim();
+            });
+
+            const palavraReversa = palavraFormada.split('').reverse().join('');
+            let palavraCorreta = null;
+
+            if (palavrasParaEncontrar.includes(palavraFormada)) {
+                palavraCorreta = palavraFormada;
+            } else if (palavrasParaEncontrar.includes(palavraReversa)) {
+                palavraCorreta = palavraReversa;
+            }
+
+            if (palavraCorreta && !palavrasEncontradas.includes(palavraCorreta)) {
+                palavrasEncontradas.push(palavraCorreta);
+                marcarPalavraComoEncontrada(palavraCorreta);
+                
+                selecaoAtual.forEach(celula => {
+                    celula.classList.remove('selected');
+                    celula.classList.add('found');
+                });
+
+                if (palavrasEncontradas.length === palavrasParaEncontrar.length) {
+                    finalizarJogo();
+                }
+
+            } else {
+                selecaoAtual.forEach(celula => {
+                    celula.classList.remove('selected');
+                });
+            }
+            selecaoAtual = [];
+        }
+
+        function marcarPalavraComoEncontrada(palavra) {
+            const li = listaPalavras.querySelector(`li[data-palavra="${palavra}"]`);
+            if (li) {
+                li.classList.add('found');
+            }
+        }
+
+        function finalizarJogo() {
+            clearInterval(timerInterval); 
+            modal.style.display = 'flex';
+        }
+
+        iniciarTimer();
+    });
+    </script>
+{% endblock %}

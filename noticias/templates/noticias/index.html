@@ -5,14 +5,14 @@
 
 {% block content %}
 
-  {% if destaques %}
-  <section class="section accent-red">
-    <div class="section-title">
-      <span class="rule"></span>
-      <span class="label">Destaques</span>
-      <span class="rule"></span>
-    </div>
+<section class="section accent-red">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Destaques</span>
+    <span class="rule"></span>
+  </div>
 
+  {% if destaques %}
     {% with destaques|slice:":3" as destaques3 %}
     <div class="carousel" data-count="3">
       <input type="radio" name="hero" id="r1" checked>
@@ -98,17 +98,19 @@
       </div>
     </div>
     {% endwith %}
-  </section>
+  {% else %}
+    <p class="caption">Sem destaques no momento.</p>
   {% endif %}
+</section>
+
+<section class="section accent-blue">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Para você</span>
+    <span class="rule"></span>
+  </div>
 
   {% if para_voce %}
-  <section class="section accent-blue">
-    <div class="section-title">
-      <span class="rule"></span>
-      <span class="label">Para você</span>
-      <span class="rule"></span>
-    </div>
-
     {% with para_voce|slice:":6" as pv %}
     <div class="carousel" data-count="3">
       <input type="radio" name="pv" id="pv1" checked>
@@ -197,17 +199,19 @@
       </div>
     </div>
     {% endwith %}
-  </section>
+  {% else %}
+    <p class="caption">Sem recomendações por enquanto.</p>
   {% endif %}
+</section>
+
+<section class="section accent-green">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Mais lidas</span>
+    <span class="rule"></span>
+  </div>
 
   {% if mais_lidas %}
-  <section class="section accent-green">
-    <div class="section-title">
-      <span class="rule"></span>
-      <span class="label">Mais lidas</span>
-      <span class="rule"></span>
-    </div>
-
     <div class="grid-2">
       {% for item in mais_lidas|slice:":2" %}
       <article class="card" data-href="{{ item.get_absolute_url }}">
@@ -226,17 +230,19 @@
       </article>
       {% endfor %}
     </div>
-  </section>
+  {% else %}
+    <p class="caption">Sem dados da semana.</p>
   {% endif %}
+</section>
+
+<section class="section accent-purple">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">JC360</span>
+    <span class="rule"></span>
+  </div>
 
   {% if jc360 %}
-  <section class="section accent-purple">
-    <div class="section-title">
-      <span class="rule"></span>
-      <span class="label">JC360</span>
-      <span class="rule"></span>
-    </div>
-
     <div class="grid-2">
       {% for item in jc360|slice:":4" %}
       <article class="card" data-href="{{ item.get_absolute_url }}">
@@ -259,17 +265,19 @@
     <div class="center mt-16">
       <a href="{% url 'noticias:index' %}" class="btn-outline" style="color:var(--jc-purple)">Ver mais</a>
     </div>
-  </section>
+  {% else %}
+    <p class="caption">Sem conteúdos JC360 no momento.</p>
   {% endif %}
+</section>
+
+<section class="section accent-yellow">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Vídeos</span>
+    <span class="rule"></span>
+  </div>
 
   {% if videos %}
-  <section class="section accent-yellow">
-    <div class="section-title">
-      <span class="rule"></span>
-      <span class="label">Vídeos</span>
-      <span class="rule"></span>
-    </div>
-
     <div class="grid-2">
       {% for item in videos|slice:":2" %}
       <article class="card" data-href="{{ item.get_absolute_url }}">
@@ -294,17 +302,19 @@
       </article>
       {% endfor %}
     </div>
-  </section>
+  {% else %}
+    <p class="caption">Sem vídeos disponíveis agora.</p>
   {% endif %}
+</section>
+
+<section class="section accent-red">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Pernambuco</span>
+    <span class="rule"></span>
+  </div>
 
   {% if pernambuco %}
-  <section class="section accent-red">
-    <div class="section-title">
-      <span class="rule"></span>
-      <span class="label">Pernambuco</span>
-      <span class="rule"></span>
-    </div>
-
     {% with item=pernambuco %}
     <article class="card" data-href="{{ item.get_absolute_url }}">
       <a href="{{ item.get_absolute_url }}">
@@ -328,7 +338,9 @@
       </div>
     </article>
     {% endwith %}
-  </section>
+  {% else %}
+    <p class="caption">Sem conteúdo de Pernambuco no momento.</p>
   {% endif %}
+</section>
 
 {% endblock %}

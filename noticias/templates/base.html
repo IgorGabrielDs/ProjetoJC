@@ -1,114 +1,175 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}JC{% endblock %}</title>
-
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'noticias/img/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'noticias/img/favicon-16x16.png' %}">
   <link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
+  <link rel="stylesheet" href="{% static 'noticias/css/menu.css' %}">
   <meta name="csrf-token" content="{{ csrf_token }}">
+  
   {% block extra_head %}{% endblock %}
 </head>
-<body>
-  <div class="topbar">UOL</div>
 
+<body>
+  <!-- ===== BARRA UOL ===== -->
+  <div class="uol-bar">
+    <div class="uol-container">
+      <div class="uol-left">
+        <a href="https://www.uol.com.br/" class="uol-logo" aria-label="UOL">
+          <img src="{% static 'noticias/img/logo-uol.png' %}" alt="UOL">
+        </a>
+
+        <nav class="uol-nav">
+          <a href="https://www.ingresso.com/" target="_blank">INGRESSO.COM</a>
+          <a href="https://uolhost.uol.com.br/" target="_blank">UOL HOST</a>
+          <a href="https://pagbank.com.br/" target="_blank">PAGBANK</a>
+          <a href="https://www.portaleducacao.com.br/" target="_blank">CURSOS</a>
+          <a href="https://play.uol.com.br/" target="_blank">UOL PLAY</a>
+          <a href="https://ads.uol.com.br/" target="_blank">UOL ADS</a>
+        </nav>
+      </div>
+
+      <div class="uol-right">
+        <a href="https://busca.uol.com.br" class="uol-icon">
+          <img src="{% static 'noticias/img/lupa-uol.png' %}" alt="Buscar">
+          <span>BUSCA</span>
+        </a>
+        <a href="https://batepapo.uol.com.br/" class="uol-icon">
+          <img src="{% static 'noticias/img/carta-uol.png' %}" alt="Bate-papo">
+          <span>BATE-PAPO</span>
+        </a>
+        <a href="https://conta.uol.com.br/login" class="uol-icon">
+          <img src="{% static 'noticias/img/card-uol.png' %}" alt="Email">
+          <span>EMAIL</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- ===== /BARRA UOL ===== -->
+
+  <!-- ===== HEADER ===== -->
   <header class="header">
     <div class="container row">
-      <button class="icon-btn" aria-label="Abrir menu"><span>☰</span></button>
+      <!-- Botão do menu lateral -->
+      <button class="icon-btn" id="menu-toggle" aria-label="Abrir menu" aria-controls="menu" aria-expanded="false">
+        <img src="{% static 'noticias/img/menu_hamburguer.svg' %}" alt="Abrir menu" width="28" height="28">
+      </button>
 
+      <!-- Logo JC -->
       <a href="{% url 'noticias:index' %}" class="logo-link" aria-label="Voltar para a página inicial">
         <img class="logo"
-             src="https://upload.wikimedia.org/wikipedia/pt/f/fd/Logotipo_do_Jornal_do_Commercio_%28Recife%29.png"
-             alt="JC Pernambuco" style="height:40px;">
+             src="{% static 'noticias/img/logo-menor-jc.png' %}"
+             alt="JC Pernambuco">
       </a>
 
       <div style="flex:1"></div>
-      <button class="icon-btn" aria-label="Buscar"><span>🔍</span></button>
+
+      <!-- Botão de busca -->
+      <button class="icon-btn" aria-label="Buscar">
+        <img src="{% static 'noticias/img/lupa.svg' %}" alt="Buscar" width="28" height="28">
+      </button>
     </div>
   </header>
 
+  <div id="menu-overlay" class="menu-overlay" hidden></div>
+
+  <!-- ===== MENU LATERAL ===== -->
+  <nav id="menu" class="menu" aria-hidden="true">
+    <div class="menu-top">
+      <img src="{% static 'noticias/img/logo-jornalcommercio.png' %}" alt="Jornal do Commercio" class="menu-logo">
+      <button id="menu-close" class="menu-close" aria-label="Fechar menu">✕</button>
+    </div>
+
+    <div class="menu-user">
+      {% if user.is_authenticated %}
+        <div class="menu-user-icons">
+          <img src="{% static 'noticias/img/editarperfil_uol.png' %}" alt="Editar perfil" class="edit-icon" title="Editar perfil">
+          <img src="{% static 'noticias/img/perfil_uol.png' %}" alt="Foto de perfil" class="avatar" title="Meu perfil">
+
+          <!-- Logout seguro via POST -->
+          <form method="post" action="{% url 'logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" title="Sair da conta" style="background:none;border:0;padding:0;cursor:pointer;">
+              <img src="{% static 'noticias/img/sair_uol.png' %}" alt="Sair" class="logout-icon">
+            </button>
+          </form>
+        </div>
+        <p class="user-name">{{ user.get_full_name|default:user.username }}</p>
+      {% else %}
+        <a href="{% url 'login' %}" class="login-btn">Login</a>
+      {% endif %}
+    </div>
+
+    <ul class="menu-links">
+      <li class="dropdown active">
+        <button class="drop-btn" aria-expanded="false">AO VIVO</button>
+      </li>
+      <li><a href="#">Jornal Digital</a></li>
+      <li class="dropdown">
+        <button class="drop-btn" aria-expanded="false">Jogos</button>
+        <ul class="submenu">
+          <li><a href="#">Caça Palavras</a></li>
+          <li><a href="#">Sudoku</a></li>
+        </ul>
+      </li>
+      <li><a href="#">Últimas</a></li>
+      <li class="dropdown">
+        <button class="drop-btn" aria-expanded="false">Conteúdos</button>
+        <ul class="submenu">
+          <li><a href="#">Cultura</a></li>
+          <li><a href="#">Economia</a></li>
+          <li><a href="#">Educação</a></li>
+        </ul>
+      </li>
+      <li><a href="#">Colunistas</a></li>
+      <li class="dropdown">
+        <button class="drop-btn" aria-expanded="false">Nossos Produtos</button>
+        <ul class="submenu">
+          <li><a href="#">Produto 1</a></li>
+        </ul>
+      </li>
+      <li class="dropdown">
+        <button class="drop-btn" aria-expanded="false">Institucionais</button>
+        <ul class="submenu">
+          <li><a href="#">Sobre</a></li>
+        </ul>
+      </li>
+      <li class="dropdown">
+        <button class="drop-btn" aria-expanded="false">Serviços</button>
+        <ul class="submenu">
+          <li><a href="#">Anuncie</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ===== CONTEÚDO PRINCIPAL ===== -->
   <main class="container">
+    <!-- Bloco de mensagens do Django -->
+    {% if messages %}
+      <div class="messages" role="status" aria-live="polite" style="margin:12px 0;">
+        {% for m in messages %}
+          <p class="message {{ m.tags }}">{{ m }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
   </main>
 
+  <!-- ===== RODAPÉ ===== -->
   <footer class="container" style="padding:32px 0">
     <p class="caption" style="text-align:center">© JC Pernambuco</p>
   </footer>
 
-  {# =================== MODAL DE BOAS-VINDAS =================== #}
-  {% url 'caca_links:escolher_tema' as caca_url %}
-  <div id="welcomeModal"
-       class="modal{% if show_welcome %} is-open{% endif %}"
-       aria-hidden="{% if show_welcome %}false{% else %}true{% endif %}">
-    <div class="modal__backdrop" data-close-modal></div>
-
-    <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
-      <button class="modal__close" id="welcomeClose" aria-label="Fechar">×</button>
-
-      <div class="modal__avatar" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="64" height="64">
-          <path d="M20 21a8 8 0 0 0-16 0"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-      </div>
-
-      <h2 id="welcome-title" class="modal__title">
-        {% if welcome_name %}
-          Olá, {{ welcome_name }}! Seja bem-vindo(a)!
-        {% elif user.is_authenticated %}
-          Olá, {{ user.get_full_name|default:user.username }}! Seja bem-vindo(a)!
-        {% else %}
-          Olá, Leitor(a)! Seja bem-vindo(a)!
-        {% endif %}
-      </h2>
-
-
-      <p class="modal__subtitle">Deseja personalizar sua experiência JC?</p>
-
-      <div class="modal__actions">
-        <a id="welcomeLater" class="modal__btn" href="{% url 'noticias:index' %}">Agora não</a>
-        <a class="modal__btn modal__btn--primary" href="{{ caca_url|default:'/caca-links/' }}">Sim! Vamos lá.</a>
-      </div>
-
-      <div class="modal__back">
-        <a href="{% url 'noticias:index' %}">‹ Voltar</a>
-      </div>
-    </div>
-  </div>
-  {# =================== /MODAL =================== #}
-
   {% block extra_js %}
-    <script src="{% static 'noticias/js/jc.js' %}"></script>
-    <script>
-      (function () {
-        const modal   = document.getElementById('welcomeModal');
-        if (!modal) return;
-
-        const closeBtn = document.getElementById('welcomeClose');
-        const laterBtn = document.getElementById('welcomeLater');
-        const backdrop = modal.querySelector('[data-close-modal]');
-
-        function openModal() {
-          modal.classList.add('is-open');
-          modal.setAttribute('aria-hidden', 'false');
-        }
-        function closeModal() {
-          modal.classList.remove('is-open');
-          modal.setAttribute('aria-hidden', 'true');
-        }
-
-        closeBtn?.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
-        backdrop?.addEventListener('click', closeModal);
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-        laterBtn?.addEventListener('click', () => { closeModal(); });
-
-        window.JC = window.JC || {};
-        window.JC.openWelcome  = openModal;
-        window.JC.closeWelcome = closeModal;
-      })();
-    </script>
+  <script src="{% static 'noticias/js/jc.js' %}"></script>
+  <script src="{% static 'noticias/js/menu.js' %}"></script>
   {% endblock %}
 </body>
 </html>

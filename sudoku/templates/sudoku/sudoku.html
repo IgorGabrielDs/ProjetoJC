@@ -77,52 +77,44 @@
         color: #555;
         cursor: pointer;
     }
-
-    /* --- NOVO MÉTODO PARA O GRID --- */
     
     #sudoku-grid {
         display: grid;
-        /* Cria um grid 3x3 para os BLOCOS */
         grid-template-columns: repeat(3, 1fr); 
-        /* O 'gap' de 2px cria as linhas PRETAS grossas ENTRE os blocos */
         gap: 2px; 
-        background-color: black; /* Cor de fundo que preenche o 'gap' */
-        /* Borda preta grossa em VOLTA de todo o grid */
+        background-color: black; 
         border: 2px solid black; 
         margin: 20px auto;
         max-width: 400px;
-        /* Remove o padding para o grid gap funcionar */
         padding: 0; 
     }
 
     .sudoku-block {
         display: grid;
-        /* Cada bloco é um grid 3x3 para as CÉLULAS */
         grid-template-columns: repeat(3, 1fr); 
-        /* O 'gap' de 1px cria as linhas CINZAS finas ENTRE as células */
         gap: 1px;
-        background-color: #999; /* Cor de fundo que preenche o 'gap' */
+        background-color: #999; 
     }
 
     .sudoku-cell {
         width: 100%;
         aspect-ratio: 1 / 1;
-        /* Fundo branco para cada célula */
         background-color: #fff; 
         box-sizing: border-box;
-        /* Removemos as bordas das células, o 'gap' faz esse trabalho */
     }
-    
-    /* --- FIM DO NOVO MÉTODO --- */
     
     .sudoku-cell input {
         width: 100%;
         height: 100%;
         border: none;
         text-align: center;
-        font-size: 1.5em;
+        font-size: 1.6em; 
+        font-family: Arial, sans-serif; 
         padding: 0;
         box-sizing: border-box;
+        color: #0d47a1; 
+        background-color: transparent; 
+        transition: background-color 0.2s ease; 
         -moz-appearance: textfield;
     }
     .sudoku-cell input::-webkit-outer-spin-button,
@@ -130,11 +122,19 @@
         -webkit-appearance: none;
         margin: 0;
     }
+    
     .sudoku-cell input.clue {
         background-color: #f0f0f0; 
         color: #333;
         font-weight: bold;
     }
+
+    .sudoku-cell input:not(.clue):focus {
+         background-color: #fffde7;
+         outline: 2px solid #D90429;
+         outline-offset: -2px;
+    }
+
     #check-button {
         display: block;
         width: 100%; 
@@ -147,9 +147,21 @@
         border: none;
         border-radius: 8px; 
         cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        transition: background-color 0.3s ease, transform 0.1s ease; 
     }
+    
+    #check-button:hover:not(:disabled) {
+        background-color: #b80324;
+    }
+    #check-button:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+    
     #check-button:disabled {
         background-color: #aaa;
+        box-shadow: none;
+        cursor: not-allowed;
     }
     #message-area {
         font-size: 1.1em;
@@ -246,20 +258,15 @@
         });
 
         
-        // --- LÓGICA DE CRIAÇÃO DO GRID (MODIFICADA) ---
-        
-        // Em vez de 9 linhas, criamos 3x3 blocos
-        for (let br = 0; br < 3; br++) { // Linha de Bloco (0 a 2)
-            for (let bc = 0; bc < 3; bc++) { // Coluna de Bloco (0 a 2)
+        for (let br = 0; br < 3; br++) { 
+            for (let bc = 0; bc < 3; bc++) { 
                 
                 const block = document.createElement('div');
                 block.classList.add('sudoku-block');
                 
-                // Agora, criamos 3x3 células DENTRO de cada bloco
-                for (let r = 0; r < 3; r++) { // Linha da Célula (0 a 2)
-                    for (let c = 0; c < 3; c++) { // Coluna da Célula (0 a 2)
+                for (let r = 0; r < 3; r++) { 
+                    for (let c = 0; c < 3; c++) { 
                         
-                        // Calcula o índice global de 0 a 80
                         const global_r = br * 3 + r;
                         const global_c = bc * 3 + c;
                         const i = global_r * 9 + global_c;
@@ -292,13 +299,10 @@
                 grade.appendChild(block);
             }
         }
-        // --- FIM DA LÓGICA DE CRIAÇÃO DO GRID ---
 
 
         botaoVerificar.addEventListener('click', function() {
             let solucaoUsuarioStr = '';
-            // Esta lógica de verificação continua funcionando
-            // pois ainda busca todos os inputs dentro do #sudoku-grid
             const camposInput = grade.querySelectorAll('input');
             
             let estaCompleto = true;
@@ -306,13 +310,13 @@
                 if (campo.value === '') {
                     estaCompleto = false;
                 }
-                solucaoUsuarioStr += (campo.value || '0'); 
+                solucaoUsuarioStr += (campo.value || '.'); 
             });
 
             if (!estaCompleto) {
                 areaMensagem.textContent = 'Por favor, preencha todas as células.';
                 areaMensagem.className = 'error';
-                return;
+                return; 
             }
 
             let segundosPassadosFinal = Math.floor((Date.now() - inicioTempo) / 1000);
@@ -357,7 +361,7 @@
                 areaMensagem.textContent = 'Erro de comunicação. Tente novamente.';
                 areaMensagem.className = 'error';
                 botaoVerificar.disabled = false;
-                console.error('Erro:', erro);
+                console.error('Erro:', erro); 
             });
         });
     });
