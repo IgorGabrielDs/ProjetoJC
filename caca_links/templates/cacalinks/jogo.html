@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Caça-Links: {{ tema.nome }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root { --grid-size: 15; }
+
+    footer.container { display: none; }
+    
+    main.container { padding: 0 !important; max-width: 100% !important; }
+    
+    .game-container { 
+        max-width: 500px; 
+        margin: 0 auto; 
+        background: #fff; 
+        min-height: calc(100vh - 60px);
+        display: flex; 
+        flex-direction: column; 
+    }
+    .game-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+    .game-header a, .game-header button { text-decoration: none; color: #333; font-size: 1.5em; background: none; border: none; cursor: pointer; }
+    .game-header h3 { margin: 0; font-size: 1.2em; }
+    
+    .grid-wrapper { padding: 10px; background: #f9f9f9; overflow-x: auto; }
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(var(--grid-size), 30px);
+        grid-template-rows: repeat(var(--grid-size), 30px);
+        gap: 1px;
+        margin: 0 auto;
+        width: calc(var(--grid-size) * 31px);
+        user-select: none;
+        -webkit-user-select: none; /* Safari */
+        -ms-user-select: none; /* IE 10+ */
+    }
+    .grid-cell {
+        width: 30px; height: 30px;
+        background: #fff;
+        border: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+    }
+    .grid-cell.selected { background: #007bff; color: #fff; }
+    .grid-cell.found { background: #28a745; color: #fff; }
+
+    .game-info { padding: 20px; flex-grow: 1; }
+    .word-list { list-style: none; padding: 0; margin: 0 0 20px 0; display: flex; flex-wrap: wrap; gap: 10px; }
+    .word-item { background: #eee; padding: 5px 10px; border-radius: 20px; font-size: 0.9em; }
+    .word-item.found { text-decoration: line-through; background: #d4edda; color: #155724; }
+    
+    .noticia-snippet { background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 15px; }
+    .noticia-snippet h4 { margin-top: 0; }
+    .noticia-snippet p { margin-bottom: 15px; }
+    .noticia-snippet a { font-weight: bold; color: #007bff; text-decoration: none; }
+
+    .game-footer { padding: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; }
+    
+    .hidden { display: none !important; }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .modal-content {
+        background: #fff;
+        padding: 24px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .modal-content h3 { margin-top: 0; }
+    .modal-progress { font-size: 1.2em; font-weight: bold; color: #007bff; margin: 10px 0; }
+    .modal-noticia { background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 15px; text-align: left; margin: 20px 0; }
+    .modal-noticia-placeholder { width: 100%; height: 60px; background: #eee; border-radius: 4px; margin-bottom: 10px; }
+    .modal-footer { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .btn { padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; display: block; }
+    .btn-primary { background: #007bff; color: #fff; }
+    .btn-secondary { background: #eee; color: #333; }
+    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+
+    .side-menu {
+        position: fixed;
+        top: 0; left: -100%;
+        width: 80%;
+        max-width: 350px;
+        height: 100%;
+        background: #fff;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        z-index: 1001;
+        transition: left 0.3s ease-in-out;
+        display: flex;
+        flex-direction: column;
+    }
+    .side-menu.visible { left: 0; }
+    .menu-header { padding: 20px; border-bottom: 1px solid #eee; }
+    .menu-header button { font-size: 1.2em; }
+    .menu-content { padding: 20px; text-align: center; }
+    .menu-content .avatar { width: 80px; height: 80px; border-radius: 50%; background: #eee; margin: 0 auto 10px auto; }
+    .menu-content h4 { margin: 0; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; text-align: left; }
+    .stat-item h5 { margin: 0 0 5px 0; color: #666; font-weight: normal; }
+    .stat-item p { margin: 0; font-weight: bold; font-size: 1.2em; }
+    .menu-footer { margin-top: auto; padding: 20px; border-top: 1px solid #eee; }
+
+    #info-modal .modal-content { text-align: left; }
+    #info-modal .modal-content-body { max-height: 60vh; overflow-y: auto; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="game-container">
+    <header class="game-header">
+        <a href="{% url 'cacalinks:escolher_tema' %}">❮</a>
+        <h3>{{ caca.tema.nome }} (#{{ nivel }})</h3>
+        <div>
+            <button onclick="openMenu('stats-menu')">📊</button>
+            <button>🔗</button>
+        </div>
+    </header>
+
+    <div class="grid-wrapper">
+        <div class="grid-container" id="grid-container" style="--grid-size: {{ caca.grade|length }};">
+            {% for row in caca.grade %}
+                {% for cell in row %}
+                    <div class="grid-cell" 
+                         data-row="{{ forloop.parentloop.counter0 }}" 
+                         data-col="{{ forloop.counter0 }}">{{ cell }}</div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="game-info">
+        <ul class="word-list" id="word-list">
+            {% for palavra in palavras %}
+                <li class="word-item" data-word="{{ palavra }}">{{ palavra }}</li>
+            {% endfor %}
+        </ul>
+
+        <div class="noticia-snippet">
+            <h4>{{ caca.noticia.titulo|default:"Lorem Ipsum" }}</h4>
+            <p>{{ caca.noticia.conteudo|truncatewords:25|default:"Lorem ipsum dolor sit amet, consectetur." }}</p>
+            <a href="#" onclick="openModal('info-modal'); return false;">Ler mais</a>
+        </div>
+    </div>
+
+    <footer class="game-footer">
+        <span>Nível {{ nivel }}/3</span>
+        <form action="{% url 'cacalinks:concluir_nivel' tema.id %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" id="concluir-btn" class="btn btn-primary" style="padding: 10px 20px;" disabled>Concluir</button>
+        </form>
+    </footer>
+</div>
+
+
+<div id="stats-menu-overlay" class="modal-overlay hidden" onclick="closeMenu('stats-menu')"></div>
+<div id="stats-menu" class="side-menu">
+    <div class="menu-header">
+        <button onclick="closeMenu('stats-menu')">✖</button>
+    </div>
+    <div class="menu-content">
+        <div class="avatar"></div>
+        <h4>{{ request.user.username|default:"Mariana Lira" }}</h4>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h5>Último tempo</h5>
+                <p>hh:mm:ss</p>
+            </div>
+            <div class="stat-item">
+                <h5>Tempo Médio</h5>
+                <p>hh:mm:ss</p>
+            </div>
+            <div class="stat-item">
+                <h5>Jogos em sequência</h5>
+                <p>XX</p>
+            </div>
+            <div class="stat-item">
+                <h5>Jogos</h5>
+                <p>XX</p>
+            </div>
+        </div>
+    </div>
+    <div class="menu-footer">
+        <a href="#" class="btn btn-secondary">Compartilhar</a>
+    </div>
+</div>
+
+
+<div id="info-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+            <h3 style="margin:0;">{{ caca.noticia.titulo|default:"Lorem Ipsum" }}</h3>
+            <button onclick="closeModal('info-modal')" style="font-size: 1.2em; background:none; border:none; cursor:pointer;">✖</button>
+        </div>
+        <div class="modal-content-body">
+            <p>{{ caca.noticia.conteudo|linebreaksbr|default:"Lorem ipsum dolor sit amet..." }}</p>
+        </div>
+    </div>
+</div>
+
+
+{% if messages and not progresso.concluido %}
+    <div id="parabens-modal" class="modal-overlay">
+        <div class="modal-content">
+            
+            <h3>Desbloqueando um nível {{ nivel }}</h3>
+            <div class="modal-progress">{{ nivel|add:"-1" }}/3</div>
+
+            <div class="modal-noticia">
+                <div class="modal-noticia-placeholder"></div>
+                <h4>{{ caca.noticia.titulo|default:"Lorem Ipsum" }}</h4>
+                <p>{{ caca.noticia.conteudo|truncatewords:20 }}</p>
+            </div>
+
+            <div class="modal-footer">
+                <a href="#" class="btn btn-primary" onclick="document.getElementById('parabens-modal').classList.add('hidden'); return false;">Próximo</a>
+                <a href="#" class="btn btn-secondary">Notícias anteriores</a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{{ palavras|json_script:"palavras-data" }}
+{% endblock %}
+
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    function openModal(modalId) {
+        document.getElementById(modalId).classList.remove('hidden');
+    }
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+    }
+
+    function openMenu(menuId) {
+        document.getElementById(menuId).classList.add('visible');
+        document.getElementById(menuId + '-overlay').classList.remove('hidden');
+    }
+    function closeMenu(menuId) {
+        document.getElementById(menuId).classList.remove('visible');
+        document.getElementById(menuId + '-overlay').classList.add('hidden');
+    }
+
+    
+    const game = {
+        grid: document.getElementById('grid-container'),
+        wordListElem: document.getElementById('word-list'),
+        concluirBtn: document.getElementById('concluir-btn'),
+        
+        wordsToFind: [],
+        foundWords: new Set(),
+        
+        isSelecting: false,
+        selectionStart: null, 
+        selectedCells: [],    
+    };
+
+    function initGame() {
+        const palavrasData = JSON.parse(document.getElementById('palavras-data').textContent);
+        game.wordsToFind = palavrasData.map(w => w.toUpperCase());
+        
+        game.grid.addEventListener('mousedown', onSelectionStart);
+        game.grid.addEventListener('mouseover', onSelectionMove);
+        document.addEventListener('mouseup', onSelectionEnd);
+        
+        game.grid.addEventListener('touchstart', onSelectionStart, { passive: false });
+        game.grid.addEventListener('touchmove', onSelectionMove, { passive: false });
+        document.addEventListener('touchend', onSelectionEnd);
+
+        game.concluirBtn.disabled = true;
+    }
+
+    function getCellFromEvent(e) {
+        let target;
+        if (e.touches && e.touches.length > 0) {
+            const touch = e.touches[0];
+            target = document.elementFromPoint(touch.clientX, touch.clientY);
+        } else if (e.changedTouches && e.changedTouches.length > 0) {
+             const touch = e.changedTouches[0];
+             target = document.elementFromPoint(touch.clientX, touch.clientY);
+        } else {
+            target = e.target;
+        }
+        
+        if (target && target.classList.contains('grid-cell')) {
+            const row = parseInt(target.dataset.row, 10);
+            const col = parseInt(target.dataset.col, 10);
+            return { row, col, elem: target };
+        }
+        return null;
+    }
+
+    function onSelectionStart(e) {
+        e.preventDefault();
+        const startCell = getCellFromEvent(e);
+        
+        if (!startCell) return;
+
+        game.isSelecting = true;
+        game.selectionStart = startCell;
+        clearSelectionClasses();
+        
+        startCell.elem.classList.add('selected');
+        game.selectedCells = [startCell.elem];
+    }
+
+    function onSelectionMove(e) {
+        if (!game.isSelecting) return;
+        
+        const currentCell = getCellFromEvent(e);
+        if (!currentCell) return;
+        
+        clearSelectionClasses();
+        
+        const start = game.selectionStart;
+        const end = currentCell;
+
+        const dr = end.row - start.row;
+        const dc = end.col - start.col;
+        
+        const stepR = Math.sign(dr);
+        const stepC = Math.sign(dc);
+        
+        const isStraightLine = dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc);
+        
+        game.selectedCells = [];
+        
+        if (isStraightLine) {
+            const steps = Math.max(Math.abs(dr), Math.abs(dc));
+            for (let i = 0; i <= steps; i++) {
+                const r = start.row + i * stepR;
+                const c = start.col + i * stepC;
+                const cellElem = game.grid.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+                if (cellElem) {
+                    cellElem.classList.add('selected');
+                    game.selectedCells.push(cellElem);
+                }
+            }
+        } else {
+            game.selectionStart.elem.classList.add('selected');
+            game.selectedCells = [game.selectionStart.elem];
+        }
+    }
+
+    function onSelectionEnd(e) {
+        if (!game.isSelecting) return;
+        
+        game.isSelecting = false;
+        
+        let selectedWord = "";
+        game.selectedCells.forEach(cell => {
+            selectedWord += cell.textContent;
+        });
+
+        checkWord(selectedWord);
+        clearSelectionClasses();
+    }
+
+    function clearSelectionClasses() {
+        game.selectedCells.forEach(cell => {
+            cell.classList.remove('selected');
+        });
+    }
+
+    function checkWord(word) {
+        if (word.length < 2) return;
+        
+        const wordReversed = word.split('').reverse().join('');
+        
+        let match = null;
+        if (game.wordsToFind.includes(word)) {
+            match = word;
+        } else if (game.wordsToFind.includes(wordReversed)) {
+            match = wordReversed;
+        }
+        
+        if (match && !game.foundWords.has(match)) {
+            game.foundWords.add(match);
+            
+            game.selectedCells.forEach(cell => {
+                cell.classList.add('found');
+            });
+            
+            const wordItem = game.wordListElem.querySelector(`[data-word="${match}"]`);
+            if (wordItem) {
+                wordItem.classList.add('found');
+            }
+            
+            checkWinCondition();
+        }
+    }
+
+    function checkWinCondition() {
+        if (game.foundWords.size === game.wordsToFind.length) {
+            game.concluirBtn.disabled = false;
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', initGame);
+
+</script>
+{% endblock %}

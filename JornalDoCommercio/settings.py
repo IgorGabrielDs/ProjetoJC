@@ -8,7 +8,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = False #mudar quando estiver em dev / produção
+DEBUG = True #mudar quando estiver em dev / produção
 
 ALLOWED_HOSTS = ['jornaldocommercio.azurewebsites.net', '127.0.0.1', 'localhost']
 
@@ -114,3 +114,5 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = 'login'

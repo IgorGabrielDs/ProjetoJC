@@ -11,7 +11,7 @@ def escolher_tema(request):
     temas = Assunto.objects.filter(slug__in=[
         "politica", "blog-do-torcedor", "social1", "cultura", "receita-da-boa", "brasil", "economia", "internacional"
     ])
-    progresso = {p.tema.pk: p for p in ProgressoJogador.objects.filter(usuario=request.user)}
+    progresso = ProgressoJogador.objects.filter(usuario=request.user)
     return render(request, "cacalinks/escolher_tema.html", {"temas": temas, "progresso": progresso})
 
 @login_required
