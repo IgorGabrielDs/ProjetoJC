@@ -1,4 +1,4 @@
-﻿# Framework e Servidor
+# Framework e Servidor
 Django
 gunicorn
 whitenoise
@@ -14,10 +14,14 @@ requests
 django-apscheduler
 
 # API do Google
-
 google-generativeai
 
 pytz
 tzlocal
 APScheduler
 django-apscheduler
+
+# Testes
+pytest
+pytest-django
+pytest-lazy-fixture
