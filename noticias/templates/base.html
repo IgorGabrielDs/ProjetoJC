@@ -90,14 +90,9 @@
         <div class="menu-user-icons">
           <img src="{% static 'noticias/img/editarperfil_uol.png' %}" alt="Editar perfil" class="edit-icon" title="Editar perfil">
           <img src="{% static 'noticias/img/perfil_uol.png' %}" alt="Foto de perfil" class="avatar" title="Meu perfil">
-          
-          <!-- Logout seguro via POST -->
-          <form method="post" action="{% url 'logout' %}" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" title="Sair da conta" style="background:none;border:0;padding:0;cursor:pointer;">
-              <img src="{% static 'noticias/img/sair_uol.png' %}" alt="Sair" class="logout-icon">
-            </button>
-          </form>
+          <a href="{% url 'logout' %}" title="Sair da conta">
+            <img src="{% static 'noticias/img/sair_uol.png' %}" alt="Sair" class="logout-icon">
+          </a>
         </div>
         <p class="user-name">{{ user.get_full_name|default:user.username }}</p>
       {% else %}
