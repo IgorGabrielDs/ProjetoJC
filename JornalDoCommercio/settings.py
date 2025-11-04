@@ -16,7 +16,6 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 
 INSTALLED_APPS = [
-    'noticias',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -26,6 +25,7 @@ INSTALLED_APPS = [
     "caca_links",
     'django_apscheduler',
     "sudoku",
+    'noticias.apps.NoticiasConfig',
 ]
 
 MIDDLEWARE = [

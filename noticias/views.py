@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
-from django.db.models import Sum, Exists, OuterRef, Value, BooleanField, F
+from django.db.models import Sum, Exists, OuterRef, Value, BooleanField, F, Q, Count
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
@@ -59,9 +59,8 @@ def _perfil_model_or_none():
             continue
     return None
 
-
 # =======================
-# HOME
+# HOME (A VIEW PRINCIPAL)
 # =======================
 def index(request):
     noticias = Noticia.objects.all()
@@ -81,7 +80,6 @@ def index(request):
         noticias = noticias.filter(criado_em__gte=since)
 
     if sort == "populares":
-        # Coalesce para evitar NULL no SUM; score secundário por criado_em
         noticias = noticias.annotate(
             score=Coalesce(Sum("votos__valor"), Value(0))
         ).order_by("-score", "-criado_em")
@@ -104,32 +102,85 @@ def index(request):
     )
     destaques = _annotate_is_saved(destaques_qs, request.user)[:3]
     if not destaques.exists():
-        # ✅ Fallback: pega os mais recentes mesmo sem imagem
         destaques = _annotate_is_saved(
             all_qs.order_by("-criado_em"),
             request.user
         )[:3]
     destaques_ids = list(destaques.values_list("id", flat=True))
 
-    # 2) Para você
+    
+    # ===================================================================
+    # 2) Para você (LÓGICA DE RECOMENDAÇÃO ATUALIZADA)
+    # ===================================================================
+    
+    ids_para_excluir = set(destaques_ids)
+    titulo_para_voce = "Populares do momento" 
+    
     if request.user.is_authenticated:
+        noticias_votadas_ids = Voto.objects.filter(
+            usuario=request.user
+        ).values_list('noticia__id', flat=True)
+        
+        noticias_salvas_ids = Salvo.objects.filter(
+            usuario=request.user
+        ).values_list('noticia__id', flat=True)
+
+        ids_para_excluir.update(noticias_votadas_ids)
+        ids_para_excluir.update(noticias_salvas_ids)
+
         assuntos_interesse = Assunto.objects.filter(
-            noticias__votos__usuario=request.user
+            noticias__votos__usuario=request.user,
+            noticias__votos__valor=1 
         ).values_list("pk", flat=True).distinct()
+        
         assuntos_salvos = Assunto.objects.filter(
             noticias__salvo__usuario=request.user
         ).values_list("pk", flat=True).distinct()
+        
         assuntos_ids = set(list(assuntos_interesse) + list(assuntos_salvos))
+        
         if assuntos_ids:
-            pv_qs = all_qs.filter(assuntos__in=assuntos_ids).exclude(id__in=destaques_ids).distinct()
+            titulo_para_voce = "Recomendações para você"
+            pv_qs = all_qs.filter(
+                assuntos__id__in=assuntos_ids 
+            ).exclude(
+                id__in=ids_para_excluir 
+            ).annotate(
+                matches_assunto=Count('assuntos', filter=Q(assuntos__id__in=assuntos_ids)),
+                score=Coalesce(Sum('votos__valor'), Value(0))
+            ).distinct().order_by(
+                '-matches_assunto', 
+                '-score',           
+                '-criado_em'        
+            )
         else:
-            pv_qs = all_qs.exclude(id__in=destaques_ids)
+            titulo_para_voce = "Populares do momento"
+            pv_qs = all_qs.exclude(
+                id__in=ids_para_excluir 
+            ).annotate(
+                score=Coalesce(Sum('votos__valor'), Value(0))
+            ).order_by('-score', '-criado_em')
+    
     else:
-        pv_qs = all_qs.exclude(id__in=destaques_ids)
+        titulo_para_voce = "Populares do momento"
+        pv_qs = all_qs.exclude(
+            id__in=ids_para_excluir 
+        ).annotate(
+            score=Coalesce(Sum('votos__valor'), Value(0))
+        ).order_by('-score', '-criado_em')
 
-    para_voce = _annotate_is_saved(pv_qs.order_by("-criado_em"), request.user)[:6]
+    para_voce = _annotate_is_saved(pv_qs, request.user)[:6]
+    
     if not para_voce.exists():
-        para_voce = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:6]
+        para_voce = _annotate_is_saved(
+            all_qs.exclude(id__in=ids_para_excluir).order_by("-criado_em"), 
+            request.user
+        )[:6]
+        titulo_para_voce = "Destaques recentes" 
+
+    # ===================================================================
+    # Fim do bloco "Para você"
+    # ===================================================================
 
     # 3) Mais lidas (7 dias, com fallback)
     since_7 = timezone.now() - timedelta(days=7)
@@ -200,12 +251,12 @@ def index(request):
         "sort": sort,
         "destaques": destaques,
         "para_voce": para_voce,
+        "titulo_para_voce": titulo_para_voce, 
         "mais_lidas": mais_lidas,
         "jc360": jc360,
         "videos": videos,
         "pernambuco": pernambuco,
         "top3": top3,
-        # sinais do modal
         "show_welcome": show_welcome,
         "welcome_name": welcome_name,
         "welcome_next": welcome_next,
@@ -238,6 +289,13 @@ def noticia_detalhe(request, pk):
             .order_by("-criado_em")[:2]
         )
 
+    # Otimização: Em vez de 3 queries (score, up, down), fazer uma.
+    votos_agregados = noticia.votos.aggregate(
+        score_total=Coalesce(Sum('valor'), Value(0)),
+        up_total=Count('id', filter=Q(valor=1)),
+        down_total=Count('id', filter=Q(valor=-1))
+    )
+
     voto_usuario = None
     if request.user.is_authenticated:
         voto_usuario = Voto.objects.filter(noticia=noticia, usuario=request.user).first()
@@ -247,9 +305,9 @@ def noticia_detalhe(request, pk):
 
     ctx = {
         "noticia": noticia,
-        "score": noticia.score(),
-        "up": noticia.upvotes(),
-        "down": noticia.downvotes(),
+        "score": votos_agregados['score_total'], # Usando valor agregado
+        "up": votos_agregados['up_total'],       # Usando valor agregado
+        "down": votos_agregados['down_total'],   # Usando valor agregado
         "voto_usuario": voto_usuario.valor if voto_usuario else 0,
         "is_saved": is_saved,
         "relacionadas": relacionadas,
@@ -269,13 +327,18 @@ def votar(request, pk):
         valor = int(request.POST.get("valor", 0))
         assert valor in (1, -1)
     except Exception:
-        # Resposta neutra para AJAX: mantém contrato dos testes
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            # Recalcula os totais atuais antes de retornar o erro
+            votos_agregados = noticia.votos.aggregate(
+                score_total=Coalesce(Sum('valor'), Value(0)),
+                up_total=Count('id', filter=Q(valor=1)),
+                down_total=Count('id', filter=Q(valor=-1))
+            )
             return JsonResponse({
                 "error": "Voto inválido.",
-                "up": noticia.upvotes(),
-                "down": noticia.downvotes(),
-                "score": noticia.score(),
+                "up": votos_agregados['up_total'],
+                "down": votos_agregados['down_total'],
+                "score": votos_agregados['score_total'],
                 "voto_usuario": 0,
             }, status=200)
         messages.error(request, "Voto inválido.")
@@ -297,10 +360,16 @@ def votar(request, pk):
             current = valor
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        # Recalcula os totais após a mudança
+        votos_agregados = noticia.votos.aggregate(
+            score_total=Coalesce(Sum('valor'), Value(0)),
+            up_total=Count('id', filter=Q(valor=1)),
+            down_total=Count('id', filter=Q(valor=-1))
+        )
         return JsonResponse({
-            "up": noticia.upvotes(),
-            "down": noticia.downvotes(),
-            "score": noticia.score(),
+            "up": votos_agregados['up_total'],
+            "down": votos_agregados['down_total'],
+            "score": votos_agregados['score_total'],
             "voto_usuario": current,
         })
 
@@ -368,13 +437,11 @@ def signup(request):
         password1 = request.POST.get("password1") or ""
         password2 = request.POST.get("password2") or ""
 
-        # ✅ Checkbox robusto: considera marcado se houver "on" nos valores
         terms_vals = request.POST.getlist("terms")
         terms_ok = ("on" in terms_vals)
 
         errors = {}
 
-        # validações básicas
         if not nome:
             errors["nome"] = "Informe seu nome completo."
         if not email:
@@ -386,8 +453,7 @@ def signup(request):
         if not terms_ok:
             errors["terms"] = "É necessário concordar com os Termos de Uso."
 
-        # unicidade por email/username
-        username = email  # usamos email como username
+        username = email 
         if email and User.objects.filter(email=email).exists():
             errors["email"] = "Este e-mail já está cadastrado."
         if username and User.objects.filter(username=username).exists():
@@ -405,10 +471,8 @@ def signup(request):
                 },
                 "next": next_url,
             }
-            # 200 em erro de formulário (evita "Bad Request" no log)
             return render(request, "registration/signup.html", ctx)
 
-        # cria usuário
         first_name, last_name = _split_full_name(nome)
         user = User.objects.create_user( # type: ignore
             username=username,
@@ -418,7 +482,6 @@ def signup(request):
             last_name=last_name,
         )
 
-        # opcional: salvar DOB em Perfil, se existir
         Perfil = _perfil_model_or_none()
         if Perfil is not None:
             try:
@@ -428,12 +491,10 @@ def signup(request):
             except Exception as e:
                 logger.warning("Falha ao atualizar/criar Perfil: %s", e)
 
-        # login automático
         user = authenticate(username=username, password=password1)
         if user:
             auth_login(request, user)
 
-        # Sinais para abrir o modal na Home
         request.session["show_welcome"] = True
         request.session["welcome_name"] = first_name or email
         request.session["welcome_next"] = reverse("noticias:index")
@@ -455,10 +516,6 @@ def resumir_noticia(request, pk):
         return JsonResponse({"error": "Chave da API GEMINI_API_KEY não configurada no ambiente."}, status=500)
 
     noticia = get_object_or_404(Noticia, pk=pk)
-
-    # 🔓 Removido o bloqueio por texto curto no backend.
-    # A UX de "texto curto demais" é tratada no front (botão desabilitado/tooltip)
-    # e já coberta pelo teste de detalhe. Aqui seguimos com a geração.
 
     try:
         import google.generativeai as genai
@@ -484,6 +541,5 @@ def resumir_noticia(request, pk):
             noticia.save(update_fields=["resumo"])
         return JsonResponse({"resumo": resumo})
     except Exception as e:
-        # Loga no servidor e devolve causa visível no JSON
         logger.exception("Erro ao resumir notícia %s: %s", pk, e)
         return JsonResponse({"error": f"Erro ao conectar com a API: {e}"}, status=500)
