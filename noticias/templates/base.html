@@ -90,14 +90,9 @@
         <div class="menu-user-icons">
           <img src="{% static 'noticias/img/editarperfil_uol.png' %}" alt="Editar perfil" class="edit-icon" title="Editar perfil">
           <img src="{% static 'noticias/img/perfil_uol.png' %}" alt="Foto de perfil" class="avatar" title="Meu perfil">
-
-          <!-- Logout seguro via POST -->
-          <form method="post" action="{% url 'logout' %}" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" title="Sair da conta" style="background:none;border:0;padding:0;cursor:pointer;">
-              <img src="{% static 'noticias/img/sair_uol.png' %}" alt="Sair" class="logout-icon">
-            </button>
-          </form>
+          <a href="{% url 'logout' %}" title="Sair da conta">
+            <img src="{% static 'noticias/img/sair_uol.png' %}" alt="Sair" class="logout-icon">
+          </a>
         </div>
         <p class="user-name">{{ user.get_full_name|default:user.username }}</p>
       {% else %}
@@ -150,23 +145,41 @@
 
   <!-- ===== CONTEÚDO PRINCIPAL ===== -->
   <main class="container">
-    <!-- Bloco de mensagens do Django -->
-    {% if messages %}
-      <div class="messages" role="status" aria-live="polite" style="margin:12px 0;">
-        {% for m in messages %}
-          <p class="message {{ m.tags }}">{{ m }}</p>
-        {% endfor %}
-      </div>
-    {% endif %}
-
     {% block content %}{% endblock %}
   </main>
+  <!-- ===== FOOTER ===== -->
+<footer class="jc-footer">
+  <section class="produtos">
+    <h2>Nossos Produtos</h2>
+    <div class="produtos-logos">
+      <img src="{% static 'noticias/img/ne10interior.png' %}" alt="NE10 Interior">
+      <img src="{% static 'noticias/img/radiojornal.png' %}" alt="Rádio Jornal">
+      <img src="{% static 'noticias/img/tvjornal.png' %}" alt="TV Jornal">
+      <img src="{% static 'noticias/img/jcpe.png' %}" alt="JCPE">
+    </div>
+  </section>
 
-  <!-- ===== RODAPÉ ===== -->
-  <footer class="container" style="padding:32px 0">
-    <p class="caption" style="text-align:center">© JC Pernambuco</p>
-  </footer>
+  <section class="redes">
+    <img src="{% static 'noticias/img/jcpe.png' %}" alt="JCPE Logo" class="jcpe-logo">
+    <p class="redes-titulo">Confira nossas redes</p>
 
+    <div class="redes-icones">
+      <a href="#" aria-label="Facebook"><img src="{% static 'noticias/img/facebook.png' %}" alt="Facebook"></a>
+      <a href="#" aria-label="Instagram"><img src="{% static 'noticias/img/instagram.png' %}" alt="Instagram"></a>
+      <a href="#" aria-label="X"><img src="{% static 'noticias/img/x.png' %}" alt="X"></a>
+      <a href="#" aria-label="LinkedIn"><img src="{% static 'noticias/img/linkedin.png' %}" alt="LinkedIn"></a>
+      <a href="#" aria-label="YouTube"><img src="{% static 'noticias/img/youtube.png' %}" alt="YouTube"></a>
+    </div>
+
+    <img src="{% static 'noticias/img/jcpm90.png' %}" alt="Grupo JCPM 90 anos" class="jcpm-logo">
+
+    <p class="footer-text">
+      Jornal © 2025 — Uma empresa do grupo JCPM<br>
+      PARA SOLICITAÇÃO DE LICENCIAMENTO, CONTATAR<br>
+      <a href="mailto:editores@ne10.com.br">EDITORES@NE10.COM.BR</a>
+    </p>
+  </section>
+</footer>
   {% block extra_js %}
   <script src="{% static 'noticias/js/jc.js' %}"></script>
   <script src="{% static 'noticias/js/menu.js' %}"></script>
