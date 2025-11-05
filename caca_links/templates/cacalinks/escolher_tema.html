@@ -24,6 +24,7 @@
     .tema-progress { font-size: 0.9em; font-weight: normal; color: #666; }
     .tema-progress.concluido { color: #28a745; font-weight: bold; }
 
+    /* Estilos do Modal (mantidos) */
     .modal-overlay {
         position: fixed;
         top: 0; left: 0;
@@ -44,19 +45,17 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .modal-content h3 { margin-top: 0; }
-    .modal-progress { font-size: 1.2em; font-weight: bold; color: #007bff; margin: 10px 0; }
-    .modal-noticia { background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 15px; text-align: left; margin: 20px 0; }
-    .modal-noticia-placeholder { width: 100%; height: 60px; background: #eee; border-radius: 4px; margin-bottom: 10px; }
-    .modal-footer { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .modal-content p { font-size: 1.1em; }
+    .modal-footer { margin-top: 20px; }
     .btn {
         padding: 12px;
         border-radius: 8px;
         text-decoration: none;
         font-weight: bold;
         display: block;
+        background: #007bff; 
+        color: #fff; 
     }
-    .btn-primary { background: #007bff; color: #fff; }
-    .btn-secondary { background: #eee; color: #333; }
     .hidden { display: none; }
 </style>
 {% endblock %}
@@ -66,11 +65,13 @@
 <div class="header-escolha">
     <h1>Escolher Tema</h1>
 </div>
+
 <ul class="tema-list">
     {% for tema in temas %}
         <li class="tema-item">
             <a href="{% url 'cacalinks:jogar' tema.id %}" class="tema-link">
                 <span>{{ tema.nome }}</span>
+                
                 <span class="tema-progress">
                     {% for p in progresso %}
                         {% if p.tema == tema %}
@@ -88,33 +89,22 @@
 </ul>
 
 {% if messages %}
-    <div id="parabens-modal-final" class="modal-overlay">
+    <div id="tema-concluido-modal" class="modal-overlay">
         <div class="modal-content">
             
             {% for message in messages %}
                 {% if message.level_tag == 'info' %}
-                    <h3>Parabéns! Que tal mais uma?</h3>
-                    <div class="modal-progress">3/3</div>
-                    <p>{{ message }}</p>
-
-                {% elif message.level_tag == 'success' %}
-                    <h3>Parabéns! Você completou!</h3>
-                    <div class="modal-progress">3/3</div>
-                {% endif %}
+                    <h3>Tema Concluído!</h3>
+                    <p>{{ message }}</p> {% endif %}
             {% endfor %}
             
-            <div class="modal-noticia">
-                <div class="modal-noticia-placeholder"></div>
-                <p>Você desbloqueou todas as notícias deste tema!</p>
-            </div>
-
             <div class="modal-footer">
-                <a href="#" id="fechar-parabens-final" class="btn btn-primary">Próximo</a>
-                <a href="#" class="btn btn-secondary">Notícias anteriores</a>
+                <a href="#" id="fechar-modal-btn" class="btn">Escolher Outro Tema</a>
             </div>
         </div>
     </div>
 {% endif %}
+
 {% endblock %}
 
 
@@ -122,10 +112,11 @@
 {{ block.super }}
 <script>
     (function() {
-        const parabensModal = document.getElementById('parabens-modal-final');
+        // JavaScript para fechar o modal
+        const parabensModal = document.getElementById('tema-concluido-modal');
         if (!parabensModal) return;
 
-        const closeBtn = document.getElementById('fechar-parabens-final');
+        const closeBtn = document.getElementById('fechar-modal-btn');
         closeBtn?.addEventListener('click', (e) => {
             e.preventDefault();
             parabensModal.style.display = 'none';

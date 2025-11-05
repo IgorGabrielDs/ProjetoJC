@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 # Define o namespace usado em redirects e reverses
-app_name = "caca_links"
+app_name = "cacalinks"
 
 urlpatterns = [
     # Página inicial do jogo (escolha de tema)

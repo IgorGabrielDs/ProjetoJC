@@ -1,12 +1,24 @@
 import openai
 import random
 import string
+import re
 from django.conf import settings
+import unicodedata # Importe o unicodedata
+
+# 1. FUNÇÃO ADICIONAL PARA REMOVER ACENTOS E NORMALIZAR
+def normalizar_palavra(palavra):
+    # Remove acentos (ex: "INCRÍVEL" -> "INCRIVEL")
+    nfkd_form = unicodedata.normalize('NFKD', palavra)
+    sem_acento = "".join([c for c in nfkd_form if not unicodedata.combining(c)])
+    # Remove tudo que não for letra A-Z
+    limpa = re.sub(r'[^A-Z]', '', sem_acento.upper())
+    return limpa
 
 def gerar_palavras_chave(conteudo, dificuldade):
     qtd = 6
 
     try:
+        # Tenta usar a OpenAI (como antes)
         client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -19,16 +31,24 @@ def gerar_palavras_chave(conteudo, dificuldade):
         )
 
         texto = response.choices[0].message.content
-
-        if texto:
-            palavras = [p.strip().upper() for p in texto.split(",") if p.strip()]
-            return palavras[:qtd]
-        else:
-            return []
+        palavras_brutas = [p.strip() for p in texto.split(",") if p.strip()]
 
     except Exception:
-        return conteudo.split()[:qtd]
+        # --- NOVO FALLBACK (MUITO MELHOR) ---
+        # 1. Limpa o texto de pontuação e o coloca em maiúsculo
+        conteudo_limpo = re.sub(r'[^\w\s]', '', conteudo).upper()
+        # 2. Encontra todas as palavras únicas com 5 ou mais letras (agora com suporte a unicode)
+        palavras_brutas = list(set(re.findall(r'\b\w{5,}\b', conteudo_limpo, flags=re.UNICODE)))
+        random.shuffle(palavras_brutas)
 
+    # 2. NORMALIZA TODAS AS PALAVRAS (DA OPENAI OU DO FALLBACK)
+    palavras_normalizadas = [normalizar_palavra(p) for p in palavras_brutas]
+    # Retorna apenas as 'qtd' primeiras que não estão vazias
+    palavras_finais = [p for p in palavras_normalizadas if p][:qtd]
+    
+    return palavras_finais
+
+# 3. GERAR GRADE (sem alteração, pois já usa .upper())
 def gerar_grade(palavras, dificuldade, tamanho=15):
     palavras = palavras[:6]
     matriz = [["" for _ in range(tamanho)] for _ in range(tamanho)]
@@ -62,7 +82,8 @@ def gerar_grade(palavras, dificuldade, tamanho=15):
         return False
 
     for palavra in palavras:
-        coloca_palavra(palavra.upper())
+        if not palavra: continue 
+        coloca_palavra(palavra.upper()) # .upper() aqui é seguro pois as palavras já estão normalizadas (A-Z)
 
     letras = string.ascii_uppercase
     for i in range(tamanho):

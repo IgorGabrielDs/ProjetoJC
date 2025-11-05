@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 
-from django.conf import settings
+# Imports para arquivos estáticos e de mídia
+from django.conf import settings 
 from django.conf.urls.static import static
 
 urlpatterns = [
@@ -20,12 +21,13 @@ urlpatterns = [
         name="logout",
     ),
 
-    # 🔗 Rotas dos apps (inclui o fluxo de reset namespaced em noticias/)
+    # 🔗 Rotas dos apps (ISTO É O QUE CORRIGE O ERRO)
     path("", include(("noticias.urls", "noticias"), namespace="noticias")),
     path("caca-links/", include(("caca_links.urls", "caca_links"), namespace="caca_links")),
     path("sudoku/", include(("sudoku.urls", "sudoku"), namespace="sudoku")),
 ]
 
-# 👇 Em DEV, servir /media/
+# Adiciona as rotas para arquivos estáticos e de mídia (apenas em modo DEBUG)
 if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
