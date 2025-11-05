@@ -88,7 +88,7 @@
     <div class="menu-user">
       {% if user.is_authenticated %}
         <div class="menu-user-icons">
-          <img src="{% static 'noticias/img/editarperfil_uol.png' %}" alt="Editar perfil" class="edit-icon" title="Editar perfil">
+          <img src="{% static 'noticias/img/editar_uol.png' %}" alt="Editar perfil" class="edit-icon" title="Editar perfil">
           <img src="{% static 'noticias/img/perfil_uol.png' %}" alt="Foto de perfil" class="avatar" title="Meu perfil">
           <a href="{% url 'logout' %}" title="Sair da conta">
             <img src="{% static 'noticias/img/sair_uol.png' %}" alt="Sair" class="logout-icon">
@@ -103,6 +103,12 @@
     <ul class="menu-links">
       <li class="dropdown active">
         <button class="drop-btn" aria-expanded="false">AO VIVO</button>
+        <ul class="submenu">
+          <li><a href="#">Rádio Jornal (RECIFE)</a></li>
+          <li><a href="#">Rádio Jornal (INTERIOR)</a></li>
+          <li><a href="#">TV Jornal (RECIFE)</a></li>
+          <li><a href="#">TV Jornal (INTERIOR)</a></li>
+        </ul>
       </li>
       <li><a href="#">Jornal Digital</a></li>
       <li class="dropdown">
@@ -125,7 +131,12 @@
       <li class="dropdown">
         <button class="drop-btn" aria-expanded="false">Nossos Produtos</button>
         <ul class="submenu">
-          <li><a href="#">Produto 1</a></li>
+          <li><a href="#">Blog do Torcedor</a></li>
+          <li><a href="#">Ne10 Interior</a></li>
+          <li><a href="#">Radio Jornal</a></li>
+          <li><a href="#">Receita da boa</a></li>
+          <li><a href="#">Social1</a></li>
+          <li><a href="#">TV jornal</a></li>
         </ul>
       </li>
       <li class="dropdown">
@@ -137,7 +148,9 @@
       <li class="dropdown">
         <button class="drop-btn" aria-expanded="false">Serviços</button>
         <ul class="submenu">
-          <li><a href="#">Anuncie</a></li>
+          <li><a href="#">Notícias pelo whatsapp</a></li>
+          <li><a href="#">Newsletter JC</a></li>
+          <li><a href="#">Anuncie conosco</a></li>
         </ul>
       </li>
     </ul>
@@ -155,7 +168,7 @@
       <img src="{% static 'noticias/img/ne10interior.png' %}" alt="NE10 Interior">
       <img src="{% static 'noticias/img/radiojornal.png' %}" alt="Rádio Jornal">
       <img src="{% static 'noticias/img/tvjornal.png' %}" alt="TV Jornal">
-      <img src="{% static 'noticias/img/jcpe.png' %}" alt="JCPE">
+      <img src="{% static 'noticias/img/pejc.png' %}" alt="JCPE">
     </div>
   </section>
 
