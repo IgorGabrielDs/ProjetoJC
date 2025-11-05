@@ -83,7 +83,6 @@ body {
   left: -320px;
   width: 320px;
   background: #fff;
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.25);
   transition: left .25s ease;
   z-index: 1300;
   overflow-y: auto;
@@ -104,7 +103,7 @@ body.no-scroll {
   overflow: hidden;
 }
 
-/* ===== TOPO DO MENU ===== (CORRIGIDO) */
+/* ===== TOPO DO MENU ===== */
 .menu-top {
   display: flex;
   align-items: center;
@@ -112,10 +111,10 @@ body.no-scroll {
   padding: 10px 18px;
   background: #fff;
   height: 72px;
-  position: relative;
-  z-index: 10;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-  overflow: visible;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
 /* remove o pseudo-elemento anterior */
@@ -321,16 +320,16 @@ body.no-scroll {
   color: #fff;
 }
 
-/* ===== QUADRADO VERMELHO FINAL ===== */
+/* ===== QUADRADO VERMELHO FINAL (dentro do menu lateral) ===== */
 .menu::after {
   content: "";
   display: block;
   width: 100%;
-  height: 12px;
-  background: #e30613;
-  position: sticky;
-  bottom: 0;
+  height: 100%;          
+  background: #e30613;     
+  margin-top: 20px;        
 }
+
 
 /* ===== HEADER ===== */
 .header {
@@ -339,7 +338,6 @@ body.no-scroll {
   z-index: 1000;
   width: 100%;
   height: 70px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .icon-btn {
@@ -584,4 +582,77 @@ body.no-scroll {
     width: 26px;
     height: 26px;
   }
+}
+/* ===== BOTÃO AO VIVO FECHADO (visual destacado) ===== */
+.dropdown.active .drop-btn {
+  background: #404040;
+  color: #fff;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border: none;
+  border-radius: 50px;
+  margin: 12px 0;
+  padding: 14px 20px;
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+  transition: background 0.3s ease, transform 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: translateX(-20px);
+  overflow: hidden;
+}
+
+/* Hover vermelho */
+.dropdown.active .drop-btn:hover {
+  background: #e30613;
+  transform: translateX(-15px) scale(1.02);
+}
+
+/* ===== QUANDO CLICA (abre o submenu) ===== */
+.dropdown.open .submenu {
+  display: block;
+  background: #404040;
+  padding-bottom: 10px;
+  border-bottom-left-radius: 50px;
+  border-bottom-right-radius: 50px;
+  transform: translateX(-20px);
+  max-width: 300px;
+  width: 100%;
+  margin-top: -24px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Itens do submenu */
+.dropdown.open .submenu a {
+  display: block;
+  padding: 10px 25px;
+  color: #fff;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  background: transparent;
+  transition: background 0.2s ease;
+  border-radius: 30px;
+}
+
+/* Hover vermelho */
+.dropdown.open .submenu a:hover {
+  background: #e30613;
+}
+
+/* Submenu escondido por padrão */
+.submenu {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* Setinha branca */
+.dropdown.active .drop-btn::after {
+  color: #fff;
+  opacity: 0.9;
 }
