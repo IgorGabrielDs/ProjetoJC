@@ -1,166 +1,67 @@
-name: Django CI/CD to Azure (prod)
+name: CI/CD - Deploy Django para Azure
 
-# roda em push pra main/prod (testes em main; deploy apenas em prod)
 on:
   push:
-    branches: [ main, prod ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - prod
 
-# necessário para login via OIDC / azure/login
 permissions:
-  id-token: write
   contents: read
+  id-token: write
+  actions: read
+
+env:
+  PYTHON_VERSION: "3.12"
+  AZURE_WEBAPP_NAME: "jcproject" 
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
 jobs:
   build-and-deploy:
+    name: Build e Deploy na Azure
     runs-on: ubuntu-latest
 
-    # Postgres service para testes/migrations locais no runner
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: jc_db
-          POSTGRES_USER: jc_user
-          POSTGRES_PASSWORD: jc_pass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U jc_user -d jc_db"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-      - name: Checkout repository
+      - name: 🧩 Checkout do código
         uses: actions/checkout@v4
 
-      - name: Find project layout (manage.py & requirements)
-        id: find_paths
-        run: |
-          # encontra manage.py (procura até 4 níveis)
-          MG=$(find . -maxdepth 4 -name manage.py -print -quit || true)
-          if [ -z "$MG" ]; then
-            echo "manage.py not found, exiting"
-            exit 1
-          fi
-          APP_DIR=$(dirname "$MG")
-          # encontra requirements.txt (no repo root ou abaixo até 4 níveis)
-          REQ=$(find . -maxdepth 4 -type f -name requirements.txt -print -quit || true)
-          if [ -z "$REQ" ]; then
-            echo "requirements.txt not found, attempting pip freeze fallback"
-          fi
-          echo "manage_py=$MG" >> $GITHUB_OUTPUT
-          echo "app_dir=$APP_DIR" >> $GITHUB_OUTPUT
-          echo "req_path=$REQ" >> $GITHUB_OUTPUT
-
-      - name: Set up Python
+      - name: 🐍 Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Cache pip
-        uses: actions/cache@v4
-        id: pip-cache
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
+      - name: ⚙️ Instalar dependências
         run: |
-          # use o requirements encontrado ou instala sem requirements se não existir
-          if [ -n "${{ steps.find_paths.outputs.req_path }}" ]; then
-            echo "Installing from ${{ steps.find_paths.outputs.req_path }}"
-            python -m pip install --upgrade pip
-            pip install -r "${{ steps.find_paths.outputs.req_path }}"
-          else
-            echo "No requirements.txt found — installing minimal test deps"
-            python -m pip install --upgrade pip
-            pip install Django gunicorn whitenoise psycopg2-binary
-          fi
-          # instalar ferramentas pra testes se faltarem
-          pip install pytest pytest-django || true
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Set DJANGO env vars
+      - name: 🏗️ Build do projeto (collectstatic e migrações)
         run: |
-          # define DJANGO_SETTINGS_MODULE baseado no nome do folder padrão se existir
-          # você pode ajustar se seu settings estiver em outro lugar
-          export MG="${{ steps.find_paths.outputs.manage_py }}"
-          APP_DIR="${{ steps.find_paths.outputs.app_dir }}"
-          echo "APP_DIR=$APP_DIR" >> $GITHUB_ENV
-          # tenta inferir DJANGO_SETTINGS_MODULE a partir da pasta com settings.py
-          # fallback hardcoded
-          if [ -f "$APP_DIR/../JornalDoCommercio/settings.py" ] || [ -f "$APP_DIR/JornalDoCommercio/settings.py" ]; then
-            # se existir pasta JornalDoCommercio
-            echo "DJANGO_SETTINGS_MODULE=JornalDoCommercio.settings" >> $GITHUB_ENV
-          else
-            echo "DJANGO_SETTINGS_MODULE=JornalDoCommercio.settings" >> $GITHUB_ENV
-          fi
-          # database url para usar o serviço Postgres local
-          echo "DATABASE_URL=postgres://jc_user:jc_pass@localhost:5432/jc_db" >> $GITHUB_ENV
+          python manage.py collectstatic --noinput
+          python manage.py migrate --noinput
 
-      - name: Wait for Postgres to be ready
-        run: |
-          for i in {1..30}; do
-            pg_isready -h localhost -p 5432 -U jc_user && break
-            echo "waiting for postgres..."
-            sleep 1
-          done
-
-      - name: Run migrations
-        working-directory: ${{ steps.find_paths.outputs.app_dir }}
-        run: |
-          python "${{ steps.find_paths.outputs.manage_py }}" migrate --noinput
-
-      - name: Collect static files
-        working-directory: ${{ steps.find_paths.outputs.app_dir }}
-        run: |
-          python "${{ steps.find_paths.outputs.manage_py }}" collectstatic --noinput || true
-
-      - name: Run Django tests (do not block deploy)
-        working-directory: ${{ steps.find_paths.outputs.app_dir }}
-        continue-on-error: true
-        run: |
-          # rodar pytest se existir configuração; em caso de falha, continua
-          if command -v pytest >/dev/null 2>&1; then
-            pytest -q || echo "pytest failed but continuing (see logs)"
-          else
-            python "${{ steps.find_paths.outputs.manage_py }}" test || echo "Django tests failed but continuing"
-          fi
-
-      # --------- Login Azure (flexível: AZURE_CREDENTIALS JSON OR client-id/secret) ----------
-      - name: Azure Login (using AZURE_CREDENTIALS JSON)
-        if: ${{ secrets.AZURE_CREDENTIALS != '' }}
+      - name: 🔑 Login na Azure (JSON)
+        if: ${{ env.AZURE_CREDENTIALS != '' }}
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ env.AZURE_CREDENTIALS }}
 
-      - name: Azure Login (using client-id + client-secret)
-        if: ${{ secrets.AZURE_CREDENTIALS == '' && secrets.AZURE_CLIENT_ID != '' }}
+      - name: 🔑 Login na Azure (OIDC)
+        if: ${{ env.AZURE_CREDENTIALS == '' && env.AZURE_CLIENT_ID != '' }}
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
 
-      # deploy só quando for push na branch prod
-      - name: Deploy to Azure Web App (only prod)
-        if: github.ref == 'refs/heads/prod'
+      - name: 🚀 Deploy para Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: .
 
-      - name: Post-deploy health-check (optional)
-        if: github.ref == 'refs/heads/prod'
-        run: |
-          if [ -n "${{ secrets.APP_HEALTHCHECK_URL }}" ]; then
-            echo "Checking health at ${APP_HEALTHCHECK_URL}"
-            curl -fsS --max-time 20 "${{ secrets.APP_HEALTHCHECK_URL }}" || echo "Health check failed"
-          else
-            echo "No APP_HEALTHCHECK_URL set, skipping health check"
-          fi
+      - name: ✅ Logout da Azure
+        if: always()
+        run: az logout
