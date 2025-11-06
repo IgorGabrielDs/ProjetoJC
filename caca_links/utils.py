@@ -1,11 +1,9 @@
-import openai
 import random
 import string
 import re
 from django.conf import settings
-import unicodedata # Importe o unicodedata
+import unicodedata 
 
-# 1. FUNÇÃO ADICIONAL PARA REMOVER ACENTOS E NORMALIZAR
 def normalizar_palavra(palavra):
     # Remove acentos (ex: "INCRÍVEL" -> "INCRIVEL")
     nfkd_form = unicodedata.normalize('NFKD', palavra)
@@ -16,39 +14,49 @@ def normalizar_palavra(palavra):
 
 def gerar_palavras_chave(conteudo, dificuldade):
     qtd = 6
+    palavras_brutas = [] 
 
     try:
-        # Tenta usar a OpenAI (como antes)
-        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "user",
-                 "content": f"liste {qtd} palavras importantes (substantivos ou nomes próprios) desse texto jornalístico, separadas por vírgulas: {conteudo}"},
-            ],
-            max_tokens=150,
-            temperature=0.7
-        )
+        api_key = getattr(settings, "GEMINI_API_KEY", "")
+        if not api_key:
+            raise ValueError("Chave da API GEMINI_API_KEY não configurada.")
 
-        texto = response.choices[0].message.content
-        palavras_brutas = [p.strip() for p in texto.split(",") if p.strip()]
+        try:
+            import google.generativeai as genai
+        except ImportError:
+            raise ImportError("Biblioteca google-generativeai não está instalada.")
+        
+        genai.configure(api_key=api_key) #type: ignore
+        model = genai.GenerativeModel("gemini-flash-latest") #type: ignore
 
-    except Exception:
-        # --- NOVO FALLBACK (MUITO MELHOR) ---
-        # 1. Limpa o texto de pontuação e o coloca em maiúsculo
+        prompt = f"""
+        Liste {qtd} palavras importantes (substantivos ou nomes próprios)
+        deste texto jornalístico, em português, separadas por vírgulas:
+        <texto>
+        {conteudo}
+        </texto>
+        """
+        
+        response = model.generate_content(prompt)
+        texto = (getattr(response, "text", "") or "").strip()
+
+        if texto:
+            palavras_brutas = [p.strip() for p in texto.split(",") if p.strip()]
+        
+        if not palavras_brutas:
+            raise ValueError("API Gemini não retornou palavras.")
+        
+
+    except Exception as e:
         conteudo_limpo = re.sub(r'[^\w\s]', '', conteudo).upper()
-        # 2. Encontra todas as palavras únicas com 5 ou mais letras (agora com suporte a unicode)
         palavras_brutas = list(set(re.findall(r'\b\w{5,}\b', conteudo_limpo, flags=re.UNICODE)))
         random.shuffle(palavras_brutas)
 
-    # 2. NORMALIZA TODAS AS PALAVRAS (DA OPENAI OU DO FALLBACK)
     palavras_normalizadas = [normalizar_palavra(p) for p in palavras_brutas]
-    # Retorna apenas as 'qtd' primeiras que não estão vazias
     palavras_finais = [p for p in palavras_normalizadas if p][:qtd]
     
     return palavras_finais
 
-# 3. GERAR GRADE (sem alteração, pois já usa .upper())
 def gerar_grade(palavras, dificuldade, tamanho=15):
     palavras = palavras[:6]
     matriz = [["" for _ in range(tamanho)] for _ in range(tamanho)]
@@ -83,7 +91,7 @@ def gerar_grade(palavras, dificuldade, tamanho=15):
 
     for palavra in palavras:
         if not palavra: continue 
-        coloca_palavra(palavra.upper()) # .upper() aqui é seguro pois as palavras já estão normalizadas (A-Z)
+        coloca_palavra(palavra.upper()) 
 
     letras = string.ascii_uppercase
     for i in range(tamanho):
