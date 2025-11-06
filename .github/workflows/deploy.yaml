@@ -65,11 +65,3 @@ jobs:
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           package: .
-
-      - name: ✅ Health check (opcional)
-        # Esta linha estava correta o tempo todo
-        if: ${{ secrets.APP_HEALTHCHECK_URL != '' }}
-        run: |
-          echo "🔍 Verificando saúde do app em ${{ secrets.APP_HEALTHCHECK_URL }}"
-          sleep 10
-          curl -f "${{ secrets.APP_HEALTHCHECK_URL }}" || echo "⚠️ Health check falhou (app pode estar inicializando)"
