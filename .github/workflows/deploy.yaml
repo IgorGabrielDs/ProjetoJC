@@ -9,14 +9,13 @@ env:
   PYTHON_VERSION: "3.10"
   DJANGO_SETTINGS_MODULE: "JornalDoCommercio.settings_dev"
 
-# 👉 roda todos os "run:" dentro da subpasta do projeto
-defaults:
-  run:
-    working-directory: ProjetoJC
-
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ProjetoJC
 
     services:
       postgres:
@@ -33,7 +32,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        # (checkout sempre na raiz; o defaults.run cuida do resto)
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -69,6 +67,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { contents: read }
 
+    defaults:
+      run:
+        working-directory: ProjetoJC
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -99,7 +101,6 @@ jobs:
         with:
           name: django-app
           path: release.zip
-        # ↑ path relativo à raiz do repositório
 
   deploy:
     runs-on: ubuntu-latest
