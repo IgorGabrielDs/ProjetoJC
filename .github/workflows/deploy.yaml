@@ -97,7 +97,6 @@ jobs:
       - name: 📂 Unzip artifact
         run: unzip release.zip
 
-      # ✅ LOGIN FEDERADO VIA OIDC (sem segredo)
       - name: 🔑 Azure Login (OIDC)
         uses: azure/login@v2
         with:
@@ -106,7 +105,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # 🚀 DEPLOY AUTOMÁTICO PARA O AZURE WEB APP
       - name: 🚀 Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -114,9 +112,13 @@ jobs:
           app-name: 'jcproject'
           package: .
 
-      # 🔍 VERIFICAÇÃO OPCIONAL DE SAÚDE DO APP
       - name: ✅ Health check (opcional)
-        if: ${{ secrets.APP_HEALTHCHECK_URL != '' }}
+        env:
+          APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
         run: |
-          echo "🔍 Verificando saúde do app em ${{ secrets.APP_HEALTHCHECK_URL }}"
-          curl -fsS --max-time 20 "${{ secrets.APP_HEALTHCHECK_URL }}" || echo "⚠️ Health check falhou (app pode estar inicializando)"
+          if [ -n "$APP_HEALTHCHECK_URL" ]; then
+            echo "🔍 Verificando saúde do app em $APP_HEALTHCHECK_URL"
+            curl -fsS --max-time 20 "$APP_HEALTHCHECK_URL" || echo "⚠️ Health check falhou (app pode estar inicializando)"
+          else
+            echo "Nenhum APP_HEALTHCHECK_URL definido. Pulando verificação."
+          fi
