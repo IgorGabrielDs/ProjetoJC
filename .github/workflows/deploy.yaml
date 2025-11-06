@@ -2,9 +2,7 @@ name: CI/CD Django app to Azure Web App - JC
 
 on:
   push:
-    branches:
-      - main       # Staging
-      - prod       # Production
+    branches: [ main, prod ]
   workflow_dispatch:
 
 env:
@@ -15,6 +13,20 @@ jobs:
   # --- JOB 1: TESTAR (CI) ---
   test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: jc_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d jc_test"
+          --health-interval=10s --health-timeout=5s --health-retries=5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,10 +41,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests (Django)
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U postgres -d jc_test && break
+            echo "Postgres not ready yet..."; sleep 2
+          done
+
+      # manage.py test cria o banco de teste automaticamente a partir desse config
+      - name: Run tests
         env:
           SECRET_KEY: "dummy-key-para-testes"
           GEMINI_API_KEY: "dummy-gemini-key-para-testes"
+          DB_NAME: "jc_test"
+          DB_USER: "postgres"
+          DB_PASSWORD: "postgres"
+          DB_HOST: "localhost"
+          DB_PORT: "5432"
+          DB_SSLMODE: "disable"
         run: |
           python manage.py test -v 2
 
@@ -56,11 +82,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Collectstatic independente do ambiente (WhiteNoise)
+      # collectstatic não precisa do DB, mas alguns settings importam variáveis.
       - name: Run collectstatic
         env:
-          SECRET_KEY: "dummy-key-collectstatic"
           DJANGO_SETTINGS_MODULE: "JornalDoCommercio.settings"
+          SECRET_KEY: "dummy-key-collectstatic"
+          DB_NAME: "ignored"
+          DB_USER: "ignored"
+          DB_PASSWORD: "ignored"
+          DB_HOST: "ignored"
+          DB_PORT: "5432"
+          DB_SSLMODE: "disable"
         run: |
           python manage.py collectstatic --noinput
 
@@ -105,7 +137,7 @@ jobs:
               "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
             }
 
-      - name: Deploy to Azure Web App (Staging on main / Production on prod)
+      - name: Deploy to Azure Web App (main→staging / prod→production)
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
