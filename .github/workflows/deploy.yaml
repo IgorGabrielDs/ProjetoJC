@@ -112,11 +112,16 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'jcproject' 
+          app-name: 'jcproject'
           package: .
 
       - name: ✅ Health check (opcional)
-        if: ${{ secrets.APP_HEALTHCHECK_URL != '' }}
+        env:
+          APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
         run: |
-          echo "🔍 Verificando saúde do app em ${{ secrets.APP_HEALTHCHECK_URL }}"
-          curl -fsS --max-time 20 "${{ secrets.APP_HEALTHCHECK_URL }}" || echo "⚠️ Health check falhou (app pode estar inicializando)"
+          if [ -n "$APP_HEALTHCHECK_URL" ]; then
+            echo "🔍 Verificando saúde do app em $APP_HEALTHCHECK_URL"
+            curl -fsS --max-time 20 "$APP_HEALTHCHECK_URL" || echo "⚠️ Health check falhou (app pode estar inicializando)"
+          else
+            echo "Nenhuma URL definida em APP_HEALTHCHECK_URL, pulando verificação."
+          fi
