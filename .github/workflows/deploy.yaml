@@ -3,7 +3,6 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
       - prod
 
 jobs:
@@ -53,8 +52,8 @@ jobs:
           package: .
 
       - name: Health check pós-deploy
-        if: ${{ secrets.APP_HEALTHCHECK_URL }}
+        if: ${{ secrets.APP_HEALTHCHECK_URL != '' }}
         run: |
           echo "Verificando se a aplicação está online..."
           sleep 10
-          curl -f ${{ secrets.APP_HEALTHCHECK_URL }} || exit 1
+          curl -f "${{ secrets.APP_HEALTHCHECK_URL }}" || exit 1
