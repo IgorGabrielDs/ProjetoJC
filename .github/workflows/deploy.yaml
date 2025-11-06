@@ -57,16 +57,14 @@ jobs:
         env:
           SECRET_KEY: "dummy-key"
           DEBUG: "False"
-        run: |
-          python manage.py collectstatic --noinput
+        run: python manage.py collectstatic --noinput
 
       - name: 🗂️ Run Django migrations
         env:
           SECRET_KEY: "dummy-key"
           DEBUG: "False"
           DATABASE_URL: "sqlite:///db.sqlite3"
-        run: |
-          python manage.py migrate --noinput || echo "⚠️ Migrações falharam (ignorado para build)."
+        run: python manage.py migrate --noinput || echo "⚠️ Migrações falharam (ignorado para build)."
 
       - name: 📦 Zip artifact for deployment
         run: zip -r release.zip . -x "venv/*" "__pycache__/*" ".git/*" "db.sqlite3*"
@@ -97,10 +95,13 @@ jobs:
       - name: 📂 Unzip artifact
         run: unzip release.zip
 
-      - name: 🔑 Azure Login
+      - name: 🔑 Azure Login (via secrets individuais)
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
 
       - name: 🚀 Deploy to Azure Web App
         id: deploy-to-webapp
@@ -110,9 +111,7 @@ jobs:
           package: .
 
       - name: ✅ Health check (opcional)
-        if: ${{ env.APP_HEALTHCHECK_URL != '' }}
-        env:
-          APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
+        if: ${{ vars.APP_HEALTHCHECK_URL != '' }}
         run: |
-          echo "🔍 Verificando saúde do app em $APP_HEALTHCHECK_URL"
-          curl -fsS --max-time 20 "$APP_HEALTHCHECK_URL" || echo "⚠️ Health check falhou (app pode estar inicializando)"
+          echo "🔍 Verificando saúde do app em ${{ vars.APP_HEALTHCHECK_URL }}"
+          curl -fsS --max-time 20 "${{ vars.APP_HEALTHCHECK_URL }}" || echo "⚠️ Health check falhou (app pode estar inicializando)"
