@@ -10,7 +10,7 @@ jobs:
   # --- JOB 1: TESTAR (CI) ---
   test:
     runs-on: ubuntu-latest
-    continue-on-error: true 
+    continue-on-error: true
     steps:
       - name: 🧩 Checkout code
         uses: actions/checkout@v4
@@ -100,13 +100,7 @@ jobs:
       - name: 🔑 Azure Login
         uses: azure/login@v2
         with:
-          creds: |
-            {
-              "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
-              "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
-              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
-              "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
-            }
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: 🚀 Deploy to Azure Web App
         id: deploy-to-webapp
@@ -116,12 +110,9 @@ jobs:
           package: .
 
       - name: ✅ Health check (opcional)
+        if: ${{ env.APP_HEALTHCHECK_URL != '' }}
         env:
           APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
         run: |
-          if [ -n "$APP_HEALTHCHECK_URL" ]; then
-            echo "🔍 Verificando saúde do app em $APP_HEALTHCHECK_URL"
-            curl -fsS --max-time 20 "$APP_HEALTHCHECK_URL" || echo "⚠️ Health check falhou (app pode estar inicializando)"
-          else
-            echo "Nenhuma URL definida em APP_HEALTHCHECK_URL, pulando verificação."
-          fi
+          echo "🔍 Verificando saúde do app em $APP_HEALTHCHECK_URL"
+          curl -fsS --max-time 20 "$APP_HEALTHCHECK_URL" || echo "⚠️ Health check falhou (app pode estar inicializando)"
