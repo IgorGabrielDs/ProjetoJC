@@ -9,13 +9,13 @@ env:
   PYTHON_VERSION: "3.10"
   DJANGO_SETTINGS_MODULE: "JornalDoCommercio.settings_dev"
 
+# 🚨 NENHUM 'defaults:' global aqui 🚨
+
 jobs:
   test:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: ProjetoJC
+    
+    # 🚨 NENHUM 'defaults:' de working-directory aqui 🚨
 
     services:
       postgres:
@@ -66,11 +66,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     permissions: { contents: read }
-
-    defaults:
-      run:
-        working-directory: ProjetoJC
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -100,7 +96,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: django-app
-          path: release.zip
+          path: release.zip 
 
   deploy:
     runs-on: ubuntu-latest
