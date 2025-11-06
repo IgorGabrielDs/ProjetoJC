@@ -32,8 +32,8 @@ def start():
         scheduler.add_job(
             generate_daily_puzzles,
             trigger='cron',
-            hour=0,
-            minute=1,
+            hour=13,
+            minute=33,
             id='daily_sudoku_job',
             replace_existing=True,
             max_instances=1,

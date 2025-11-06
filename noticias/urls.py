@@ -6,9 +6,7 @@ app_name = "noticias"
 urlpatterns = [
     path("", views.index, name="index"),
     
-    # --- CORREÇÃO AQUI ---
-    # O nome foi alterado de "noticia_detalhe" para "detalhe_noticia"
-    path("noticia/<int:pk>/", views.noticia_detalhe, name="detalhe_noticia"),
+    path("noticia/<int:pk>/", views.noticia_detalhe, name="noticia_detalhe"),
     
     path("noticia/<int:pk>/votar/", views.votar, name="votar"),
     path("noticia/<int:pk>/toggle-salvo/", views.toggle_salvo, name="toggle_salvo"),
