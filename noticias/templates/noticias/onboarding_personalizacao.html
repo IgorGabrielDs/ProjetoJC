@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Personalize sua experiência — JC{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Layout geral */
+  .onb-wrap{
+    max-width: 520px;
+    margin: 24px auto 56px;
+    padding: 0 16px;
+  }
+  .onb-back{
+    display:inline-block;
+    margin-bottom: 8px;
+    color:#6b6f76;
+    font-size:14px;
+    text-decoration:none;
+  }
+  .onb-back:hover{ text-decoration:underline; }
+
+  .onb-logo{
+    display:block;
+    height:72px;
+    margin: 8px auto 12px;
+    object-fit:contain;
+  }
+
+  .onb-title{
+    font-size:26px;
+    line-height:1.25;
+    font-weight:800;
+    color:#111;
+    margin: 6px 0 2px;
+    text-align:left;
+  }
+  .onb-sub{
+    color:#666;
+    margin: 0 0 16px;
+    text-align:left;
+  }
+
+  /* Campo de identificação */
+  .field{
+    margin: 18px 0 12px;
+  }
+  .field label{
+    font-weight:700;
+    color:#111;
+    display:block;
+    margin-bottom:6px;
+  }
+  .help{
+    display:inline-block;
+    margin-left:6px;
+    color:#999;
+    font-weight:400;
+    font-size:14px;
+  }
+
+  .select{
+    width:100%;
+    height:52px;
+    border-radius:12px;
+    border:1px solid #dfe1e5;
+    background:#fff;
+    padding:0 14px;
+    font-size:16px;
+    color:#111;
+    appearance:none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    background-size:18px;
+  }
+
+  /* Opções rápidas (anônimo / nome) */
+  .chips{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    margin-top:12px;
+  }
+  @media (min-width:480px){
+    .chips{ grid-template-columns:1fr 1fr; }
+  }
+  .chip{
+    border-radius:14px;
+    background:#f3f4f6;
+    padding:12px 14px;
+    border:1px solid #e5e7eb;
+    cursor:pointer;
+    text-align:center;
+    user-select:none;
+    font-weight:600;
+  }
+  .chip[aria-pressed="true"]{
+    background:#e7e8ea;
+    border-color:#d0d3d7;
+  }
+
+  /* Grade de assuntos */
+  .sec-title{
+    margin:18px 0 10px;
+    font-weight:700;
+    color:#111;
+  }
+  .topics{
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    padding:12px;
+    max-height:280px;
+    overflow:auto;
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+    background:#fff;
+  }
+  @media (max-width:460px){
+    .topics{ grid-template-columns:repeat(2, 1fr); }
+  }
+  .topic{
+    position:relative;
+    border-radius:12px;
+    background:#f2f3f5;
+    height:86px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:600;
+    color:#444;
+    cursor:pointer;
+    border:1px solid #e3e5e8;
+    text-align:center;
+    padding:6px;
+  }
+  .topic input{
+    position:absolute; inset:0;
+    opacity:0; pointer-events:none;
+  }
+  .topic.is-on{
+    background:#e7e8ea;
+    border-color:#cfd2d7;
+  }
+
+  /* Termos + rodapé do formulário */
+  .terms{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:14px 4px 10px;
+    color:#555;
+  }
+  .terms input{ width:18px; height:18px; }
+
+  .actions{
+    margin-top:12px;
+  }
+  .btn-primary{
+    width:100%;
+    height:56px;
+    border-radius:14px;
+    border:0;
+    font-weight:800;
+    font-size:16px;
+    background:#cfcfd1; /* desabilitado */
+    color:#111;
+    cursor:not-allowed;
+  }
+  .btn-primary.is-on{
+    background:#c8c9cb;
+    cursor:pointer;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="onb-wrap">
+  <a href="{% url 'noticias:index' %}" class="onb-back">‹ Voltar</a>
+
+  <img class="onb-logo" src="{% static 'noticias/img/logo-jc-pe.svg' %}" alt="JC Pernambuco">
+
+  <h1 class="onb-title">Cadastre-se no Jornal do Commercio</h1>
+  <p class="onb-sub">Experiência completa em uma conta só.</p>
+
+  <form method="post" action="{% url 'noticias:onboarding_personalizacao' %}" id="onb-form" novalidate>
+    {% csrf_token %}
+
+    <!-- Como deseja ser identificado -->
+    <div class="field">
+      <label for="id_ident">Como você deseja ser identificado?
+        <span class="help" aria-hidden="true">ⓘ</span>
+      </label>
+
+      <select id="id_ident" name="identificacao" class="select" aria-describedby="ident-hint">
+        <option value="" selected>Escolha como você deseja ser identificado</option>
+        <option value="anonimo">Quero me manter anônimo</option>
+        <option value="nome">Quero ser identificado pelo meu nome</option>
+      </select>
+
+      <div class="chips" aria-label="Atalho de seleção">
+        <button class="chip" type="button" data-ident="anonimo" aria-pressed="false">
+          Gostaria de me manter anônimo.
+        </button>
+        <button class="chip" type="button" data-ident="nome" aria-pressed="false">
+          Gostaria de ser identificado pelo meu nome.
+        </button>
+      </div>
+    </div>
+
+    <!-- Assuntos de interesse -->
+    <h2 class="sec-title">Escolha quais notícias você gostaria de ficar por dentro</h2>
+    <div class="topics" id="topics">
+      {% if assuntos %}
+        {% for a in assuntos %}
+          <label class="topic">
+            <input type="checkbox" name="assuntos" value="{{ a.id }}">
+            <span>{{ a.nome }}</span>
+          </label>
+        {% endfor %}
+      {% else %}
+        {# Placeholders caso a view ainda não envie assuntos #}
+        {% for i in "123456789" %}
+          <div class="topic" aria-hidden="true"></div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <label class="terms">
+      <input type="checkbox" id="id_terms" name="terms">
+      <span>Li e concordo com os Termos de Uso.</span>
+    </label>
+
+    <div class="actions">
+      <button type="submit" id="btn-finalizar" class="btn-primary" disabled>Finalizar</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  const sel = document.getElementById('id_ident');
+  const chips = document.querySelectorAll('.chip');
+  const topics = document.querySelectorAll('.topics .topic input[type="checkbox"]');
+  const terms = document.getElementById('id_terms');
+  const btn = document.getElementById('btn-finalizar');
+
+  function syncButton(){
+    const hasIdent = sel.value !== "";
+    let hasTopic = false;
+    topics.forEach(ch => { if(ch.checked) hasTopic = true; });
+    const ok = hasIdent && hasTopic && terms.checked;
+    btn.disabled = !ok;
+    btn.classList.toggle('is-on', ok);
+  }
+
+  // chips -> select
+  chips.forEach(c => {
+    c.addEventListener('click', () => {
+      const v = c.dataset.ident;
+      sel.value = v;
+      chips.forEach(x => x.setAttribute('aria-pressed', String(x === c)));
+      syncButton();
+    });
+  });
+
+  // select manual
+  sel.addEventListener('change', () => {
+    chips.forEach(x => x.setAttribute('aria-pressed', String(x.dataset.ident === sel.value)));
+    syncButton();
+  });
+
+  // marcar visual nos cards
+  const topicLabels = document.querySelectorAll('.topics .topic');
+  topicLabels.forEach(lb => {
+    const input = lb.querySelector('input');
+    if (!input) return;
+    input.addEventListener('change', () => {
+      lb.classList.toggle('is-on', input.checked);
+      syncButton();
+    });
+  });
+
+  terms.addEventListener('change', syncButton);
+  syncButton();
+})();
+</script>
+{% endblock %}
