@@ -11,11 +11,27 @@
   <link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
   <link rel="stylesheet" href="{% static 'noticias/css/menu.css' %}">
   <meta name="csrf-token" content="{{ csrf_token }}">
-  
+
+  {# botão de logout com cara de ícone #}
+  <style>
+    .logout-btn{
+      border:0;
+      background:transparent;
+      padding:0;
+      margin:0;
+      cursor:pointer;
+    }
+    .logout-btn:focus{
+      outline:2px solid #bbb;
+      outline-offset:2px;
+    }
+  </style>
+
   {% block extra_head %}{% endblock %}
 </head>
 
-<body>
+{# Opcional: expõe o nome do usuário para o modal usar se necessário #}
+<body{% if user.is_authenticated %} data-username="{{ user.first_name|default:user.username }}"{% endif %}>
   <!-- ===== BARRA UOL ===== -->
   <div class="uol-bar">
     <div class="uol-container">
@@ -90,9 +106,14 @@
         <div class="menu-user-icons">
           <img src="{% static 'noticias/img/editar_uol.png' %}" alt="Editar perfil" class="edit-icon" title="Editar perfil">
           <img src="{% static 'noticias/img/perfil_uol.png' %}" alt="Foto de perfil" class="avatar" title="Meu perfil">
-          <a href="{% url 'logout' %}" title="Sair da conta">
-            <img src="{% static 'noticias/img/sair_uol.png' %}" alt="Sair" class="logout-icon">
-          </a>
+
+          {# Logout deve ser POST no Django 5.x #}
+          <form method="post" action="{% url 'logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn" title="Sair da conta" aria-label="Sair da conta">
+              <img src="{% static 'noticias/img/sair_uol.png' %}" alt="Sair" class="logout-icon">
+            </button>
+          </form>
         </div>
         <p class="user-name">{{ user.get_full_name|default:user.username }}</p>
       {% else %}
@@ -160,39 +181,52 @@
   <main class="container">
     {% block content %}{% endblock %}
   </main>
+
   <!-- ===== FOOTER ===== -->
-<footer class="jc-footer">
-  <section class="produtos">
-    <h2>Nossos Produtos</h2>
-    <div class="produtos-logos">
-      <img src="{% static 'noticias/img/ne10interior.png' %}" alt="NE10 Interior">
-      <img src="{% static 'noticias/img/radiojornal.png' %}" alt="Rádio Jornal">
-      <img src="{% static 'noticias/img/tvjornal.png' %}" alt="TV Jornal">
-      <img src="{% static 'noticias/img/pejc.png' %}" alt="JCPE">
-    </div>
-  </section>
+  <footer class="jc-footer">
+    <section class="produtos">
+      <h2>Nossos Produtos</h2>
+      <div class="produtos-logos">
+        <img src="{% static 'noticias/img/ne10interior.png' %}" alt="NE10 Interior">
+        <img src="{% static 'noticias/img/radiojornal.png' %}" alt="Rádio Jornal">
+        <img src="{% static 'noticias/img/tvjornal.png' %}" alt="TV Jornal">
+        <img src="{% static 'noticias/img/pejc.png' %}" alt="JCPE">
+      </div>
+    </section>
 
-  <section class="redes">
-    <img src="{% static 'noticias/img/jcpe.png' %}" alt="JCPE Logo" class="jcpe-logo">
-    <p class="redes-titulo">Confira nossas redes</p>
+    <section class="redes">
+      <img src="{% static 'noticias/img/jcpe.png' %}" alt="JCPE Logo" class="jcpe-logo">
+      <p class="redes-titulo">Confira nossas redes</p>
 
-    <div class="redes-icones">
-      <a href="#" aria-label="Facebook"><img src="{% static 'noticias/img/facebook.png' %}" alt="Facebook"></a>
-      <a href="#" aria-label="Instagram"><img src="{% static 'noticias/img/instagram.png' %}" alt="Instagram"></a>
-      <a href="#" aria-label="X"><img src="{% static 'noticias/img/x.png' %}" alt="X"></a>
-      <a href="#" aria-label="LinkedIn"><img src="{% static 'noticias/img/linkedin.png' %}" alt="LinkedIn"></a>
-      <a href="#" aria-label="YouTube"><img src="{% static 'noticias/img/youtube.png' %}" alt="YouTube"></a>
-    </div>
+      <div class="redes-icones">
+        <a href="#" aria-label="Facebook"><img src="{% static 'noticias/img/facebook.png' %}" alt="Facebook"></a>
+        <a href="#" aria-label="Instagram"><img src="{% static 'noticias/img/instagram.png' %}" alt="Instagram"></a>
+        <a href="#" aria-label="X"><img src="{% static 'noticias/img/x.png' %}" alt="X"></a>
+        <a href="#" aria-label="LinkedIn"><img src="{% static 'noticias/img/linkedin.png' %}" alt="LinkedIn"></a>
+        <a href="#" aria-label="YouTube"><img src="{% static 'noticias/img/youtube.png' %}" alt="YouTube"></a>
+      </div>
 
-    <img src="{% static 'noticias/img/jcpm90.png' %}" alt="Grupo JCPM 90 anos" class="jcpm-logo">
+      <img src="{% static 'noticias/img/jcpm90.png' %}" alt="Grupo JCPM 90 anos" class="jcpm-logo">
 
-    <p class="footer-text">
-      Jornal © 2025 — Uma empresa do grupo JCPM<br>
-      PARA SOLICITAÇÃO DE LICENCIAMENTO, CONTATAR<br>
-      <a href="mailto:editores@ne10.com.br">EDITORES@NE10.COM.BR</a>
-    </p>
-  </section>
-</footer>
+      <p class="footer-text">
+        Jornal © 2025 — Uma empresa do grupo JCPM<br>
+        PARA SOLICITAÇÃO DE LICENCIAMENTO, CONTATAR<br>
+        <a href="mailto:editores@ne10.com.br">EDITORES@NE10.COM.BR</a>
+      </p>
+    </section>
+  </footer>
+
+  {# === Gatilho do pop-up pós-signup vindo da view index === #}
+  {% if show_welcome %}
+    <script>
+      window.SHOW_PERSONALIZACAO = true;
+      window.JC_USER_NAME = "{{ welcome_name|default_if_none:''|escapejs }}";
+    </script>
+  {% endif %}
+
+  {# === Inclusão do componente do modal (HTML+CSS+JS) === #}
+  {% include "noticias/partials/popup_personalizacao.html" %}
+
   {% block extra_js %}
   <script src="{% static 'noticias/js/jc.js' %}"></script>
   <script src="{% static 'noticias/js/menu.js' %}"></script>
