@@ -3,184 +3,164 @@
 
 {% block title %}{{ noticia.titulo }} — JC{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
+{% endblock %}
+
 {% block content %}
-<article class="article-detail container">
+<article class="art-wrap" itemscope itemtype="https://schema.org/NewsArticle">
 
-  {# Kicker + régua #}
-  {% with assunto=noticia.assuntos.first %}
-    <div class="kicker">
-      <span class="k-left">{% if assunto %}{{ assunto.nome }}{% else %}Geral{% endif %}</span>
-      <span class="k-sep">|</span>
-      <span class="k-right">NOTÍCIA</span>
-    </div>
-  {% endwith %}
-  <hr class="section-rule" />
-
-  <h1 class="headline">{{ noticia.titulo }}</h1>
-
-  {# Capa + legenda #}
-  {% if noticia.imagem %}
-    <figure class="cover figure">
-      <img src="{{ noticia.imagem.url }}" alt="{{ noticia.titulo }}">
-      {% if noticia.legenda or noticia.credito_imagem %}
-        <figcaption>
-          {{ noticia.legenda }}{% if noticia.credito_imagem %} — {{ noticia.credito_imagem }}{% endif %}
-        </figcaption>
+  <!-- Kicker -->
+  <header class="art-top">
+    <div class="art-kicker">
+      {% if noticia.categoria %}
+        <span class="kicker-link">{{ noticia.categoria.nome }}</span>
       {% endif %}
-    </figure>
+      <span class="kicker-sep">|</span>
+      <span class="kicker-type">NOTÍCIA</span>
+    </div>
+
+    <h1 class="art-title" itemprop="headline">{{ noticia.titulo }}</h1>
+
+    <div class="art-byline">
+      <span class="by">Por</span>
+      <span class="who" itemprop="author" itemscope itemtype="https://schema.org/Organization">
+        <span itemprop="name">{{ noticia.autor_nome|default:"JC" }}</span>
+      </span>
+    </div>
+
+    <!-- Ações -->
+    <div class="art-actions">
+      {% if noticia.pk %}
+      <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}" class="act" aria-label="Salvar matéria">
+        {% csrf_token %}
+        <button class="btn-icon" type="submit" title="Salvar">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M6 2h12a2 2 0 0 1 2 2v18l-8-4-8 4V4a 2 2 0 0 1 2-2z"/></svg>
+        </button>
+      </form>
+      {% endif %}
+
+      <button class="btn-icon" type="button" title="Compartilhar" id="shareBtn" aria-label="Compartilhar">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M18 8a3 3 0 1 0-2.83-2H10a2 2 0 0 0-2 2v3.17a3 3 0 1 0 0 3.66V18a2 2 0 0 0 2 2h5.17A3 3 0 1 0 18 18H11v-2.17A3.001 3.001 0 0 0 12 12a3 3 0 0 0-1-2.24V8h4.17A3 3 0 0 0 18 8z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Imagem principal -->
+  {% if noticia.imagem %}
+  <figure class="art-hero" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+    {% if noticia.alt_imagem %}
+      <img src="{{ noticia.imagem.url }}" alt="{{ noticia.alt_imagem }}" class="hero-img">
+    {% else %}
+      <img src="{{ noticia.imagem.url }}" alt="Imagem de {{ noticia.titulo }}" class="hero-img">
+    {% endif %}
+    {% if noticia.legenda_imagem or noticia.credito_imagem %}
+    <figcaption class="hero-cap">
+      <span class="cap-txt">{{ noticia.legenda_imagem }}</span>
+      {% if noticia.credito_imagem %}
+        <span class="cap-credit"> — {{ noticia.credito_imagem }}</span>
+      {% endif %}
+    </figcaption>
+    {% endif %}
+    <meta itemprop="url" content="{{ noticia.imagem.url }}">
+  </figure>
   {% endif %}
 
-  {# BYLINE: bookmark + shares #}
-  <div class="meta-row meta-row--below">
-    <div class="meta-left">
-      <span class="by">Por <strong>{{ noticia.autor|default:"JC" }}</strong></span>
-    </div>
+  <!-- Lead -->
+  {% if noticia.resumo %}
+  <p class="art-lead">{{ noticia.resumo }}</p>
+  {% endif %}
 
-    <div class="meta-share">
-      <!-- Ver mais tarde -->
-      <button
-        class="share-btn bookmark-btn{% if is_saved %} is-saved{% endif %}"
-        id="btn-bookmark"
-        type="button"
-        data-salvo-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
-        aria-label="{% if is_saved %}Retirar de Ver mais tarde{% else %}Ver mais tarde{% endif %}">
-        <svg class="bm-icon bm-outline" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.8"/>
-        </svg>
-        <svg class="bm-icon bm-solid" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z" fill="currentColor"/>
-        </svg>
-      </button>
-
-      <!-- WhatsApp -->
-      <a class="share-btn" aria-label="WhatsApp"
-         href="https://api.whatsapp.com/send?text={{ request.build_absolute_uri|urlencode }}">
-        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M20 3.9A10 10 0 1 0 21 12a9.9 9.9 0 0 0-1-8.1ZM7.9 6.9a1 1 0 0 1 1-.1l1.7.7a1 1 0 0 1 .6 1.1l-.2 1a1 1 0 0 0 .2.8 7.4 7.4 0 0 0 2.9 2.9 1 1 0 0 0 .8.2l1-.2a1 1 0 0 1 1.1.6l.7 1.7a1 1 0 0 1-.1 1 3.6 3.6 0 0 1-3.2 1.8c-2.8 0-6.1-2.7-7.2-4.8A3.6 3.6 0 0 1 7.9 6.9Z" fill="currentColor"/>
-        </svg>
-      </a>
-
-      <!-- Facebook -->
-      <a class="share-btn" aria-label="Facebook"
-         href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}">
-        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M13 22v-9h3l.5-4H13V7.6c0-1.1.3-1.7 1.9-1.7H17V2.2A30.6 30.6 0 0 0 14.6 2C12 2 10.2 3.6 10.2 6.9V9H7v4h3.2v9Z" fill="currentColor"/>
-        </svg>
-      </a>
-
-      <!-- Copiar link -->
-      <button class="share-btn" id="btn-copy-link" type="button" aria-label="Copiar link">
-        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M9.5 14.5 8 16a4 4 0 1 1-5.7-5.7l3-3a4 4 0 0 1 5.7 0l.5.5M14.5 9.5 16 8a4 4 0 1 1 5.7 5.7l-3 3a4 4 0 0 1-5.7 0l-.5-.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  {# Publicado / Atualizado #}
-  <hr class="section-rule section-rule--tight" />
-  <div class="publine">
-    {% if noticia.criado_em %}Publicado em {{ noticia.criado_em|date:"d/m/Y H:i" }}{% endif %}
-    {% if noticia.atualizado_em and noticia.atualizado_em > noticia.criado_em %}
-      <span class="dot">•</span> Atualizado em {{ noticia.atualizado_em|date:"d/m/Y H:i" }}
+  <!-- Times -->
+  <div class="art-times">
+    <time itemprop="datePublished" datetime="{{ noticia.publicado_em|date:'c' }}">
+      Publicado em {{ noticia.publicado_em|date:"d/m/Y" }} às {{ noticia.publicado_em|date:"H:i" }}
+    </time>
+    {% if noticia.atualizado_em and noticia.atualizado_em > noticia.publicado_em %}
+      <span class="sep">|</span>
+      <time itemprop="dateModified" datetime="{{ noticia.atualizado_em|date:'c' }}">
+        Atualizado em {{ noticia.atualizado_em|date:"d/m/Y" }} às {{ noticia.atualizado_em|date:"H:i" }}
+      </time>
     {% endif %}
   </div>
 
-  <div class="content">{{ noticia.conteudo|linebreaks }}</div>
-
-  {# Ações (somente botão compartilhar geral, opcional) #}
-  <div class="article-actions" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-    <button class="btn btn-outline btn-share" type="button" id="btn-share">Compartilhar</button>
+  <!-- Corpo -->
+  <div class="art-body" itemprop="articleBody">
+    {% if noticia.conteudo_html %}
+      {{ noticia.conteudo_html|safe }}
+    {% else %}
+      {% for p in noticia.paragrafos.all %}
+        <p>{{ p.texto }}</p>
+      {% empty %}
+        <p>{{ noticia.conteudo|linebreaks }}</p>
+      {% endfor %}
+    {% endif %}
   </div>
 
-  {# Votação #}
-  <section class="vote" style="margin-top:14px">
-    <div class="vote-box" data-votos-box
-         style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#f7f7f8;border:1px solid #e5e7eb;border-radius:12px;padding:8px 12px">
-      <div class="vote-row" style="display:flex;gap:6px;align-items:center">
-        <button type="button" class="btn-vote btn-voto{% if voto_usuario == 1 %} is-active{% endif %}"
-                data-votar-url="{% url 'noticias:votar' noticia.pk %}" data-valor="1"
-                aria-label="Gostei" title="Gostei">↑</button>
-        <span class="score" data-upcount aria-live="polite">{{ up }}</span>
-        <noscript>
-          <form method="post" action="{% url 'noticias:votar' noticia.pk %}">{% csrf_token %}
-            <input type="hidden" name="valor" value="1"><button class="btn-vote" aria-label="Gostei" title="Gostei">↑</button>
-          </form>
-        </noscript>
-      </div>
-      <div class="vote-row" style="display:flex;gap:6px;align-items:center">
-        <button type="button" class="btn-vote btn-voto{% if voto_usuario == -1 %} is-active{% endif %}"
-                data-votar-url="{% url 'noticias:votar' noticia.pk %}" data-valor="-1"
-                aria-label="Não gostei" title="Não gostei">↓</button>
-        <span class="score" data-downcount aria-live="polite">{{ down }}</span>
-        <noscript>
-          <form method="post" action="{% url 'noticias:votar' noticia.pk %}">{% csrf_token %}
-            <input type="hidden" name="valor" value="-1"><button class="btn-vote" aria-label="Não gostei" title="Não gostei">↓</button>
-          </form>
-        </noscript>
-      </div>
-    </div>
-  </section>
-
-  {# Resumo IA #}
-  <section class="ai-panel" style="margin-top:18px">
-    <div class="ai-title">Resumir notícia</div>
-    <button class="btn btn-ai" type="button" id="btn-resumir">Resumir notícia</button>
-    <div class="ai-summary" id="ai-summary" style="display:none">
-      <div class="summary-title">Resumo gerado</div>
-      <div id="ai-text"></div>
-      <div class="summary-actions" style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn btn-outline btn-copy" type="button" id="btn-copy">Copiar</button>
-        <button class="btn btn-outline btn-close" type="button" id="btn-close">Fechar</button>
-      </div>
-    </div>
-  </section>
-
-  {# Leia também #}
+  <!-- ===== LEIA TAMBÉM ===== -->
   {% if relacionadas %}
-    <section class="related">
-      <h3 class="related-title">LEIA TAMBÉM</h3>
-      <div class="related-grid">
-        {% for n in relacionadas %}
-          <a class="related-card related-card--vertical" href="{{ n.get_absolute_url }}">
-            <div class="rc-thumb rc-thumb--top">
-              {% if n.imagem %}<img src="{{ n.imagem.url }}" alt="{{ n.titulo }}">{% else %}<div class="rc-thumb-placeholder"></div>{% endif %}
-            </div>
-            <div class="rc-body">
-              {% with a=n.assuntos.first %}
-                <div class="rc-kicker">{% if a %}{{ a.nome }}{% else %}Geral{% endif %}</div>
-              {% endwith %}
-              <h4 class="rc-title">{{ n.titulo }}</h4>
-              <p class="rc-excerpt">{{ n.conteudo|striptags|truncatewords:22 }}</p>
-            </div>
-          </a>
-        {% endfor %}
-      </div>
-    </section>
-  {% endif %}
-
-  {# Compartilhe (seção maior) #}
-  <section class="share-section">
-    <h3 class="share-title">Compartilhe</h3>
-    <div class="share-row">
-      <a class="share-icon" href="https://api.whatsapp.com/send?text={{ request.build_absolute_uri|urlencode }}" aria-label="WhatsApp">🟢</a>
-      <a class="share-icon" href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" aria-label="Facebook">📘</a>
-      <button class="share-icon" type="button" id="btn-copy-link-2" aria-label="Copiar link">🔗</button>
+  <section class="art-related">
+    <h2 class="related-title">LEIA TAMBÉM</h2>
+    <div class="related-grid">
+      {% for rel in relacionadas %}
+      <a href="{% url 'noticias:noticia_detalhe' rel.pk %}" class="related-card">
+        {% if rel.imagem %}
+        <img src="{{ rel.imagem.url }}" alt="{{ rel.alt_imagem|default:rel.titulo }}" class="related-img">
+        {% endif %}
+        <div class="related-info">
+          {% if rel.categoria %}
+          <p class="related-cat">{{ rel.categoria.nome|upper }}</p>
+          {% endif %}
+          <h3 class="related-head">{{ rel.titulo }}</h3>
+          <p class="related-desc">{{ rel.resumo|default:rel.olho|default:rel.titulo|truncatewords:22 }}</p>
+        </div>
+      </a>
+      {% endfor %}
     </div>
   </section>
+  {% endif %}
 
-  {# Tags #}
-  {% with tags=noticia.assuntos.all %}
-    {% if tags|length %}
-      <section class="tags">
-        <h3 class="tags-title">Tags</h3>
-        <div class="chips">
-          {% for a in tags %}
-            <a class="chip chip--red" href="{% url 'noticias:index' %}?assunto={{ a.slug }}">{{ a.nome|upper }}</a>
-          {% endfor %}
-        </div>
-      </section>
+  <!-- ===== COMPARTILHE + SALVAR ===== -->
+  <section class="art-share">
+    <h2 class="share-title">Compartilhe</h2>
+    <div class="share-icons">
+      <a href="https://api.whatsapp.com/send?text={{ noticia.titulo|urlencode }}%20{{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" aria-label="WhatsApp">
+        <img src="{% static 'noticias/img/whatsapp.svg' %}" alt="WhatsApp">
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" aria-label="Facebook">
+        <img src="{% static 'noticias/img/facebook.svg' %}" alt="Facebook">
+      </a>
+      <a href="https://www.instagram.com/" target="_blank" rel="noopener" class="share-btn" aria-label="Instagram">
+        <img src="{% static 'noticias/img/instagram.svg' %}" alt="Instagram">
+      </a>
+      <button type="button" class="share-btn" id="copyLink" title="Copiar link" aria-label="Copiar link">
+        <img src="{% static 'noticias/img/share.svg' %}" alt="Copiar link">
+      </button>
+    </div>
+
+    {% if noticia.pk %}
+    <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}">
+      {% csrf_token %}
+      <button class="save-main" type="submit">
+        <svg viewBox="0 0 24 24" class="save-ico"><path d="M6 2h12a2 2 0 0 1 2 2v18l-8-4-8 4V4a2 2 0 0 1 2-2z"/></svg>
+        <span>Salvar</span>
+      </button>
+    </form>
     {% endif %}
+  </section>
+
+  <!-- ===== TAGS ===== -->
+  {% with noticia.tags.all as tags %}
+  {% if tags %}
+  <section class="art-tags">
+    <h3 class="tags-title">Tags</h3>
+    <div class="tags-wrap">
+      {% for tag in tags %}
+      <span class="tag-chip">{{ tag.nome|upper }}</span>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
   {% endwith %}
 
 </article>
@@ -189,74 +169,24 @@
 {% block extra_js %}
 {{ block.super }}
 <script>
-  // Compartilhar (Web Share) geral
-  document.getElementById('btn-share')?.addEventListener('click', async () => {
-    const data = { title: document.title, text: '{{ noticia.titulo|escapejs }}', url: window.location.href };
-    if (navigator.share) { try { await navigator.share(data); } catch(e) {} }
-    else { try { await navigator.clipboard.writeText(data.url); } catch(e) {} alert('Link copiado!'); }
-  });
-
-  // Copiar link (atalhos)
-  function copyLink(){
-    try { navigator.clipboard.writeText(window.location.href); alert("Link copiado!"); }
-    catch(e){ alert("Não foi possível copiar o link."); }
-  }
-  document.getElementById('btn-copy-link')?.addEventListener('click', copyLink);
-  document.getElementById('btn-copy-link-2')?.addEventListener('click', copyLink);
-
-  // CSRF util
-  function getCookie(name) {
-    const m = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]*)'));
-    return m ? decodeURIComponent(m[2]) : null;
-  }
-
-  // Toggle "Ver mais tarde" (AJAX)
-  const bmBtn = document.getElementById('btn-bookmark');
-  if (bmBtn){
-    bmBtn.addEventListener('click', async () => {
-      const url = bmBtn.getAttribute('data-salvo-url');
-      try{
-        const resp = await fetch(url, {
-          method: 'POST',
-          headers: { 'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') || '' }
-        });
-        const data = await resp.json();
-        const saved = !!data.saved;
-        bmBtn.classList.toggle('is-saved', saved);
-        const label = saved ? 'Retirar de Ver mais tarde' : 'Ver mais tarde';
-        bmBtn.setAttribute('aria-label', label);
-      }catch(e){
-        alert('Não foi possível atualizar seus salvos.');
-      }
-    });
-  }
-
-  // Resumo por IA (AJAX)
-  const btnResumir = document.getElementById('btn-resumir');
-  const box = document.getElementById('ai-summary');
-  const txt = document.getElementById('ai-text');
-  const btnCopy = document.getElementById('btn-copy');
-  const btnClose = document.getElementById('btn-close');
-
-  btnResumir?.addEventListener('click', async () => {
-    btnResumir.disabled = true; btnResumir.textContent = 'Gerando...';
-    try {
-      const resp = await fetch("{% url 'noticias:resumir_noticia' noticia.pk %}", {
-        method: 'POST',
-        headers: { 'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') || '' }
+  // Web Share (mobile) + fallback
+  (function () {
+    var btn = document.getElementById('shareBtn');
+    if (btn) {
+      btn.addEventListener('click', async function () {
+        const data = { title: document.title, text: "{{ noticia.titulo|escapejs }}", url: window.location.href };
+        if (navigator.share) { try { await navigator.share(data); } catch(e) {} }
+        else { try { await navigator.clipboard.writeText(data.url); } catch(e) {} }
       });
-      const data = await resp.json();
-      if (data.resumo) { txt.textContent = data.resumo; box.style.display = 'block'; }
-      else { alert(data.error || 'Não foi possível gerar o resumo.'); }
-    } catch(e){ alert('Falha de rede.'); }
-    finally { btnResumir.disabled = false; btnResumir.textContent = 'Resumir notícia'; }
-  });
+    }
+  })();
 
-  btnCopy?.addEventListener('click', async () => {
-    if (!txt.textContent) return;
-    try { await navigator.clipboard.writeText(txt.textContent); } catch(e) {}
-    alert('Resumo copiado!');
+  // Copiar link
+  document.getElementById("copyLink")?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      alert("Link copiado!");
+    } catch (e) {}
   });
-  btnClose?.addEventListener('click', () => { box.style.display = 'none'; });
 </script>
 {% endblock %}
