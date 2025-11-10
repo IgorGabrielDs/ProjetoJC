@@ -1,0 +1,130 @@
+{# Modal de ajuda da etapa "Como você deseja ser identificado?" #}
+<div id="onb-ident-backdrop" class="onbmi-backdrop" hidden></div>
+
+<div id="onb-ident-dialog"
+     class="onbmi-dialog"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="onb-ident-title"
+     hidden>
+  <button type="button" class="onbmi-close" aria-label="Fechar" data-close>✕</button>
+
+  <h2 id="onb-ident-title" class="onbmi-title">
+    Como você deseja ser identificado?
+    <span class="onbmi-info" aria-hidden="true">ⓘ</span>
+  </h2>
+
+  <div class="onbmi-body">
+    <p>
+      Se você escolher <strong>permanecer anônimo</strong>, um apelido aleatório será criado automaticamente
+      para o seu perfil. <strong>Esse apelido aparecerá quando você fizer comentários nas notícias do site.</strong>
+    </p>
+    <p>
+      Se preferir usar o seu nome cadastrado, você concorda que ele será exibido publicamente
+      sempre que comentar algo.
+    </p>
+    <p>
+      Lembre-se: você pode alterar essa escolha a qualquer momento nas configurações da sua conta.
+    </p>
+  </div>
+
+  <div class="onbmi-footer">
+    <a href="#" class="onbmi-back" data-close>‹ Voltar</a>
+  </div>
+</div>
+
+<style>
+  .onbmi-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(2px);
+    z-index:9998;
+  }
+  .onbmi-dialog{
+    position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
+    padding:16px;
+  }
+  .onbmi-dialog::before{
+    content:""; /* centralização responsiva */
+  }
+  .onbmi-dialog > * { box-sizing:border-box; }
+  .onbmi-dialog .onbmi-close{
+    position:absolute; top:18px; right:18px;
+    border:0; background:transparent; font-size:22px; cursor:pointer;
+  }
+  .onbmi-title{
+    margin:0 36px 8px 0; font-size:22px; line-height:1.25; font-weight:800; color:#111;
+  }
+  .onbmi-info{ font-weight:700; color:#777; margin-left:6px; }
+  .onbmi-body{ color:#444; line-height:1.5; }
+  .onbmi-body p{ margin:10px 0; }
+  .onbmi-footer{ margin-top:14px; }
+  .onbmi-back{ color:#6b6f76; text-decoration:none; }
+  .onbmi-back:hover{ text-decoration:underline; }
+
+  /* Cartão */
+  #onb-ident-dialog{
+    max-width:540px; width:100%;
+  }
+  #onb-ident-dialog .card{
+    background:#fff; border-radius:18px; box-shadow:0 12px 30px rgba(0,0,0,.18);
+  }
+
+  /* Usaremos o próprio dialog como card */
+  #onb-ident-dialog{
+    background:#fff; border-radius:18px; box-shadow:0 12px 30px rgba(0,0,0,.18);
+    padding:22px 20px 18px 20px;
+  }
+</style>
+
+<script>
+(function(){
+  const dlg = document.getElementById('onb-ident-dialog');
+  const bg  = document.getElementById('onb-ident-backdrop');
+
+  function openModal(){
+    if(!dlg || !bg) return;
+    dlg.hidden = false;
+    bg.hidden = false;
+    dlg.setAttribute('aria-hidden', 'false');
+    // foco acessível
+    const closeBtn = dlg.querySelector('[data-close]');
+    if (closeBtn) closeBtn.focus();
+  }
+  function closeModal(){
+    if(!dlg || !bg) return;
+    dlg.hidden = true;
+    bg.hidden = true;
+    dlg.setAttribute('aria-hidden', 'true');
+  }
+
+  // Fecha por clique nos elementos com data-close
+  document.addEventListener('click', function(ev){
+    const t = ev.target;
+    if (t && (t.hasAttribute('data-close') || t === bg)) {
+      ev.preventDefault();
+      closeModal();
+    }
+  });
+
+  // Fecha por ESC
+  document.addEventListener('keydown', function(ev){
+    if (ev.key === 'Escape' && !dlg.hidden) closeModal();
+  });
+
+  // Abre automaticamente apenas uma vez por sessão
+  document.addEventListener('DOMContentLoaded', function(){
+    try{
+      if (sessionStorage.getItem('onb_ident_info_shown') !== '1') {
+        openModal();
+        sessionStorage.setItem('onb_ident_info_shown', '1');
+      }
+    }catch(e){
+      // Se sessionStorage indisponível, abre sempre
+      openModal();
+    }
+  });
+
+  // Expõe um gatilho global opcional (para o ícone "ⓘ" do formulário)
+  window.JC_ONB_ident_info_open = openModal;
+  window.JC_ONB_ident_info_close = closeModal;
+})();
+</script>
