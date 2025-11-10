@@ -1,18 +1,21 @@
-<!-- =====================
+{# =====================
   Modal de Personalização – pós-signup
   • Abre somente quando window.SHOW_PERSONALIZACAO === true (setado pela index)
   • Sem dependências. Acessível (ARIA), fechamento por Esc e backdrop.
-===================== -->
+===================== #}
 
-<div id="popup-personalizacao" class="jc-modal" aria-hidden="true">
+<div id="popup-personalizacao"
+     class="jc-modal"
+     aria-hidden="true"
+     data-redirect="{% url 'noticias:onboarding_personalizacao' %}"
+     data-hide-days="30">
   <div class="jc-modal__backdrop" data-close="true"></div>
 
   <section class="jc-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="jc-modal-title" tabindex="-1">
     <button type="button" class="jc-modal__close" aria-label="Fechar" data-close="true">×</button>
 
     <div class="jc-modal__icon" aria-hidden="true">
-      <!-- Ícone simples -->
-      <svg viewBox="0 0 48 48" width="120" height="120">
+      <svg viewBox="0 0 48 48" width="120" height="120" focusable="false">
         <circle cx="24" cy="24" r="22" fill="none" stroke="#000" stroke-width="3"></circle>
         <circle cx="24" cy="18" r="6" fill="none" stroke="#000" stroke-width="3"></circle>
         <path d="M10 37c3.5-7 10-8 14-8s10.5 1 14 8" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"></path>
@@ -108,31 +111,38 @@
 
 <script>
 (function() {
-  const modal = document.getElementById('popup-personalizacao');
+  const modal  = document.getElementById('popup-personalizacao');
   if (!modal) return;
 
-  const dialog  = modal.querySelector('.jc-modal__dialog');
+  const dialog   = modal.querySelector('.jc-modal__dialog');
   const closeEls = modal.querySelectorAll('[data-close]');
-  const btnNao  = modal.querySelector('[data-action="agora-nao"]');
-  const btnSim  = modal.querySelector('[data-action="vamos-la"]');
-  const nameEl  = modal.querySelector('[data-username]');
+  const btnNao   = modal.querySelector('[data-action="agora-nao"]');
+  const btnSim   = modal.querySelector('[data-action="vamos-la"]');
+  const nameEl   = modal.querySelector('[data-username]');
 
   // ===== Configurações =====
   const STORAGE_KEY = 'jc_hide_personalizacao_until';
   const REDIRECT_URL = modal.dataset.redirect || '/onboarding/personalizacao/';
   const HIDE_DAYS   = parseInt(modal.dataset.hideDays || '30', 10);
 
-  // Preenche o nome a partir do flag global ou do body
+  // Nome do usuário (fallbacks: variável global -> session -> atributo do body)
   try {
-    const userName = window.JC_USER_NAME || document.body?.dataset?.username;
+    const userName =
+      (typeof window.JC_USER_NAME !== 'undefined' && window.JC_USER_NAME) ||
+      (typeof window.welcome_name !== 'undefined' && window.welcome_name) ||
+      (document.body && document.body.dataset ? document.body.dataset.username : null);
     if (userName && nameEl) nameEl.textContent = userName;
   } catch(e) {}
+
+  function lockScroll() { document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden'; }
+  function unlockScroll() { document.documentElement.style.overflow = ''; document.body.style.overflow = ''; }
 
   function openModal() {
     if (modal.classList.contains('is-open')) return;
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
-    (dialog).focus({ preventScroll: true });
+    lockScroll();
+    if (dialog && dialog.focus) dialog.focus({ preventScroll: true });
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('focus', trapFocus, true);
   }
@@ -140,6 +150,7 @@
   function closeModal() {
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
+    unlockScroll();
     document.removeEventListener('keydown', handleKeyDown);
     document.removeEventListener('focus', trapFocus, true);
   }
@@ -148,20 +159,20 @@
     if (ev.key === 'Escape') closeModal();
   }
 
+  // Mantém foco dentro do diálogo quando aberto
   function trapFocus(ev) {
     if (!modal.classList.contains('is-open')) return;
     if (!dialog.contains(ev.target)) {
       ev.stopPropagation();
-      dialog.focus({ preventScroll: true });
+      if (dialog && dialog.focus) dialog.focus({ preventScroll: true });
     }
   }
 
   // Clique no backdrop / voltar / X
-  closeEls.forEach(el => el.addEventListener('click', closeModal));
+  closeEls.forEach(el => el.addEventListener('click', (e) => { e.preventDefault(); closeModal(); }));
 
-  // Ações
+  // Botões de ação
   if (btnNao) btnNao.addEventListener('click', function () {
-    // opcional: bloquear futuras exibições por X dias
     try {
       const until = Date.now() + (HIDE_DAYS * 24 * 60 * 60 * 1000);
       localStorage.setItem(STORAGE_KEY, String(until));
@@ -173,7 +184,7 @@
     window.location.assign(REDIRECT_URL);
   });
 
-  // API pública
+  // API pública (útil em testes)
   window.JCModalPersonalizacao = { open: openModal, close: closeModal };
 
   // ===== Regras de abertura =====
@@ -181,9 +192,17 @@
   const SHOULD_OPEN = (window.SHOW_PERSONALIZACAO === true);
 
   if (SHOULD_OPEN) {
-    // Garante exibição mesmo que exista bloqueio anterior
+    // Quando vier do signup queremos mostrar, então ignoramos bloqueio anterior.
     try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
     openModal();
+  } else {
+    // Caso queira respeitar um bloqueio por X dias em outras entradas (se um dia for reaproveitar)
+    try {
+      const until = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+      if (Number.isFinite(until) && until > Date.now()) {
+        // não abre
+      }
+    } catch(e) {}
   }
 })();
 </script>
