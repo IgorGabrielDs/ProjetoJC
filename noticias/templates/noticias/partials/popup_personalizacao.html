@@ -1,0 +1,189 @@
+<!-- =====================
+  Modal de Personalização – pós-signup
+  • Abre somente quando window.SHOW_PERSONALIZACAO === true (setado pela index)
+  • Sem dependências. Acessível (ARIA), fechamento por Esc e backdrop.
+===================== -->
+
+<div id="popup-personalizacao" class="jc-modal" aria-hidden="true">
+  <div class="jc-modal__backdrop" data-close="true"></div>
+
+  <section class="jc-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="jc-modal-title" tabindex="-1">
+    <button type="button" class="jc-modal__close" aria-label="Fechar" data-close="true">×</button>
+
+    <div class="jc-modal__icon" aria-hidden="true">
+      <!-- Ícone simples -->
+      <svg viewBox="0 0 48 48" width="120" height="120">
+        <circle cx="24" cy="24" r="22" fill="none" stroke="#000" stroke-width="3"></circle>
+        <circle cx="24" cy="18" r="6" fill="none" stroke="#000" stroke-width="3"></circle>
+        <path d="M10 37c3.5-7 10-8 14-8s10.5 1 14 8" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"></path>
+      </svg>
+    </div>
+
+    <h2 id="jc-modal-title" class="jc-modal__title">
+      Olá, <span data-username>Plumo</span>! Seja bem-vindo(a)!
+    </h2>
+    <p class="jc-modal__subtitle">Deseja personalizar sua experiência JC?</p>
+
+    <div class="jc-modal__actions">
+      <button type="button" class="jc-btn jc-btn--ghost" data-action="agora-nao">Agora não</button>
+      <button type="button" class="jc-btn jc-btn--solid" data-action="vamos-la">Sim! Vamos lá.</button>
+    </div>
+
+    <div class="jc-modal__back">
+      <a href="#" class="jc-modal__voltar" data-close="true">‹ Voltar</a>
+    </div>
+  </section>
+</div>
+
+<style>
+  .jc-modal, .jc-modal * { box-sizing: border-box; }
+
+  .jc-modal {
+    position: fixed;
+    inset: 0;
+    display: none; /* controlado por .is-open */
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .jc-modal.is-open { display: flex; }
+
+  .jc-modal__backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.45);
+  }
+
+  .jc-modal__dialog {
+    position: relative;
+    width: min(480px, 92vw);
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 28px 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.18);
+    text-align: center;
+    outline: none;
+  }
+
+  .jc-modal__close {
+    position: absolute; top: 10px; right: 14px;
+    font-size: 28px; line-height: 1;
+    border: 0; background: transparent; cursor: pointer;
+    color: #000; opacity: .65;
+  }
+  .jc-modal__close:hover { opacity: 1; }
+
+  .jc-modal__icon { margin: 6px auto 8px; }
+
+  .jc-modal__title {
+    margin: 8px 0 6px; font-size: 22px; font-weight: 700; color: #111;
+  }
+  .jc-modal__subtitle {
+    margin: 0 0 18px; font-size: 16px; color: #333;
+  }
+
+  .jc-modal__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 8px 0 14px; }
+
+  .jc-btn {
+    height: 56px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+    border: 0; transition: transform .06s ease, box-shadow .2s ease; padding: 0 16px;
+  }
+  .jc-btn:active { transform: translateY(1px); }
+
+  .jc-btn--ghost { background: #e9eaec; color: #111; }
+  .jc-btn--ghost:hover { box-shadow: 0 2px 0 rgba(0,0,0,.12) inset; }
+
+  .jc-btn--solid { background: #cfcfd1; color: #111; }
+  .jc-btn--solid:hover { box-shadow: 0 2px 0 rgba(0,0,0,.12) inset; }
+
+  .jc-modal__back { margin-top: 6px; }
+  .jc-modal__voltar {
+    display: inline-block; color: #6b6f76; font-size: 14px; text-decoration: none;
+  }
+  .jc-modal__voltar:hover { text-decoration: underline; }
+
+  @media (max-width: 360px) {
+    .jc-btn { height: 52px; font-size: 15px; }
+  }
+</style>
+
+<script>
+(function() {
+  const modal = document.getElementById('popup-personalizacao');
+  if (!modal) return;
+
+  const dialog  = modal.querySelector('.jc-modal__dialog');
+  const closeEls = modal.querySelectorAll('[data-close]');
+  const btnNao  = modal.querySelector('[data-action="agora-nao"]');
+  const btnSim  = modal.querySelector('[data-action="vamos-la"]');
+  const nameEl  = modal.querySelector('[data-username]');
+
+  // ===== Configurações =====
+  const STORAGE_KEY = 'jc_hide_personalizacao_until';
+  const REDIRECT_URL = modal.dataset.redirect || '/onboarding/personalizacao/';
+  const HIDE_DAYS   = parseInt(modal.dataset.hideDays || '30', 10);
+
+  // Preenche o nome a partir do flag global ou do body
+  try {
+    const userName = window.JC_USER_NAME || document.body?.dataset?.username;
+    if (userName && nameEl) nameEl.textContent = userName;
+  } catch(e) {}
+
+  function openModal() {
+    if (modal.classList.contains('is-open')) return;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    (dialog).focus({ preventScroll: true });
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('focus', trapFocus, true);
+  }
+
+  function closeModal() {
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', handleKeyDown);
+    document.removeEventListener('focus', trapFocus, true);
+  }
+
+  function handleKeyDown(ev) {
+    if (ev.key === 'Escape') closeModal();
+  }
+
+  function trapFocus(ev) {
+    if (!modal.classList.contains('is-open')) return;
+    if (!dialog.contains(ev.target)) {
+      ev.stopPropagation();
+      dialog.focus({ preventScroll: true });
+    }
+  }
+
+  // Clique no backdrop / voltar / X
+  closeEls.forEach(el => el.addEventListener('click', closeModal));
+
+  // Ações
+  if (btnNao) btnNao.addEventListener('click', function () {
+    // opcional: bloquear futuras exibições por X dias
+    try {
+      const until = Date.now() + (HIDE_DAYS * 24 * 60 * 60 * 1000);
+      localStorage.setItem(STORAGE_KEY, String(until));
+    } catch(e) {}
+    closeModal();
+  });
+
+  if (btnSim) btnSim.addEventListener('click', function () {
+    window.location.assign(REDIRECT_URL);
+  });
+
+  // API pública
+  window.JCModalPersonalizacao = { open: openModal, close: closeModal };
+
+  // ===== Regras de abertura =====
+  // Abre SOMENTE quando o pós-signup setar o flag global.
+  const SHOULD_OPEN = (window.SHOW_PERSONALIZACAO === true);
+
+  if (SHOULD_OPEN) {
+    // Garante exibição mesmo que exista bloqueio anterior
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+    openModal();
+  }
+})();
+</script>
