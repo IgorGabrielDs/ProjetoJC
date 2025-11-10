@@ -1,22 +1,31 @@
 # noticias/views.py
-
 from datetime import timedelta
+import json
 import logging
 
+from django.apps import apps
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
-from django.db.models import Sum, Exists, OuterRef, Value, BooleanField, F, Q, Count
+from django.db.models import (
+    Sum,
+    Exists,
+    OuterRef,
+    Value,
+    BooleanField,
+    F,
+    Q,
+    Count,
+)
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
-from django.utils import timezone
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
-from django.apps import apps
 
-from django.conf import settings
 from .models import Noticia, Voto, Assunto, Salvo
 
 logger = logging.getLogger(__name__)
@@ -46,11 +55,9 @@ def _split_full_name(full_name: str):
 
 def _perfil_model_or_none():
     """
-    Retorna o model Perfil se existir (no app atual ou em outro),
-    senão retorna None. Evita import circular/erros em ambientes
-    onde Perfil ainda não foi criado.
+    Retorna o model Perfil se existir (em 'noticias', 'usuarios' ou 'accounts'),
+    senão retorna None. Evita import circular.
     """
-    # tenta local (noticias.Perfil)
     for label in ("noticias.Perfil", "usuarios.Perfil", "accounts.Perfil"):
         try:
             app_label, model_name = label.split(".")
@@ -58,6 +65,68 @@ def _perfil_model_or_none():
         except Exception:
             continue
     return None
+
+
+def _persistir_preferencias_no_perfil(user, identificacao, assuntos_ids):
+    """
+    Persiste escolhas do onboarding no Perfil se possível,
+    mas sem quebrar caso os campos não existam.
+    - identificacao: 'anonimo' | 'nome'
+    - assuntos_ids: lista[str|int] de IDs de Assunto
+    """
+    Perfil = _perfil_model_or_none()
+    if not Perfil:
+        logger.info("Onboarding: Perfil não encontrado; preferências não persistidas em model.")
+        return
+
+    perfil, _ = Perfil.objects.get_or_create(user=user)
+
+    # Flag de identificação pública (se existir)
+    # exemplos de nomes de campo comuns: mostrar_nome_publico / identificacao_publica / publico
+    for campo in ("mostrar_nome_publico", "identificacao_publica", "publico"):
+        if hasattr(perfil, campo):
+            try:
+                setattr(perfil, campo, bool(identificacao == "nome"))
+            except Exception:
+                pass
+
+    # Campo JSON de preferências (se existir)
+    if hasattr(perfil, "preferencias"):
+        try:
+            prefs = perfil.preferencias or {}
+            if not isinstance(prefs, dict):
+                # caso prefs venha como str
+                try:
+                    prefs = json.loads(prefs)
+                except Exception:
+                    prefs = {}
+            prefs["assuntos_ids"] = [int(x) for x in assuntos_ids]
+            prefs["identificacao"] = identificacao
+            perfil.preferencias = prefs
+        except Exception as e:
+            logger.warning("Falha ao gravar em perfil.preferencias: %s", e)
+
+    # M2M direta com Assunto (se existir)
+    if hasattr(perfil, "assuntos"):
+        try:
+            qs = Assunto.objects.filter(id__in=assuntos_ids)
+            perfil.assuntos.set(qs)
+        except Exception as e:
+            logger.warning("Falha ao setar perfil.assuntos: %s", e)
+
+    # Fallback para CSV (se existir)
+    if hasattr(perfil, "assuntos_ids_csv"):
+        try:
+            csv_val = ",".join(str(i) for i in assuntos_ids)
+            setattr(perfil, "assuntos_ids_csv", csv_val)
+        except Exception as e:
+            logger.warning("Falha ao setar perfil.assuntos_ids_csv: %s", e)
+
+    try:
+        perfil.save()
+    except Exception as e:
+        logger.warning("Falha ao salvar Perfil no onboarding: %s", e)
+
 
 # =======================
 # HOME (A VIEW PRINCIPAL)
@@ -108,79 +177,71 @@ def index(request):
         )[:3]
     destaques_ids = list(destaques.values_list("id", flat=True))
 
-    
     # ===================================================================
     # 2) Para você (LÓGICA DE RECOMENDAÇÃO ATUALIZADA)
     # ===================================================================
-    
     ids_para_excluir = set(destaques_ids)
-    titulo_para_voce = "Populares do momento" 
-    
+    titulo_para_voce = "Populares do momento"
+
     if request.user.is_authenticated:
         noticias_votadas_ids = Voto.objects.filter(
             usuario=request.user
-        ).values_list('noticia__id', flat=True)
-        
+        ).values_list("noticia__id", flat=True)
+
         noticias_salvas_ids = Salvo.objects.filter(
             usuario=request.user
-        ).values_list('noticia__id', flat=True)
+        ).values_list("noticia__id", flat=True)
 
         ids_para_excluir.update(noticias_votadas_ids)
         ids_para_excluir.update(noticias_salvas_ids)
 
         assuntos_interesse = Assunto.objects.filter(
             noticias__votos__usuario=request.user,
-            noticias__votos__valor=1 
+            noticias__votos__valor=1
         ).values_list("pk", flat=True).distinct()
-        
+
         assuntos_salvos = Assunto.objects.filter(
             noticias__salvo__usuario=request.user
         ).values_list("pk", flat=True).distinct()
-        
+
         assuntos_ids = set(list(assuntos_interesse) + list(assuntos_salvos))
-        
+
         if assuntos_ids:
             titulo_para_voce = "Recomendações para você"
             pv_qs = all_qs.filter(
-                assuntos__id__in=assuntos_ids 
+                assuntos__id__in=assuntos_ids
             ).exclude(
-                id__in=ids_para_excluir 
+                id__in=ids_para_excluir
             ).annotate(
-                matches_assunto=Count('assuntos', filter=Q(assuntos__id__in=assuntos_ids)),
-                score=Coalesce(Sum('votos__valor'), Value(0))
+                matches_assunto=Count("assuntos", filter=Q(assuntos__id__in=assuntos_ids)),
+                score=Coalesce(Sum("votos__valor"), Value(0))
             ).distinct().order_by(
-                '-matches_assunto', 
-                '-score',           
-                '-criado_em'        
+                "-matches_assunto",
+                "-score",
+                "-criado_em",
             )
         else:
             titulo_para_voce = "Populares do momento"
             pv_qs = all_qs.exclude(
-                id__in=ids_para_excluir 
+                id__in=ids_para_excluir
             ).annotate(
-                score=Coalesce(Sum('votos__valor'), Value(0))
-            ).order_by('-score', '-criado_em')
-    
+                score=Coalesce(Sum("votos__valor"), Value(0))
+            ).order_by("-score", "-criado_em")
     else:
         titulo_para_voce = "Populares do momento"
         pv_qs = all_qs.exclude(
-            id__in=ids_para_excluir 
+            id__in=ids_para_excluir
         ).annotate(
-            score=Coalesce(Sum('votos__valor'), Value(0))
-        ).order_by('-score', '-criado_em')
+            score=Coalesce(Sum("votos__valor"), Value(0))
+        ).order_by("-score", "-criado_em")
 
     para_voce = _annotate_is_saved(pv_qs, request.user)[:6]
-    
     if not para_voce.exists():
         para_voce = _annotate_is_saved(
-            all_qs.exclude(id__in=ids_para_excluir).order_by("-criado_em"), 
+            all_qs.exclude(id__in=ids_para_excluir).order_by("-criado_em"),
             request.user
         )[:6]
-        titulo_para_voce = "Destaques recentes" 
-
-    # ===================================================================
-    # Fim do bloco "Para você"
-    # ===================================================================
+        titulo_para_voce = "Destaques recentes"
 
     # 3) Mais lidas (7 dias, com fallback)
     since_7 = timezone.now() - timedelta(days=7)
@@ -251,7 +312,7 @@ def index(request):
         "sort": sort,
         "destaques": destaques,
         "para_voce": para_voce,
-        "titulo_para_voce": titulo_para_voce, 
+        "titulo_para_voce": titulo_para_voce,
         "mais_lidas": mais_lidas,
         "jc360": jc360,
         "videos": videos,
@@ -289,11 +350,10 @@ def noticia_detalhe(request, pk):
             .order_by("-criado_em")[:2]
         )
 
-    # Otimização: Em vez de 3 queries (score, up, down), fazer uma.
     votos_agregados = noticia.votos.aggregate(
-        score_total=Coalesce(Sum('valor'), Value(0)),
-        up_total=Count('id', filter=Q(valor=1)),
-        down_total=Count('id', filter=Q(valor=-1))
+        score_total=Coalesce(Sum("valor"), Value(0)),
+        up_total=Count("id", filter=Q(valor=1)),
+        down_total=Count("id", filter=Q(valor=-1)),
     )
 
     voto_usuario = None
@@ -305,12 +365,12 @@ def noticia_detalhe(request, pk):
 
     ctx = {
         "noticia": noticia,
-        "score": votos_agregados['score_total'], # Usando valor agregado
-        "up": votos_agregados['up_total'],       # Usando valor agregado
-        "down": votos_agregados['down_total'],   # Usando valor agregado
+        "score": votos_agregados["score_total"],
+        "up": votos_agregados["up_total"],
+        "down": votos_agregados["down_total"],
         "voto_usuario": voto_usuario.valor if voto_usuario else 0,
-        "is_saved": is_saved,
         "relacionadas": relacionadas,
+        "is_saved": is_saved,
     }
     return render(request, "noticias/detalhe.html", ctx)
 
@@ -328,19 +388,21 @@ def votar(request, pk):
         assert valor in (1, -1)
     except Exception:
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
-            # Recalcula os totais atuais antes de retornar o erro
             votos_agregados = noticia.votos.aggregate(
-                score_total=Coalesce(Sum('valor'), Value(0)),
-                up_total=Count('id', filter=Q(valor=1)),
-                down_total=Count('id', filter=Q(valor=-1))
+                score_total=Coalesce(Sum("valor"), Value(0)),
+                up_total=Count("id", filter=Q(valor=1)),
+                down_total=Count("id", filter=Q(valor=-1)),
             )
-            return JsonResponse({
-                "error": "Voto inválido.",
-                "up": votos_agregados['up_total'],
-                "down": votos_agregados['down_total'],
-                "score": votos_agregados['score_total'],
-                "voto_usuario": 0,
-            }, status=200)
+            return JsonResponse(
+                {
+                    "error": "Voto inválido.",
+                    "up": votos_agregados["up_total"],
+                    "down": votos_agregados["down_total"],
+                    "score": votos_agregados["score_total"],
+                    "voto_usuario": 0,
+                },
+                status=200,
+            )
         messages.error(request, "Voto inválido.")
         return redirect("noticias:noticia_detalhe", pk=pk)
 
@@ -360,18 +422,19 @@ def votar(request, pk):
             current = valor
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        # Recalcula os totais após a mudança
         votos_agregados = noticia.votos.aggregate(
-            score_total=Coalesce(Sum('valor'), Value(0)),
-            up_total=Count('id', filter=Q(valor=1)),
-            down_total=Count('id', filter=Q(valor=-1))
+            score_total=Coalesce(Sum("valor"), Value(0)),
+            up_total=Count("id", filter=Q(valor=1)),
+            down_total=Count("id", filter=Q(valor=-1)),
         )
-        return JsonResponse({
-            "up": votos_agregados['up_total'],
-            "down": votos_agregados['down_total'],
-            "score": votos_agregados['score_total'],
-            "voto_usuario": current,
-        })
+        return JsonResponse(
+            {
+                "up": votos_agregados["up_total"],
+                "down": votos_agregados["down_total"],
+                "score": votos_agregados["score_total"],
+                "voto_usuario": current,
+            }
+        )
 
     return redirect("noticias:noticia_detalhe", pk=pk)
 
@@ -453,7 +516,7 @@ def signup(request):
         if not terms_ok:
             errors["terms"] = "É necessário concordar com os Termos de Uso."
 
-        username = email 
+        username = email
         if email and User.objects.filter(email=email).exists():
             errors["email"] = "Este e-mail já está cadastrado."
         if username and User.objects.filter(username=username).exists():
@@ -474,7 +537,7 @@ def signup(request):
             return render(request, "registration/signup.html", ctx)
 
         first_name, last_name = _split_full_name(nome)
-        user = User.objects.create_user( # type: ignore
+        user = User.objects.create_user(  # type: ignore
             username=username,
             email=email,
             password=password1,
@@ -507,6 +570,54 @@ def signup(request):
 
 
 # =======================
+# ONBOARDING / PERSONALIZAÇÃO (pós-cadastro)
+# =======================
+@login_required
+@require_http_methods(["GET", "POST"])
+def onboarding_personalizacao(request):
+    """
+    Tela de personalização (após "Sim! Vamos lá." no pop-up).
+    GET: exibe formulário.
+    POST: valida, persiste preferências no Perfil (quando possível) e volta para a Home.
+    """
+    if request.method == "POST":
+        identificacao = (request.POST.get("identificacao") or "").strip()  # 'anonimo' | 'nome'
+        assuntos_ids = request.POST.getlist("assuntos")  # lista de ids (str)
+        terms_ok = (request.POST.get("terms") == "on")
+
+        errors = {}
+        if identificacao not in {"anonimo", "nome"}:
+            errors["identificacao"] = "Selecione como deseja ser identificado."
+        if not assuntos_ids:
+            errors["assuntos"] = "Selecione ao menos um assunto."
+        if not terms_ok:
+            errors["terms"] = "É necessário concordar com os Termos de Uso."
+
+        if errors:
+            # Recarrega a tela com erros (mantendo seleção)
+            assuntos = Assunto.objects.all().order_by("nome")[:30]
+            return render(
+                request,
+                "noticias/onboarding_personalizacao.html",
+                {"assuntos": assuntos, "errors": errors, "selecionados": set(map(int, assuntos_ids))},
+            )
+
+        # Persistência resiliente no Perfil (se existir)
+        _persistir_preferencias_no_perfil(request.user, identificacao, [int(x) for x in assuntos_ids])
+
+        messages.success(request, "Preferências salvas! Personalização concluída.")
+        return redirect("noticias:index")
+
+    # GET
+    assuntos = Assunto.objects.all().order_by("nome")[:30]
+    return render(
+        request,
+        "noticias/onboarding_personalizacao.html",
+        {"assuntos": assuntos},
+    )
+
+
+# =======================
 # RESUMO (Gemini)
 # =======================
 @login_required
@@ -523,8 +634,8 @@ def resumir_noticia(request, pk):
         return JsonResponse({"error": "Biblioteca google-generativeai não está instalada."}, status=500)
 
     try:
-        genai.configure(api_key=api_key) #type: ignore
-        model = genai.GenerativeModel("gemini-flash-latest") #type: ignore
+        genai.configure(api_key=api_key)  # type: ignore
+        model = genai.GenerativeModel("gemini-flash-latest")  # type: ignore
 
         prompt = f"""
         Você é um assistente de jornalismo. Resuma a notícia abaixo de forma clara, objetiva e em português:
