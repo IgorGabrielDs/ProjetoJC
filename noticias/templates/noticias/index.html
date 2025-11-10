@@ -3,17 +3,12 @@
 
 {% block title %}JC — Início{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
-{% endblock %}
-
 {% block content %}
 
-<!-- EDIÇÃO DO DIA -->
+<!-- ===== EDIÇÃO DO DIA (banner cinza) ===== -->
 <div class="container">
   <div class="daily-edition" role="note" aria-label="Edição do dia">
     <span class="daily-strip" aria-hidden="true">
-      <!-- envelope inline para não depender de static -->
       <svg viewBox="0 0 24 24" width="24" height="24" role="img" focusable="false" aria-hidden="true">
         <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5L4 8V6l8 5 8-5Z" fill="#fff"/>
       </svg>
@@ -23,7 +18,7 @@
 </div>
 
 <!-- =========================
-     DESTAQUES (hero + 2 cards)
+     DESTAQUES — HERO CARROSSEL (melhor do 1)
      ========================= -->
 <section class="section accent-red">
   <div class="section-title">
@@ -34,44 +29,49 @@
 
   {% if destaques %}
     {% with destaques|slice:":3" as destaques3 %}
-    <div class="hero">
-      {% for item in destaques3|slice:":1" %}
-      <article class="card card-hero" data-href="{{ item.get_absolute_url }}">
-        <a href="{{ item.get_absolute_url }}">
-          <div class="card-media">
-            {% if item.imagem %}
-              <img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">
-            {% else %}
-              <span class="caption">Imagem 16:9</span>
-            {% endif %}
-          </div>
-        </a>
-        <div class="card-body">
-          {% if item.assuntos.first %}
-            <div class="tag">{{ item.assuntos.first.nome }}</div>
-          {% endif %}
-          <h2 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h2>
-          {% if item.resumo %}
-            <p class="lead lead-border">{{ item.resumo }}</p>
-          {% endif %}
-        </div>
-      </article>
-      {% endfor %}
+    <div class="carousel" data-count="3">
+      <input type="radio" name="hero" id="r1" checked>
+      <input type="radio" name="hero" id="r2">
+      <input type="radio" name="hero" id="r3">
 
-      <div class="grid-2 mt-16">
-        {% for item in destaques3|slice:"1:" %}
-        <article class="card" data-href="{{ item.get_absolute_url }}">
-          <a href="{{ item.get_absolute_url }}">
-            <div class="card-media">
-              {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+      <div class="carousel-inner">
+        <div class="carousel-track">
+          {% for item in destaques3 %}
+          <article class="carousel-slide card" data-href="{{ item.get_absolute_url }}" aria-roledescription="slide">
+            <a href="{{ item.get_absolute_url }}">
+              <div class="card-media">
+                {% if item.imagem %}
+                  <img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">
+                {% else %}
+                  <span class="caption">Imagem 16:9</span>
+                {% endif %}
+              </div>
+            </a>
+            <div class="card-body">
+              {% if item.assuntos.first %}
+                <div class="tag">
+                  {{ item.assuntos.first.nome }}
+                  <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}">
+                    <span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span>
+                  </button>
+                </div>
+              {% endif %}
+              <h2 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h2>
+              {% if item.resumo %}<p class="lead lead-border">{{ item.resumo }}</p>{% endif %}
+              <p class="caption">
+                {% if item.criado_em %}{{ item.criado_em|timesince }} atrás{% endif %}
+                {% if item.localidade %} • {{ item.localidade }}{% endif %}
+              </p>
             </div>
-          </a>
-          <div class="card-body">
-            {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
-            <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
-          </div>
-        </article>
-        {% endfor %}
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="dots" aria-label="Paginação do carrossel">
+        <label for="r1" class="dot d1" aria-label="Slide 1"></label>
+        <label for="r2" class="dot d2" aria-label="Slide 2"></label>
+        <label for="r3" class="dot d3" aria-label="Slide 3"></label>
       </div>
     </div>
     {% endwith %}
@@ -79,15 +79,16 @@
 </section>
 
 <!-- =========================
-     RECOMENDADO PARA VOCÊ
+     RECOMENDADO PARA VOCÊ — carrossel 2x2 (junção 1 + 2)
      ========================= -->
 <section class="section accent-blue">
   <div class="section-title">
     <span class="rule"></span>
-    <span class="label">Para você</span>
+    <span class="label">{{ titulo_para_voce|default:"Para você" }}</span>
     <span class="rule"></span>
   </div>
 
+  {% with pv=pv|default:para_voce %}
   {% if pv %}
   <div class="carousel">
     <input type="radio" name="pv" id="pv1" checked>
@@ -106,8 +107,13 @@
                 </div>
               </a>
               <div class="card-body">
-                {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
-                <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+                {% if item.assuntos.first %}
+                  <div class="tag">
+                    {{ item.assuntos.first.nome }}
+                    <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}"><span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span></button>
+                  </div>
+                {% endif %}
+                <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
               </div>
             </article>
             {% endfor %}
@@ -125,8 +131,13 @@
                 </div>
               </a>
               <div class="card-body">
-                {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
-                <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+                {% if item.assuntos.first %}
+                  <div class="tag">
+                    {{ item.assuntos.first.nome }}
+                    <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}"><span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span></button>
+                  </div>
+                {% endif %}
+                <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
               </div>
             </article>
             {% endfor %}
@@ -145,8 +156,13 @@
                 </div>
               </a>
               <div class="card-body">
-                {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
-                <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+                {% if item.assuntos.first %}
+                  <div class="tag">
+                    {{ item.assuntos.first.nome }}
+                    <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}"><span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span></button>
+                  </div>
+                {% endif %}
+                <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
               </div>
             </article>
             {% endfor %}
@@ -163,16 +179,14 @@
     </div>
   </div>
   {% endif %}
+  {% endwith %}
 
-  <!-- =========================
-       CTA WHATSAPP
-       ========================= -->
+  <!-- CTA WhatsApp (do 2) -->
   <div class="container">
     <aside class="cta-zap" aria-label="WhatsApp CTA">
       <div class="zap-icon" aria-hidden="true">
         <svg viewBox="0 0 64 64" width="64" height="64" role="img" focusable="false" aria-hidden="true">
-          <circle cx="32" cy="32" r="32" fill="#8F959E"/>
-          <circle cx="32" cy="32" r="24" fill="#7C828A"/>
+          <circle cx="32" cy="32" r="32" fill="#8F959E"/><circle cx="32" cy="32" r="24" fill="#7C828A"/>
           <path d="M27 20a3 3 0 0 0-3 3c0 10.5 8.5 18 18 18a3 3 0 0 0 3-3v-2.1a1 1 0 0 0-.7-.95l-5-1.6a1 1 0 0 0-1 .26l-1.5 1.5c-.26.26-.63.36-.98.25-2.5-.8-5.1-3.4-5.9-5.9-.11-.35-.01-.72.25-.98l1.5-1.5a1 1 0 0 0 .26-1l-1.6-5a1 1 0 0 0-.95-.7H27Z" fill="#fff"/>
         </svg>
       </div>
@@ -186,7 +200,7 @@
 </section>
 
 <!-- =========================
-     MAIS LIDAS DA SEMANA
+     MAIS LIDAS (ranked do 2)
      ========================= -->
 <section class="section accent-red">
   <div class="section-title">
@@ -217,7 +231,7 @@
 </section>
 
 <!-- =========================
-     Publicidade legal
+     PUBLICIDADE LEGAL (do 2)
      ========================= -->
 <section class="section accent-green">
   <div class="section-title">
@@ -249,7 +263,7 @@
 </section>
 
 <!-- =========================
-     JC 360
+     JC360 — 4 itens (junção 1 + 2)
      ========================= -->
 <section class="section accent-purple">
   <div class="section-title">
@@ -268,8 +282,13 @@
         </div>
       </a>
       <div class="card-body">
-        {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
-        <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+        {% if item.assuntos.first %}
+          <div class="tag">
+            {{ item.assuntos.first.nome }}
+            <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}"><span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span></button>
+          </div>
+        {% endif %}
+        <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
       </div>
     </article>
     {% endfor %}
@@ -284,8 +303,13 @@
         </div>
       </a>
       <div class="card-body">
-        {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
-        <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+        {% if item.assuntos.first %}
+          <div class="tag">
+            {{ item.assuntos.first.nome }}
+            <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}"><span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span></button>
+          </div>
+        {% endif %}
+        <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
       </div>
     </article>
     {% endfor %}
@@ -298,7 +322,7 @@
 </section>
 
 <!-- =========================
-     TV JC
+     TV JC — carrossel (do 2)
      ========================= -->
 <section class="section accent-blue">
   <div class="section-title">
@@ -367,7 +391,7 @@
 </section>
 
 <!-- =========================
-     Pernambuco
+     PERNAMBUCO (card grande)
      ========================= -->
 <section class="section accent-red">
   <div class="section-title">
@@ -395,7 +419,7 @@
 </section>
 
 <!-- =========================
-     CHARGE DO DIA
+     CHARGE DO DIA (separada)
      ========================= -->
 <section class="section accent-red">
   <div class="section-title">
@@ -414,7 +438,7 @@
 </section>
 
 <!-- =========================
-     ÚLTIMAS NOTÍCIAS
+     ÚLTIMAS NOTÍCIAS (do 2)
      ========================= -->
 <section class="section accent-red">
   <div class="section-title">
@@ -443,7 +467,7 @@
 </section>
 
 <!-- =========================
-     blog do torcedor
+     BLOG DO TORCEDOR (do 2)
      ========================= -->
 <section class="section accent-green">
   <div class="section-title">
@@ -486,7 +510,7 @@
 </section>
 
 <!-- =========================
-     RECORTES
+     RECORTES (do 2)
      ========================= -->
 <section class="section recortes">
   <div class="section-title">
