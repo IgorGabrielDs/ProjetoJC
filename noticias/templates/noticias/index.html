@@ -3,8 +3,28 @@
 
 {% block title %}JC — Início{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
+{% endblock %}
+
 {% block content %}
 
+<!-- EDIÇÃO DO DIA -->
+<div class="container">
+  <div class="daily-edition" role="note" aria-label="Edição do dia">
+    <span class="daily-strip" aria-hidden="true">
+      <!-- envelope inline para não depender de static -->
+      <svg viewBox="0 0 24 24" width="24" height="24" role="img" focusable="false" aria-hidden="true">
+        <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5L4 8V6l8 5 8-5Z" fill="#fff"/>
+      </svg>
+    </span>
+    <strong class="daily-text">Edição do dia</strong>
+  </div>
+</div>
+
+<!-- =========================
+     DESTAQUES (hero + 2 cards)
+     ========================= -->
 <section class="section accent-red">
   <div class="section-title">
     <span class="rule"></span>
@@ -14,197 +34,161 @@
 
   {% if destaques %}
     {% with destaques|slice:":3" as destaques3 %}
-    <div class="carousel" data-count="3">
-      <input type="radio" name="hero" id="r1" checked>
-      <input type="radio" name="hero" id="r2">
-      <input type="radio" name="hero" id="r3">
-
-      <div class="carousel-inner">
-        <div class="carousel-track">
-
-          {% for item in destaques3|slice:":1" %}
-          <article class="carousel-slide card" data-href="{{ item.get_absolute_url }}" aria-roledescription="slide">
-            <a href="{{ item.get_absolute_url }}">
-              <div class="card-media">
-                {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.titulo|default:'Destaque' }}">{% else %}<span class="caption">Imagem 16:9</span>{% endif %}
-              </div>
-            </a>
-            <div class="card-body">
-              <div class="tag">
-                {{ item.assuntos.first.nome|default:"Assunto" }}
-                <button class="bookmark" aria-label="Salvar item" data-id="{{ item.pk }}">🔖</button>
-              </div>
-              <h2 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h2>
-              {% if item.resumo %}<p class="lead">{{ item.resumo }}</p>{% endif %}
-              <p class="caption">
-                {% if item.criado_em %}{{ item.criado_em|timesince }} atrás{% endif %}
-                {% if item.localidade %} • {{ item.localidade }}{% endif %}
-              </p>
-            </div>
-          </article>
-          {% endfor %}
-
-          {% for item in destaques3|slice:"1:2" %}
-          <article class="carousel-slide card" data-href="{{ item.get_absolute_url }}" aria-roledescription="slide">
-            <a href="{{ item.get_absolute_url }}">
-              <div class="card-media">
-                {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.titulo|default:'Destaque' }}">{% else %}<span class="caption">Imagem 16:9</span>{% endif %}
-              </div>
-            </a>
-            <div class="card-body">
-              <div class="tag">
-                {{ item.assuntos.first.nome|default:"Assunto" }}
-                <button class="bookmark" aria-label="Salvar item" data-id="{{ item.pk }}">🔖</button>
-              </div>
-              <h2 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h2>
-              {% if item.resumo %}<p class="lead">{{ item.resumo }}</p>{% endif %}
-              <p class="caption">
-                {% if item.criado_em %}{{ item.criado_em|timesince }} atrás{% endif %}
-                {% if item.localidade %} • {{ item.localidade }}{% endif %}
-              </p>
-            </div>
-          </article>
-          {% endfor %}
-
-          {% for item in destaques3|slice:"2:3" %}
-          <article class="carousel-slide card" data-href="{{ item.get_absolute_url }}" aria-roledescription="slide">
-            <a href="{{ item.get_absolute_url }}">
-              <div class="card-media">
-                {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.titulo|default:'Destaque' }}">{% else %}<span class="caption">Imagem 16:9</span>{% endif %}
-              </div>
-            </a>
-            <div class="card-body">
-              <div class="tag">
-                {{ item.assuntos.first.nome|default:"Assunto" }}
-                <button class="bookmark" aria-label="Salvar item" data-id="{{ item.pk }}">🔖</button>
-              </div>
-              <h2 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h2>
-              {% if item.resumo %}<p class="lead">{{ item.resumo }}</p>{% endif %}
-              <p class="caption">
-                {% if item.criado_em %}{{ item.criado_em|timesince }} atrás{% endif %}
-                {% if item.localidade %} • {{ item.localidade }}{% endif %}
-              </p>
-            </div>
-          </article>
-          {% endfor %}
-
+    <div class="hero">
+      {% for item in destaques3|slice:":1" %}
+      <article class="card card-hero" data-href="{{ item.get_absolute_url }}">
+        <a href="{{ item.get_absolute_url }}">
+          <div class="card-media">
+            {% if item.imagem %}
+              <img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">
+            {% else %}
+              <span class="caption">Imagem 16:9</span>
+            {% endif %}
+          </div>
+        </a>
+        <div class="card-body">
+          {% if item.assuntos.first %}
+            <div class="tag">{{ item.assuntos.first.nome }}</div>
+          {% endif %}
+          <h2 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h2>
+          {% if item.resumo %}
+            <p class="lead lead-border">{{ item.resumo }}</p>
+          {% endif %}
         </div>
-      </div>
+      </article>
+      {% endfor %}
 
-      <div class="dots" aria-label="Paginação do carrossel">
-        <label for="r1" class="dot d1" aria-label="Slide 1"></label>
-        <label for="r2" class="dot d2" aria-label="Slide 2"></label>
-        <label for="r3" class="dot d3" aria-label="Slide 3"></label>
+      <div class="grid-2 mt-16">
+        {% for item in destaques3|slice:"1:" %}
+        <article class="card" data-href="{{ item.get_absolute_url }}">
+          <a href="{{ item.get_absolute_url }}">
+            <div class="card-media">
+              {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+            </div>
+          </a>
+          <div class="card-body">
+            {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+            <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+          </div>
+        </article>
+        {% endfor %}
       </div>
     </div>
     {% endwith %}
-  {% else %}
-    <p class="caption">Sem destaques no momento.</p>
   {% endif %}
 </section>
 
+<!-- =========================
+     RECOMENDADO PARA VOCÊ
+     ========================= -->
 <section class="section accent-blue">
   <div class="section-title">
     <span class="rule"></span>
-    <span class="label">{{ titulo_para_voce }}</span>
+    <span class="label">Para você</span>
     <span class="rule"></span>
   </div>
 
-  {% if para_voce %}
-    {% with para_voce|slice:":6" as pv %}
-    <div class="carousel" data-count="3">
-      <input type="radio" name="pv" id="pv1" checked>
-      <input type="radio" name="pv" id="pv2">
-      <input type="radio" name="pv" id="pv3">
+  {% if pv %}
+  <div class="carousel">
+    <input type="radio" name="pv" id="pv1" checked>
+    <input type="radio" name="pv" id="pv2">
+    <input type="radio" name="pv" id="pv3">
 
-      <div class="carousel-inner">
-        <div class="carousel-track">
-
-          {% if pv|length >= 1 %}
-          <div class="carousel-slide">
-            <div class="grid-2">
-              {% for item in pv|slice:":2" %}
-              <article class="card" data-href="{{ item.get_absolute_url }}">
-                <a href="{{ item.get_absolute_url }}">
-                  <div class="card-media">
-                    {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.titulo|default:'Notícia' }}">{% endif %}
-                  </div>
-                </a>
-                <div class="card-body">
-                  <div class="tag">
-                    {{ item.assuntos.first.nome|default:"Assunto" }}
-                    <button class="bookmark" data-id="{{ item.pk }}">🔖</button>
-                  </div>
-                  <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+    <div class="carousel-inner">
+      <div class="carousel-track">
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in pv|slice:":2" %}
+            <article class="card" data-href="{{ item.get_absolute_url }}">
+              <a href="{{ item.get_absolute_url }}">
+                <div class="card-media">
+                  {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
                 </div>
-              </article>
-              {% endfor %}
-            </div>
+              </a>
+              <div class="card-body">
+                {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+                <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+              </div>
+            </article>
+            {% endfor %}
           </div>
-          {% endif %}
-
-          {% if pv|length >= 3 %}
-          <div class="carousel-slide">
-            <div class="grid-2">
-              {% for item in pv|slice:"2:4" %}
-              <article class="card" data-href="{{ item.get_absolute_url }}">
-                <a href="{{ item.get_absolute_url }}">
-                  <div class="card-media">
-                    {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.titulo|default:'Notícia' }}">{% endif %}
-                  </div>
-                </a>
-                <div class="card-body">
-                  <div class="tag">
-                    {{ item.assuntos.first.nome|default:"Assunto" }}
-                    <button class="bookmark" data-id="{{ item.pk }}">🔖</button>
-                  </div>
-                  <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
-                </div>
-              </article>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
-
-          {% if pv|length >= 5 %}
-          <div class="carousel-slide">
-            <div class="grid-2">
-              {% for item in pv|slice:"4:6" %}
-              <article class="card" data-href="{{ item.get_absolute_url }}">
-                <a href="{{ item.get_absolute_url }}">
-                  <div class="card-media">
-                    {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.titulo|default:'Notícia' }}">{% endif %}
-                  </div>
-                </a>
-                <div class="card-body">
-                  <div class="tag">
-                    {{ item.assuntos.first.nome|default:"Assunto" }}
-                    <button class="bookmark" data-id="{{ item.pk }}">🔖</button>
-                  </div>
-                  <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
-                </div>
-              </article>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
-
         </div>
-      </div>
 
-      <div class="dots">
-        <label for="pv1" class="dot d1"></label>
-        <label for="pv2" class="dot d2"></label>
-        <label for="pv3" class="dot d3"></label>
+        {% if pv|length > 2 %}
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in pv|slice:"2:4" %}
+            <article class="card" data-href="{{ item.get_absolute_url }}">
+              <a href="{{ item.get_absolute_url }}">
+                <div class="card-media">
+                  {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+                </div>
+              </a>
+              <div class="card-body">
+                {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+                <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if pv|length > 4 %}
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in pv|slice:"4:6" %}
+            <article class="card" data-href="{{ item.get_absolute_url }}">
+              <a href="{{ item.get_absolute_url }}">
+                <div class="card-media">
+                  {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+                </div>
+              </a>
+              <div class="card-body">
+                {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+                <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
-    {% endwith %}
-  {% else %}
-    <p class="caption">Sem recomendações por enquanto.</p>
+
+    <div class="dots" aria-label="Paginação do carrossel">
+      <label for="pv1" class="dot d1"></label>
+      <label for="pv2" class="dot d2"></label>
+      <label for="pv3" class="dot d3"></label>
+    </div>
+  </div>
   {% endif %}
+
+  <!-- =========================
+       CTA WHATSAPP
+       ========================= -->
+  <div class="container">
+    <aside class="cta-zap" aria-label="WhatsApp CTA">
+      <div class="zap-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="64" height="64" role="img" focusable="false" aria-hidden="true">
+          <circle cx="32" cy="32" r="32" fill="#8F959E"/>
+          <circle cx="32" cy="32" r="24" fill="#7C828A"/>
+          <path d="M27 20a3 3 0 0 0-3 3c0 10.5 8.5 18 18 18a3 3 0 0 0 3-3v-2.1a1 1 0 0 0-.7-.95l-5-1.6a1 1 0 0 0-1 .26l-1.5 1.5c-.26.26-.63.36-.98.25-2.5-.8-5.1-3.4-5.9-5.9-.11-.35-.01-.72.25-.98l1.5-1.5a1 1 0 0 0 .26-1l-1.6-5a1 1 0 0 0-.95-.7H27Z" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="zap-text">
+        <strong>Vamos conversar no zap?</strong>
+        <p>Receba notícias na palma da sua mão. Entre agora mesmo no nosso canal exclusivo do WhatsApp</p>
+      </div>
+      <a class="zap-action" href="https://whatsapp.com" target="_blank" rel="noopener">Entrar</a>
+    </aside>
+  </div>
 </section>
 
-<section class="section accent-green">
+<!-- =========================
+     MAIS LIDAS DA SEMANA
+     ========================= -->
+<section class="section accent-red">
   <div class="section-title">
     <span class="rule"></span>
     <span class="label">Mais lidas</span>
@@ -212,29 +196,61 @@
   </div>
 
   {% if mais_lidas %}
-    <div class="grid-2">
-      {% for item in mais_lidas|slice:":2" %}
-      <article class="card" data-href="{{ item.get_absolute_url }}">
+  <ol class="list list-ranked">
+    {% for item in mais_lidas|slice:":5" %}
+    <li class="list-item" value="{{ forloop.counter }}">
+      <article class="card card-list" data-href="{{ item.get_absolute_url }}">
         <a href="{{ item.get_absolute_url }}">
           <div class="card-media">
-            {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.titulo|default:'Notícia' }}">{% endif %}
+            {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+            <span class="rank-badge">{{ forloop.counter }}</span>
           </div>
         </a>
         <div class="card-body">
-          <div class="tag">
-            {{ item.assuntos.first.nome|default:"Assunto" }}
-            <button class="bookmark" data-id="{{ item.pk }}">🔖</button>
-          </div>
-          <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+          <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
         </div>
       </article>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="caption">Sem dados da semana.</p>
+    </li>
+    {% endfor %}
+  </ol>
   {% endif %}
 </section>
 
+<!-- =========================
+     Publicidade legal
+     ========================= -->
+<section class="section accent-green">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Publicidade legal</span>
+    <span class="rule"></span>
+  </div>
+
+  {% if publicidade_legal %}
+  <div class="grid-2">
+    {% for item in publicidade_legal|slice:":2" %}
+    <article class="card" data-href="{{ item.get_absolute_url }}">
+      <a href="{{ item.get_absolute_url }}">
+        <div class="card-media">
+          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+        <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  <div class="see-more">
+    <a class="btn-pill" href="{% url 'noticias:index' %}?sec=publicidade">Ver mais</a>
+  </div>
+  {% endif %}
+</section>
+
+<!-- =========================
+     JC 360
+     ========================= -->
 <section class="section accent-purple">
   <div class="section-title">
     <span class="rule"></span>
@@ -243,70 +259,116 @@
   </div>
 
   {% if jc360 %}
-    <div class="grid-2">
-      {% for item in jc360|slice:":4" %}
-      <article class="card" data-href="{{ item.get_absolute_url }}">
-        <a href="{{ item.get_absolute_url }}">
-          <div class="card-media">
-            {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.titulo|default:'JC360' }}">{% endif %}
-          </div>
-        </a>
-        <div class="card-body">
-          <div class="tag">
-            {{ item.assuntos.first.nome|default:"Assunto" }}
-            <button class="bookmark" data-id="{{ item.pk }}">🔖</button>
-          </div>
-          <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+  <div class="grid-2">
+    {% for item in jc360|slice:":2" %}
+    <article class="card" data-href="{{ item.get_absolute_url }}">
+      <a href="{{ item.get_absolute_url }}">
+        <div class="card-media">
+          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
         </div>
-      </article>
-      {% endfor %}
-    </div>
+      </a>
+      <div class="card-body">
+        {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+        <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
 
-    <div class="center mt-16">
-      <a href="{% url 'noticias:index' %}" class="btn-outline" style="color:var(--jc-purple)">Ver mais</a>
-    </div>
-  {% else %}
-    <p class="caption">Sem conteúdos JC360 no momento.</p>
+  <div class="grid-2 mt-16">
+    {% for item in jc360|slice:"2:4" %}
+    <article class="card" data-href="{{ item.get_absolute_url }}">
+      <a href="{{ item.get_absolute_url }}">
+        <div class="card-media">
+          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+        <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  <div class="see-more">
+    <a class="btn-pill" href="{% url 'noticias:index' %}?sec=jc360">Ver mais</a>
+  </div>
   {% endif %}
 </section>
 
-<section class="section accent-yellow">
+<!-- =========================
+     TV JC
+     ========================= -->
+<section class="section accent-blue">
   <div class="section-title">
     <span class="rule"></span>
-    <span class="label">Vídeos</span>
+    <span class="label">Vídeos da TV jornal</span>
     <span class="rule"></span>
   </div>
 
-  {% if videos %}
-    <div class="grid-2">
-      {% for item in videos|slice:":2" %}
-      <article class="card" data-href="{{ item.get_absolute_url }}">
-        <a href="{{ item.get_absolute_url }}">
-          <div class="card-media">
-            {% if item.capa_video %}
-              <img src="{{ item.capa_video.url }}" alt="{{ item.titulo|default:'Vídeo' }}">
-            {% elif item.imagem %}
-              <img src="{{ item.imagem.url }}" alt="{{ item.titulo|default:'Vídeo' }}">
-            {% else %}
-              <span class="caption">▶</span>
-            {% endif %}
+  {% if videos_tv %}
+  <div class="carousel">
+    <input type="radio" name="tv" id="tv1" checked>
+    <input type="radio" name="tv" id="tv2">
+    <input type="radio" name="tv" id="tv3">
+
+    <div class="carousel-inner">
+      <div class="carousel-track">
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in videos_tv|slice:":2" %}
+            <article class="card" data-href="{{ item.get_absolute_url }}">
+              <a href="{{ item.get_absolute_url }}">
+                <div class="card-media">
+                  {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+                </div>
+              </a>
+              <div class="card-body">
+                {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+                <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+              </div>
+            </article>
+            {% endfor %}
           </div>
-        </a>
-        <div class="card-body">
-          <div class="tag">
-            {{ item.assuntos.first.nome|default:"Assunto" }}
-            <button class="bookmark" data-id="{{ item.pk }}">🔖</button>
-          </div>
-          <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
         </div>
-      </article>
-      {% endfor %}
+
+        {% if videos_tv|length > 2 %}
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in videos_tv|slice:"2:4" %}
+            <article class="card" data-href="{{ item.get_absolute_url }}">
+              <a href="{{ item.get_absolute_url }}">
+                <div class="card-media">
+                  {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+                </div>
+              </a>
+              <div class="card-body">
+                {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+                <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
     </div>
+
+    <div class="dots">
+      <label for="tv1" class="dot d1"></label>
+      <label for="tv2" class="dot d2"></label>
+      <label for="tv3" class="dot d3"></label>
+    </div>
+  </div>
   {% else %}
     <p class="caption">Sem vídeos disponíveis agora.</p>
   {% endif %}
 </section>
 
+<!-- =========================
+     Pernambuco
+     ========================= -->
 <section class="section accent-red">
   <div class="section-title">
     <span class="rule"></span>
@@ -319,28 +381,144 @@
     <article class="card" data-href="{{ item.get_absolute_url }}">
       <a href="{{ item.get_absolute_url }}">
         <div class="card-media">
-          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.titulo|default:'Pernambuco' }}">{% endif %}
+          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
         </div>
       </a>
       <div class="card-body">
-        <div class="tag">
-          {{ item.assuntos.first.nome|default:"Assunto" }}
-          <button class="bookmark" data-id="{{ item.pk }}">🔖</button>
-        </div>
-        <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
-        {% if item.resumo %}<p class="lead">{{ item.resumo }}</p>{% endif %}
-        {% if item.charge_autor %}<p class="caption">CHARGE / {{ item.charge_autor }}</p>{% endif %}
-        {% if item.charge_imagem %}
-          <div class="card-media mt-12">
-            <img src="{{ item.charge_imagem.url }}" alt="Charge: {{ item.charge_autor|default:'Artista' }}">
-          </div>
-        {% endif %}
+        {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+        <h2 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h2>
+        {% if item.resumo %}<p class="lead lead-border">{{ item.resumo }}</p>{% endif %}
       </div>
     </article>
     {% endwith %}
-  {% else %}
-    <p class="caption">Sem conteúdo de Pernambuco no momento.</p>
   {% endif %}
+</section>
+
+<!-- =========================
+     CHARGE DO DIA
+     ========================= -->
+<section class="section accent-red">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">CHARGE / {{ charge.charge_autor|default:"Nome do artista" }}</span>
+    <span class="rule"></span>
+  </div>
+
+  {% if charge and charge.charge_imagem %}
+  <article class="card">
+    <div class="card-media charge-box">
+      <img src="{{ charge.charge_imagem.url }}" alt="Charge: {{ charge.charge_autor|default:'Artista' }}">
+    </div>
+  </article>
+  {% endif %}
+</section>
+
+<!-- =========================
+     ÚLTIMAS NOTÍCIAS
+     ========================= -->
+<section class="section accent-red">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Últimas notícias</span>
+    <span class="rule"></span>
+  </div>
+
+  {% if ultimas %}
+  <div class="grid-2">
+    {% for item in ultimas|slice:":8" %}
+    <article class="card" data-href="{{ item.get_absolute_url }}">
+      <a href="{{ item.get_absolute_url }}">
+        <div class="card-media">
+          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+        <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+
+<!-- =========================
+     blog do torcedor
+     ========================= -->
+<section class="section accent-green">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Blog do torcedor</span>
+    <span class="rule"></span>
+  </div>
+
+  {% if blog_torcedor %}
+    {% with top=blog_torcedor|first rest=blog_torcedor|slice:"1:5" %}
+    <article class="card" data-href="{{ top.get_absolute_url }}">
+      <a href="{{ top.get_absolute_url }}">
+        <div class="card-media">
+          {% if top.imagem %}<img src="{{ top.imagem.url }}" alt="{{ top.alt_imagem|default:top.titulo }}">{% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        {% if top.assuntos.first %}<div class="tag">{{ top.assuntos.first.nome }}</div>{% endif %}
+        <h3 class="title"><a href="{{ top.get_absolute_url }}">{{ top.titulo }}</a></h3>
+      </div>
+    </article>
+
+    <div class="grid-2 mt-16">
+      {% for item in rest %}
+      <article class="card" data-href="{{ item.get_absolute_url }}">
+        <a href="{{ item.get_absolute_url }}">
+          <div class="card-media">
+            {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+          </div>
+        </a>
+        <div class="card-body">
+          {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+          <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% endwith %}
+  {% endif %}
+</section>
+
+<!-- =========================
+     RECORTES
+     ========================= -->
+<section class="section recortes">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Recortes</span>
+    <span class="rule"></span>
+  </div>
+
+  <div class="container">
+    {% if recortes %}
+      {% with item=recortes|first %}
+      <a class="recortes-hero" href="{{ item.get_absolute_url }}">
+        {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+        <span class="play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="44" height="44" role="img" focusable="false" aria-hidden="true">
+            <path d="M8 5v14l11-7z" fill="#b4bbc6"/>
+          </svg>
+        </span>
+      </a>
+      {% endwith %}
+    {% else %}
+      <div class="recortes-hero">
+        <span class="play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="44" height="44"><path d="M8 5v14l11-7z" fill="#b4bbc6"/></svg>
+        </span>
+      </div>
+    {% endif %}
+
+    <div class="recortes-dots" aria-label="Paginação dos recortes">
+      <span class="dot is-active"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+  </div>
 </section>
 
 {% endblock %}
