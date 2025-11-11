@@ -5,210 +5,314 @@
 
 {% block extra_head %}
 <style>
-    body {
-        background-color: #f0f2f5; 
-    }
+/* ======== BASE ======== */
+body {
+    background-color: #f0f2f5;
+}
 
-    .caca-container {
-        max-width: 450px; 
-        margin: 15px auto;
-        padding: 0; 
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        overflow: hidden; 
-    }
+/* ======== CONTAINER ======== */
+.caca-container {
+    max-width: 450px;
+    margin: 15px auto;
+    padding: 0;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
 
-    .header-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
-        border-bottom: 1px solid #eee;
-        background-color: #fdfdfd;
-    }
+/* ======== HEADER ======== */
+.header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    background-color: #fdfdfd;
+}
 
-    .header-left, .header-right {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-    .header-logo {
-        width: 40px; 
-        height: auto;
-    }
+.header-logo {
+    width: 40px;
+    height: auto;
+}
 
-    .timer, .level-counter {
-        font-size: 0.9em;
-        font-weight: bold;
-        color: #555;
-    }
+.timer, .level-counter {
+    font-size: 0.9em;
+    font-weight: bold;
+    color: #555;
+}
 
-    .search-input {
-        flex-grow: 1; 
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        font-size: 0.9em;
-        color: #333;
-    }
+.search-input {
+    flex-grow: 1;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 0.9em;
+    color: #333;
+}
 
-    .icon-button {
-        background: none;
-        border: none;
-        font-size: 1.2em;
-        color: #555;
-        cursor: pointer;
-        padding: 5px;
-    }
+.icon-button {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    color: #555;
+    cursor: pointer;
+    padding: 5px;
+}
 
-    /* --- GRID DO CAÇA-PALAVRAS --- */
-    .grid-section {
-        padding: 15px;
-    }
+/* ======== GRID ======== */
+.grid-section {
+    padding: 15px;
+}
+#caca-grid {
+    display: grid;
+    gap: 0;
+    border: 1px solid #ddd;
+    margin: 0 auto;
+    max-width: 100%;
+    background-color: #fff;
+}
+.caca-cell {
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+    aspect-ratio: 1 / 1;
+    border: 1px solid #eee;
+    color: #333;
+}
+.caca-cell.selected {
+    background-color: #e0f2f7;
+    color: #007bff;
+}
+.caca-cell.found {
+    background-color: #d4edda;
+    color: #28a745;
+}
 
-    #caca-grid {
-        display: grid;
-        gap: 0; 
-        border: 1px solid #ddd; 
-        margin: 0 auto; 
-        max-width: 100%; 
-        background-color: #fff;
-    }
+/* ======== TEXTO ======== */
+.text-section {
+    padding: 15px;
+    text-align: left;
+    font-size: 0.95em;
+    line-height: 1.5;
+    color: #444;
+}
+.text-section h4 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.1em;
+}
+.highlight-word {
+    font-weight: bold;
+    color: #007bff;
+    text-decoration: underline;
+    cursor: help;
+}
+.highlight-word.found-text {
+    color: #28a745;
+    text-decoration: line-through;
+}
 
-    .caca-cell {
-        background-color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.1em; 
-        font-weight: bold;
-        text-transform: uppercase;
-        cursor: pointer;
-        user-select: none;
-        aspect-ratio: 1 / 1; 
-        border: 1px solid #eee; 
-        color: #333;
-    }
-    
-    .caca-grid-row:last-child .caca-cell {
-        border-bottom: none;
-    }
+/* ======== FOOTER ======== */
+.footer-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-top: 1px solid #eee;
+    background-color: #fdfdfd;
+    font-size: 0.9em;
+    color: #555;
+}
+.footer-level, .footer-theme {
+    font-weight: bold;
+}
+.user-icon {
+    font-size: 1.5em;
+    color: #888;
+}
 
-    .caca-cell.selected {
-        background-color: #e0f2f7; 
-        color: #007bff;
-    }
+/* ======== MODAL (nível concluído) ======== */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal-content {
+    background: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.modal-content h3 { margin-top: 0; }
+.btn {
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    display: block;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+}
+.btn-primary {
+    background: #D90429;
+    color: #fff;
+}
+.hidden { display: none; }
 
-    .caca-cell.found {
-        background-color: #d4edda; 
-        color: #28a745;
-    }
-    /* --- FIM GRID CAÇA-PALAVRAS --- */
+/* ======== BOTÕES SUPERIORES ======== */
+.top-buttons {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2000;
+}
+.circle-btn {
+    width: 45px;
+    height: 45px;
+    border: none;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.circle-btn img {
+    width: 24px;
+    height: 24px;
+}
 
-    .text-section {
-        padding: 15px;
-        text-align: left;
-        font-size: 0.95em;
-        line-height: 1.5;
-        color: #444;
-    }
+/* ======== DRAWERS ======== */
+.drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 360px;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: flex-end;
+    align-items: stretch;
+    z-index: 3000;
+}
+.drawer-content {
+    background-color: #fff;
+    width: 320px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-left: 5px solid #D90429;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease forwards;
+}
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #ddd;
+}
+.drawer-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: #555;
+}
+.drawer-body {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+.drawer-footer {
+    height: 8px;
+    background-color: #D90429;
+    margin-top: auto;
+}
 
-    .text-section h4 {
-        margin-top: 0;
-        color: #333;
-        font-size: 1.1em;
-    }
-
-    .highlight-word {
-        font-weight: bold;
-        color: #007bff; 
-        text-decoration: underline;
-        cursor: help;
-    }
-    .highlight-word.found-text {
-        color: #28a745; 
-        text-decoration: line-through;
-    }
-
-    .footer-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
-        border-top: 1px solid #eee;
-        background-color: #fdfdfd;
-        font-size: 0.9em;
-        color: #555;
-    }
-
-    .footer-level, .footer-theme {
-        font-weight: bold;
-    }
-
-    .user-icon {
-        font-size: 1.5em;
-        color: #888;
-    }
-    
-    /* --- 1. ESTILOS DO POP-UP (MODAL) --- */
-    .modal-overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-    .modal-content {
-        background: #fff;
-        padding: 24px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 400px;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .modal-content h3 { margin-top: 0; }
-    .modal-content p { font-size: 1.1em; }
-    .modal-form { margin-top: 20px; }
-    .btn {
-        padding: 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: bold;
-        display: block;
-        width: 100%;
-        box-sizing: border-box; /* Garante que o padding não quebre o layout */
-        border: none;
-        cursor: pointer;
-    }
-    .btn-primary { 
-        background: #D90429; /* Cor vermelha do seu botão original */
-        color: #fff; 
-    }
-    .hidden { display: none; }
-    /* --- FIM DOS ESTILOS DO POP-UP --- */
-
+/* ======== ESTATÍSTICAS ======== */
+.profile-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.profile-icon {
+    font-size: 3rem;
+    color: #555;
+}
+.profile-name {
+    margin-top: 8px;
+    font-weight: bold;
+}
+.stats-list p {
+    margin: 8px 0;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+}
+.stats-list .value {
+    color: #D90429;
+    font-weight: bold;
+}
+.share-btn {
+    background-color: #D90429;
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
 </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="caca-container">
-    
     <div class="header-controls">
         <div class="header-left">
             <img src="{% static 'images/logo-jcpe.png' %}" alt="JC PE Logo" class="header-logo">
             <span class="timer">00:00</span>
-            <button class="icon-button">&#8635;</button> {# Ícone de refresh #}
+            <button class="icon-button">&#8635;</button>
         </div>
         <div class="header-right">
             <input type="text" class="search-input" placeholder="Procure as palavras grifadas">
-            <button class="icon-button">&#128269;</button> {# Ícone de lupa #}
+            <button class="icon-button">&#128269;</button>
         </div>
     </div>
 
@@ -220,26 +324,82 @@
         <h4>{{ caca.noticia.titulo|truncatewords:5 }}...</h4>
         <p id="main-text-content">
             {% autoescape off %}
-                {{ texto_da_noticia_formatado|default:caca.noticia.conteudo|linebreaks }} 
+                {{ texto_da_noticia_formatado|default:caca.noticia.conteudo|linebreaks }}
             {% endautoescape %}
-            
-            </p>
+        </p>
     </div>
 
     <div class="footer-controls">
         <span class="footer-level">#{{ nivel }}/3</span>
         <span class="footer-theme">{{ tema.nome }}</span>
-        <span class="user-icon">&#128100;</span> {# Ícone de usuário #}
+        <span class="user-icon">&#128100;</span>
     </div>
-
 </div>
 
+<!-- ======== BOTÕES ======== -->
+<div class="top-buttons">
+    <button id="btn-stats" class="circle-btn">
+        <img src="{% static 'images/icon_stats.svg' %}" alt="Estatísticas">
+    </button>
+    <button id="btn-rules" class="circle-btn">
+        <img src="{% static 'images/icon_rules.svg' %}" alt="Regras">
+    </button>
+</div>
+
+<!-- ======== MODAL DE ESTATÍSTICAS ======== -->
+<div id="stats-modal" class="drawer hidden">
+    <div class="drawer-content">
+        <div class="drawer-header">
+            <h3>Estatísticas</h3>
+            <button class="close-btn" id="close-stats">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div class="profile-section">
+                <div class="profile-icon">&#128100;</div>
+                <p class="profile-name">Mariana Lira</p>
+            </div>
+            <div class="stats-list">
+                <p><strong>Último tempo:</strong> <span class="value">--</span></p>
+                <p><strong>Tempo médio:</strong> <span class="value">--</span></p>
+                <p><strong>Jogos em sequência:</strong> <span class="value">--</span></p>
+                <p><strong>Total de jogos:</strong> <span class="value">--</span></p>
+            </div>
+            <button class="share-btn">📤 Compartilhar</button>
+        </div>
+        <div class="drawer-footer"></div>
+    </div>
+</div>
+
+<!-- ======== MODAL DE REGRAS ======== -->
+<div id="rules-modal" class="drawer hidden">
+    <div class="drawer-content">
+        <div class="drawer-header">
+            <h3>Regras</h3>
+            <button class="close-btn" id="close-rules">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <p><strong>Objetivo:</strong> encontre todas as palavras escondidas relacionadas à notícia.</p>
+            <p>As palavras podem estar na horizontal, vertical ou diagonal, em qualquer direção.</p>
+            <p>Selecione as letras com o mouse ou o dedo e solte para confirmar.</p>
+            <p>Complete todas para resgatar o link final!</p>
+            <hr>
+            <p><strong>Dicas:</strong></p>
+            <ul>
+                <li>Palavras destacadas no texto são as que você deve procurar.</li>
+                <li>Quanto mais rápido você terminar, melhor o seu tempo.</li>
+                <li>Seu progresso é salvo automaticamente após concluir o nível.</li>
+            </ul>
+        </div>
+        <div class="drawer-footer"></div>
+    </div>
+</div>
+
+<!-- ======== MODAL DE NÍVEL CONCLUÍDO ======== -->
 <div id="nivel-concluido-modal" class="modal-overlay hidden">
     <div class="modal-content">
         <h3>Parabéns!</h3>
         <p>Você encontrou todas as palavras do Nível {{ nivel }}/3.</p>
         <p>Clique no botão abaixo para resgatar seu link e avançar.</p>
-
         <form action="{% url 'cacalinks:concluir_nivel' tema.id %}" method="POST" class="modal-form">
             {% csrf_token %}
             <button id="concluir-button" class="btn btn-primary" type="submit">
@@ -253,176 +413,27 @@
     </div>
 </div>
 
-{# Dados JSON passados do Django (views.py) #}
 {{ caca.grade|json_script:"grid-data" }}
-
 {% endblock %}
-
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // 1. Pegar os dados do Django
-    const gridData = JSON.parse(document.getElementById('grid-data').textContent);
-    
-    const highlightElements = document.querySelectorAll('.highlight-word');
-    const palavrasData = Array.from(highlightElements).map(el => el.dataset.word);
+document.addEventListener("DOMContentLoaded", () => {
+    // === Botões e drawers ===
+    const statsModal = document.getElementById("stats-modal");
+    const rulesModal = document.getElementById("rules-modal");
+    const btnStats = document.getElementById("btn-stats");
+    const btnRules = document.getElementById("btn-rules");
+    const closeStats = document.getElementById("close-stats");
+    const closeRules = document.getElementById("close-rules");
 
-    // 2. Pegar os elementos do HTML
-    const gridElement = document.getElementById('caca-grid');
-    const timerElement = document.querySelector('.timer');
-    
-    // 3. ALTERAÇÃO JS: Pegar o Modal (pop-up)
-    const popupModal = document.getElementById('nivel-concluido-modal');
-    // Não precisamos mais do 'concluirButton' aqui, pois ele está no modal
-    
-    // 3. Variáveis de estado do jogo
-    const TAMANHO_GRID = gridData.length; 
-    const totalPalavras = palavrasData.length;
-    let palavrasEncontradas = new Set();
-    
-    let isSelecting = false;
-    let selectedCells = []; 
+    btnStats.addEventListener("click", () => statsModal.classList.remove("hidden"));
+    btnRules.addEventListener("click", () => rulesModal.classList.remove("hidden"));
+    closeStats.addEventListener("click", () => statsModal.classList.add("hidden"));
+    closeRules.addEventListener("click", () => rulesModal.classList.add("hidden"));
 
-    // --- Lógica do Timer ---
-    let startTime = Date.now();
-    let timerInterval;
-
-    function updateTimer() {
-        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-        const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
-        const seconds = String(elapsedTime % 60).padStart(2, '0');
-        timerElement.textContent = `${minutes}:${seconds}`;
-    }
-
-    timerInterval = setInterval(updateTimer, 1000);
-
-    // --- RENDERIZAÇÃO INICIAL ---
-
-    gridElement.style.gridTemplateColumns = `repeat(${TAMANHO_GRID}, 1fr)`;
-
-    // Popula o Grid com as células
-    gridData.forEach((row, r) => {
-        const rowElement = document.createElement('div');
-        rowElement.classList.add('caca-grid-row'); 
-
-        row.forEach((letter, c) => {
-            const cell = document.createElement('div');
-            cell.classList.add('caca-cell');
-            cell.textContent = letter;
-            
-            cell.dataset.r = r;
-            cell.dataset.c = c;
-            cell.dataset.letter = letter;
-            
-            cell.addEventListener('mousedown', handleMouseDown);
-            cell.addEventListener('mouseenter', handleMouseEnter);
-            
-            rowElement.appendChild(cell);
-        });
-        gridElement.appendChild(rowElement);
-    });
-    
-    document.addEventListener('mouseup', handleMouseUp);
-    
-    // Ajuste para o CSS de borda funcionar (baseado no tamanho do grid)
-    try {
-        const rule = `.caca-cell:nth-child(${TAMANHO_GRID}n) { border-right: none; }`;
-        document.styleSheets[0].insertRule(rule, 0);
-    } catch (e) {
-        console.warn("Não foi possível inserir a regra CSS para a borda do grid.");
-    }
-
-    // --- LÓGICA DA SELEÇÃO ---
-
-    function handleMouseDown(e) {
-        if (e.button !== 0) return; 
-        isSelecting = true;
-        clearVisualSelection(); 
-        selectedCells = [];
-        
-        e.target.classList.add('selected');
-        selectedCells.push(e.target);
-    }
-
-    function handleMouseEnter(e) {
-        if (!isSelecting) return;
-        
-        if (!selectedCells.includes(e.target)) {
-            e.target.classList.add('selected');
-            selectedCells.push(e.target);
-        }
-    }
-
-    function handleMouseUp() {
-        if (!isSelecting) return;
-        isSelecting = false;
-        checkSelection();
-    }
-    
-    function clearVisualSelection() {
-        const selected = gridElement.querySelectorAll('.selected');
-        selected.forEach(cell => {
-            if (!cell.classList.contains('found')) {
-                cell.classList.remove('selected');
-            }
-        });
-    }
-
-    // --- LÓGICA DO JOGO ---
-
-    function checkSelection() {
-        if (selectedCells.length === 0) return;
-
-        const selectedWord = selectedCells.map(cell => cell.dataset.letter).join('');
-        const selectedWordReversed = selectedWord.split('').reverse().join('');
-
-        let palavraEncontrada = null;
-
-        for (const palavra of palavrasData) {
-            // Compara em MAIÚSCULAS para garantir (grid é MAIÚSCULO, data-word é MAIÚSCULO)
-            if (palavra.toUpperCase() === selectedWord || palavra.toUpperCase() === selectedWordReversed) {
-                if (!palavrasEncontradas.has(palavra)) {
-                    palavraEncontrada = palavra;
-                }
-                break;
-            }
-        }
-
-        if (palavraEncontrada) {
-            markAsFound(palavraEncontrada, selectedCells);
-        } else {
-            clearVisualSelection();
-        }
-        
-        selectedCells = [];
-    }
-
-    function markAsFound(palavra, cells) {
-        palavrasEncontradas.add(palavra);
-        
-        cells.forEach(cell => {
-            cell.classList.remove('selected'); 
-            cell.classList.add('found'); 
-            cell.style.cursor = 'default'; 
-        });
-        
-        const highlightTextElement = document.querySelector(`.highlight-word[data-word="${palavra}"]`);
-        if (highlightTextElement) {
-            highlightTextElement.classList.add('found-text');
-        }
-
-        // 4. ALTERAÇÃO JS: Mostrar o Pop-up
-        if (palavrasEncontradas.size === totalPalavras) {
-            clearInterval(timerInterval); // Para o timer
-            
-            // Substitui o 'alert()' por isto:
-            if(popupModal) {
-                popupModal.classList.remove('hidden');
-            }
-        }
-    }
+    statsModal.addEventListener("click", (e) => { if (e.target === statsModal) statsModal.classList.add("hidden"); });
+    rulesModal.addEventListener("click", (e) => { if (e.target === rulesModal) rulesModal.classList.add("hidden"); });
 });
 </script>
 {% endblock %}

@@ -1,126 +1,299 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Escolher Tema - Caça-Links{% endblock %}
+{% block title %}Escolher Tema - Caça Links{% endblock %}
 
 {% block extra_head %}
 <style>
-    .header-escolha { padding: 20px; border-bottom: 1px solid #ddd; background: #fff; border-radius: 8px 8px 0 0; }
-    .header-escolha h1 { margin: 0; }
-    .tema-list { list-style: none; padding: 0; margin: 0; background: #fff; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .tema-item { border-bottom: 1px solid #eee; }
-    .tema-item:last-child { border-bottom: none; }
-    .tema-link { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        padding: 20px; 
-        text-decoration: none; 
-        color: #333; 
-        font-weight: bold; 
-        font-size: 1.1em;
-    }
-    .tema-link:hover { background: #f9f9f9; }
-    .tema-progress { font-size: 0.9em; font-weight: normal; color: #666; }
-    .tema-progress.concluido { color: #28a745; font-weight: bold; }
+body {
+    background-color: #f0f2f5;
+    font-family: "Arial", sans-serif;
+}
 
-    /* Estilos do Modal (mantidos) */
-    .modal-overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-    .modal-content {
-        background: #fff;
-        padding: 24px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 400px;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .modal-content h3 { margin-top: 0; }
-    .modal-content p { font-size: 1.1em; }
-    .modal-footer { margin-top: 20px; }
-    .btn {
-        padding: 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: bold;
-        display: block;
-        background: #007bff; 
-        color: #fff; 
-    }
-    .hidden { display: none; }
+/* ======== CONTAINER ======== */
+.tema-container {
+    max-width: 700px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden;
+    padding: 20px;
+}
+
+/* ======== HEADER ======== */
+.tema-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.tema-header h2 {
+    font-size: 1.6rem;
+    color: #222;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.tema-header p {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* ======== LISTA DE TEMAS ======== */
+.tema-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.tema-item {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 14px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+.tema-item:hover {
+    background: #f7f7f7;
+    transform: scale(1.01);
+}
+.tema-name {
+    font-size: 1rem;
+}
+.tema-icon {
+    font-size: 1.3rem;
+    color: #D90429;
+}
+
+/* ======== BOTÕES SUPERIORES ======== */
+.top-buttons {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2000;
+}
+.circle-btn {
+    width: 45px;
+    height: 45px;
+    border: none;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.circle-btn img {
+    width: 24px;
+    height: 24px;
+}
+
+/* ======== DRAWERS ======== */
+.drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 360px;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: flex-end;
+    align-items: stretch;
+    z-index: 3000;
+}
+.drawer-content {
+    background-color: #fff;
+    width: 320px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-left: 5px solid #D90429;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease forwards;
+}
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+.hidden { display: none; }
+
+/* ======== CABEÇALHO DRAWER ======== */
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #ddd;
+}
+.drawer-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: #555;
+}
+
+/* ======== CONTEÚDO DRAWER ======== */
+.drawer-body {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+.drawer-footer {
+    height: 8px;
+    background-color: #D90429;
+    margin-top: auto;
+}
+
+/* ======== ESTATÍSTICAS ======== */
+.profile-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.profile-icon {
+    font-size: 3rem;
+    color: #555;
+}
+.profile-name {
+    margin-top: 8px;
+    font-weight: bold;
+}
+.stats-list p {
+    margin: 8px 0;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+}
+.stats-list .value {
+    color: #D90429;
+    font-weight: bold;
+}
+.share-btn {
+    background-color: #D90429;
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
 </style>
 {% endblock %}
 
-
 {% block content %}
-<div class="header-escolha">
-    <h1>Escolher Tema</h1>
+<div class="tema-container">
+    <div class="tema-header">
+        <h2>Escolher Tema</h2>
+        <p>Selecione um tema para começar o jogo do Caça Links.</p>
+    </div>
+
+    <ul class="tema-list">
+        {% for tema in temas %}
+            <li class="tema-item" onclick="window.location.href='{% url 'cacalinks:jogar' tema.id %}'">
+                <span class="tema-name">{{ tema.nome }}</span>
+                <span class="tema-icon">&#10140;</span>
+            </li>
+        {% empty %}
+            <p>Nenhum tema disponível no momento.</p>
+        {% endfor %}
+    </ul>
 </div>
 
-<ul class="tema-list">
-    {% for tema in temas %}
-        <li class="tema-item">
-            <a href="{% url 'cacalinks:jogar' tema.id %}" class="tema-link">
-                <span>{{ tema.nome }}</span>
-                
-                <span class="tema-progress">
-                    {% for p in progresso %}
-                        {% if p.tema == tema %}
-                            {% if p.concluido %}
-                                <span class="tema-progress concluido">Concluído!</span>
-                            {% else %}
-                                (Nível {{ p.nivel_atual }})
-                            {% endif %}
-                        {% endif %}
-                    {% endfor %}
-                </span>
-            </a>
-        </li>
-    {% endfor %}
-</ul>
+<!-- ======== BOTÕES FIXOS ======== -->
+<div class="top-buttons">
+    <button id="btn-stats" class="circle-btn">
+        <img src="{% static 'images/icon_stats.svg' %}" alt="Estatísticas">
+    </button>
+    <button id="btn-rules" class="circle-btn">
+        <img src="{% static 'images/icon_rules.svg' %}" alt="Regras">
+    </button>
+</div>
 
-{% if messages %}
-    <div id="tema-concluido-modal" class="modal-overlay">
-        <div class="modal-content">
-            
-            {% for message in messages %}
-                {% if message.level_tag == 'info' %}
-                    <h3>Tema Concluído!</h3>
-                    <p>{{ message }}</p> {% endif %}
-            {% endfor %}
-            
-            <div class="modal-footer">
-                <a href="#" id="fechar-modal-btn" class="btn">Escolher Outro Tema</a>
-            </div>
+<!-- ======== MODAL DE ESTATÍSTICAS ======== -->
+<div id="stats-modal" class="drawer hidden">
+    <div class="drawer-content">
+        <div class="drawer-header">
+            <h3>Estatísticas</h3>
+            <button class="close-btn" id="close-stats">&times;</button>
         </div>
+        <div class="drawer-body">
+            <div class="profile-section">
+                <div class="profile-icon">&#128100;</div>
+                <p class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</p>
+            </div>
+            <div class="stats-list">
+                <p><strong>Último tempo:</strong> <span class="value">--</span></p>
+                <p><strong>Tempo médio:</strong> <span class="value">--</span></p>
+                <p><strong>Jogos em sequência:</strong> <span class="value">--</span></p>
+                <p><strong>Total de jogos:</strong> <span class="value">--</span></p>
+            </div>
+            <button class="share-btn">📤 Compartilhar</button>
+        </div>
+        <div class="drawer-footer"></div>
     </div>
-{% endif %}
+</div>
 
+<!-- ======== MODAL DE REGRAS ======== -->
+<div id="rules-modal" class="drawer hidden">
+    <div class="drawer-content">
+        <div class="drawer-header">
+            <h3>Regras</h3>
+            <button class="close-btn" id="close-rules">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <p><strong>Objetivo:</strong> encontre todas as palavras escondidas relacionadas à notícia.</p>
+            <p>As palavras podem estar na horizontal, vertical ou diagonal, em qualquer direção.</p>
+            <p>Selecione as letras com o mouse ou o dedo e solte para confirmar.</p>
+            <p>Complete todas para resgatar o link final!</p>
+            <hr>
+            <p><strong>Dicas:</strong></p>
+            <ul>
+                <li>Palavras destacadas no texto são as que você deve procurar.</li>
+                <li>Quanto mais rápido você terminar, melhor o seu tempo.</li>
+                <li>Seu progresso é salvo automaticamente após concluir o nível.</li>
+            </ul>
+        </div>
+        <div class="drawer-footer"></div>
+    </div>
+</div>
 {% endblock %}
 
-
 {% block extra_js %}
-{{ block.super }}
 <script>
-    (function() {
-        // JavaScript para fechar o modal
-        const parabensModal = document.getElementById('tema-concluido-modal');
-        if (!parabensModal) return;
+document.addEventListener("DOMContentLoaded", () => {
+    const statsModal = document.getElementById("stats-modal");
+    const rulesModal = document.getElementById("rules-modal");
+    const btnStats = document.getElementById("btn-stats");
+    const btnRules = document.getElementById("btn-rules");
+    const closeStats = document.getElementById("close-stats");
+    const closeRules = document.getElementById("close-rules");
 
-        const closeBtn = document.getElementById('fechar-modal-btn');
-        closeBtn?.addEventListener('click', (e) => {
-            e.preventDefault();
-            parabensModal.style.display = 'none';
-        });
-    })();
+    btnStats.addEventListener("click", () => statsModal.classList.remove("hidden"));
+    btnRules.addEventListener("click", () => rulesModal.classList.remove("hidden"));
+    closeStats.addEventListener("click", () => statsModal.classList.add("hidden"));
+    closeRules.addEventListener("click", () => rulesModal.classList.add("hidden"));
+
+    statsModal.addEventListener("click", (e) => {
+        if (e.target === statsModal) statsModal.classList.add("hidden");
+    });
+    rulesModal.addEventListener("click", (e) => {
+        if (e.target === rulesModal) rulesModal.classList.add("hidden");
+    });
+});
 </script>
 {% endblock %}
