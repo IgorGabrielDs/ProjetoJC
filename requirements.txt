@@ -1,28 +1,32 @@
-# Framework e Servidor
-Django
-gunicorn
-whitenoise
+# Framework e servidor
+Django==5.2.7
+gunicorn==22.0.0
+whitenoise==6.7.0
 
-# Banco de Dados
-psycopg2-binary
-dj-database-url
-django-storages[boto3]
-azure-storage-blob
+# Banco de dados
+psycopg2-binary==2.9.9
+dj-database-url==2.2.0
+
+# Storage (Azure)
+django-storages==1.14.6
+azure-storage-blob==12.20.0
+azure-core==1.30.2
 
 # Utilitários
-python-dotenv
-Pillow
-requests
-django-apscheduler
+python-dotenv==1.0.1
+Pillow==10.4.0
+requests==2.32.3
 
-# API do Google
-google-generativeai
+# Agendamento
+APScheduler==3.10.4
+django-apscheduler==0.6.2
+pytz==2024.1
+tzlocal==5.2
 
-pytz
-tzlocal
-APScheduler
+# API Google
+google-generativeai==0.7.2
 
 # Testes
-pytest
-pytest-django
-pytest-lazy-fixture
+pytest==8.3.3
+pytest-django==4.9.0
+pytest-lazy-fixture==0.6.3

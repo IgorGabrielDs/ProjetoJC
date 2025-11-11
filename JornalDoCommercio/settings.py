@@ -154,3 +154,22 @@ LOGOUT_REDIRECT_URL = "/"
 
 # *** Reverso proxy/HTTPS no Azure ***
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "django.request": {  # inclui tracebacks de 500
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django": {
+            "handlers": ["console"],
+            "level": "ERROR",
+        },
+    },
+}
