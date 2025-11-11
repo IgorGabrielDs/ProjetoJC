@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['jornaldocommercio.azurewebsites.net', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['jcproject.azurewebsites.net', '127.0.0.1', 'localhost']
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django_apscheduler',
     "sudoku",
     'noticias.apps.NoticiasConfig',
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -110,10 +111,20 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME")
+AZURE_ACCOUNT_KEY = os.getenv("AZURE_ACCOUNT_KEY")
+AZURE_CONTAINER = os.getenv("AZURE_MEDIA_CONTAINER", "media")
 
-os.makedirs(MEDIA_ROOT, exist_ok=True)
+if AZURE_ACCOUNT_NAME and AZURE_ACCOUNT_KEY:
+    DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
+    AZURE_ACCOUNT_NAME = AZURE_ACCOUNT_NAME
+    AZURE_ACCOUNT_KEY = AZURE_ACCOUNT_KEY
+    AZURE_CONTAINER = AZURE_CONTAINER
+    MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/"
+else:
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "media"
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 AUTHENTICATION_BACKENDS = [
     "noticias.backends.EmailOrUsernameModelBackend",
