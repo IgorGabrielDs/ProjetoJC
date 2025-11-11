@@ -6,7 +6,7 @@ whitenoise
 # Banco de Dados
 psycopg2-binary
 dj-database-url
-django-storages 
+django-storages[boto3]
 azure-storage-blob
 
 # Utilitários
