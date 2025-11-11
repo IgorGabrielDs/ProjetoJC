@@ -21,7 +21,6 @@ google-generativeai
 pytz
 tzlocal
 APScheduler
-django-apscheduler
 
 # Testes
 pytest
