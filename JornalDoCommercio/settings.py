@@ -114,15 +114,34 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # =========================
 AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME")
 AZURE_ACCOUNT_KEY = os.getenv("AZURE_ACCOUNT_KEY")
+AZURE_CONNECTION_STRING = os.getenv("AZURE_CONNECTION_STRING")
 AZURE_CONTAINER = os.getenv("AZURE_MEDIA_CONTAINER", "media")
 
-if AZURE_ACCOUNT_NAME and AZURE_ACCOUNT_KEY:
-    DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
+if AZURE_ACCOUNT_NAME and AZURE_CONNECTION_STRING:
     MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/"
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            "OPTIONS": {
+                # Qualquer uma das credenciais abaixo já funciona; deixe as três se quiser
+                "account_name": AZURE_ACCOUNT_NAME,
+                "account_key": AZURE_ACCOUNT_KEY,
+                "connection_string": AZURE_CONNECTION_STRING,
+                "azure_container": AZURE_CONTAINER,
+            },
+        },
+        # mantenha o WhiteNoise para arquivos estáticos
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 else:
     MEDIA_URL = "/media/"
     MEDIA_ROOT = BASE_DIR / "media"
-    os.makedirs(MEDIA_ROOT, exist_ok=True)
+
+# Se você ainda tiver isto em cima, remova:
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 AUTHENTICATION_BACKENDS = [
     "noticias.backends.EmailOrUsernameModelBackend",
