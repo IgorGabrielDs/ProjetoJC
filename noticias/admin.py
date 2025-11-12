@@ -1,5 +1,14 @@
 from django.contrib import admin
-from .models import Noticia, Voto, Assunto
+from .models import Noticia, Voto, Assunto, Enquete
+
+
+class EnqueteInline(admin.StackedInline):  # usa StackedInline p/ mostrar campos em blocos verticais
+    model = Enquete
+    extra = 0  # não cria formulários extras vazios
+    can_delete = True  # permite excluir a enquete
+    fk_name = 'noticia'  # campo de relação
+    verbose_name_plural = "Enquete (opcional)"
+
 
 @admin.register(Noticia)
 class NoticiaAdmin(admin.ModelAdmin):
@@ -9,7 +18,11 @@ class NoticiaAdmin(admin.ModelAdmin):
     fields = ("titulo", "conteudo", "imagem", "legenda", "criado_em", "assuntos")
     readonly_fields = ("criado_em",)
 
-@admin.register(Voto)
-class VotoAdmin(admin.ModelAdmin):
-    list_display = ("id", "noticia", "usuario", "valor")
-    list_filter = ("valor",)
+    # 👉 Adiciona o formulário da enquete dentro da notícia
+    inlines = [EnqueteInline]
+
+
+@admin.register(Assunto)
+class AssuntoAdmin(admin.ModelAdmin):
+    list_display = ("id", "nome", "slug")
+    prepopulated_fields = {"slug": ("nome",)}

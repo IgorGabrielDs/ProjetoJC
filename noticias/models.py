@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models 
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
@@ -21,6 +21,7 @@ class Perfil(models.Model):
     def __str__(self):
         return f"Perfil de {self.user}"
 
+
 class Assunto(models.Model):
     nome = models.CharField(max_length=80, unique=True)
     slug = models.SlugField(max_length=80, unique=True)
@@ -39,19 +40,15 @@ class Noticia(models.Model):
 
     # timestamps
     criado_em = models.DateTimeField(auto_now_add=True)
-    atualizado_em = models.DateTimeField(auto_now=True)  # <- NOVO
+    atualizado_em = models.DateTimeField(auto_now=True)
 
     # mídia
     imagem = models.ImageField(upload_to="noticias/", null=True, blank=True)
     legenda = models.CharField(max_length=255, null=True, blank=True)
-    credito_imagem = models.CharField(  # <- NOVO
-        max_length=255, blank=True, default=""
-    )
+    credito_imagem = models.CharField(max_length=255, blank=True, default="")
 
     # autoria
-    autor = models.CharField(  # <- NOVO
-        max_length=120, blank=True, default="JC"
-    )
+    autor = models.CharField(max_length=120, blank=True, default="JC")
 
     # taxonomia
     assuntos = models.ManyToManyField(Assunto, related_name="noticias", blank=True)
@@ -72,10 +69,6 @@ class Noticia(models.Model):
 
     @property
     def votos(self):
-        """
-        Retorna o QuerySet de votos desta notícia.
-        (Mantido como propriedade para compatibilidade com seu código atual.)
-        """
         return Voto.objects.filter(noticia=self)
 
     def is_salva_por(self, user):
@@ -97,6 +90,22 @@ class Noticia(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+class Enquete(models.Model):
+    noticia = models.OneToOneField(
+        Noticia,
+        on_delete=models.CASCADE,
+        related_name="enquete",
+        blank=True,
+        null=True,
+    )
+    titulo = models.CharField("Título da enquete", max_length=200, blank=True, null=True)
+    opcao_a = models.CharField("Opção A", max_length=100, blank=True, null=True)
+    opcao_b = models.CharField("Opção B", max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.titulo or f"Enquete da notícia: {self.noticia.titulo}"
 
 
 class Voto(models.Model):
@@ -130,6 +139,7 @@ class Salvo(models.Model):
 
     def __str__(self):
         return f"{self.usuario} salvou {self.noticia}"
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def criar_perfil_ao_criar_usuario(sender, instance, created, **kwargs):
