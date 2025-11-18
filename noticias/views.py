@@ -1,4 +1,3 @@
-# noticias/views.py
 from datetime import timedelta
 import json
 import logging
@@ -26,7 +25,16 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from .models import Noticia, Voto, Assunto, Salvo
+# Imports da Enquete adicionados
+from .models import (
+    Noticia,
+    Voto,
+    Assunto,
+    Salvo,
+    Enquete,
+    OpcaoEnquete,
+    VotoEnquete,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -357,11 +365,60 @@ def noticia_detalhe(request, pk):
     )
 
     voto_usuario = None
+    is_saved = False # Definido como False por padrão
     if request.user.is_authenticated:
         voto_usuario = Voto.objects.filter(noticia=noticia, usuario=request.user).first()
         is_saved = noticia.salvos.filter(pk=request.user.pk).exists()
-    else:
-        is_saved = False
+
+    # --- LÓGICA DA ENQUETE (INÍCIO) ---
+    enquete_data = None
+    try:
+        # noticia.enquete usa o 'related_name' que definimos no models.py
+        enquete = noticia.enquete
+        
+        # Só processa se a enquete tiver sido configurada (tiver um título)
+        if enquete and enquete.titulo:
+            opcoes = enquete.opcoes.all()
+            total_votos_enquete = VotoEnquete.objects.filter(enquete=enquete).count()
+            
+            usuario_ja_votou_enquete = False
+            voto_usuario_enquete_id = None
+
+            # Verifica se o usuário logado já votou
+            if request.user.is_authenticated:
+                # Usamos o método que criamos no models.py
+                usuario_ja_votou_enquete = enquete.ja_votou(request.user)
+                if usuario_ja_votou_enquete:
+                    voto_obj = VotoEnquete.objects.filter(enquete=enquete, usuario=request.user).first()
+                    voto_usuario_enquete_id = voto_obj.opcao_selecionada.id if voto_obj else None
+
+            # Prepara os dados das opções com percentuais
+            opcoes_com_percentual = []
+            for op in opcoes:
+                votos_da_opcao = op.total_votos # Usa a @property do models
+                percentual = (votos_da_opcao / total_votos_enquete * 100) if total_votos_enquete > 0 else 0
+                opcoes_com_percentual.append({
+                    "id": op.id,
+                    "texto": op.texto,
+                    "votos": votos_da_opcao,
+                    "percentual": round(percentual, 1) # Arredonda para 1 casa decimal
+                })
+
+            # Monta o dicionário final para o template
+            enquete_data = {
+                "obj": enquete, # O objeto Enquete (para o form action)
+                "opcoes": opcoes_com_percentual,
+                "total_votos": total_votos_enquete,
+                "usuario_ja_votou": usuario_ja_votou_enquete,
+                "voto_usuario_id": voto_usuario_enquete_id, # Para destacar a opção votada
+            }
+            
+    except Enquete.DoesNotExist:
+        enquete_data = None # Não há enquete para esta notícia
+    except Exception as e:
+        logger.error(f"Erro ao processar enquete para notícia {pk}: {e}")
+        enquete_data = None # Falha segura, não quebra a página
+    # --- LÓGICA DA ENQUETE (FIM) ---
 
     ctx = {
         "noticia": noticia,
@@ -371,12 +428,13 @@ def noticia_detalhe(request, pk):
         "voto_usuario": voto_usuario.valor if voto_usuario else 0,
         "relacionadas": relacionadas,
         "is_saved": is_saved,
+        "enquete_data": enquete_data, # <- NOVO DADO ADICIONADO AO CONTEXTO
     }
     return render(request, "noticias/detalhe.html", ctx)
 
 
 # =======================
-# VOTO (AJAX)
+# VOTO (AJAX) - (Voto da Notícia, Up/Down)
 # =======================
 @login_required
 @require_http_methods(["POST"])
@@ -654,3 +712,57 @@ def resumir_noticia(request, pk):
     except Exception as e:
         logger.exception("Erro ao resumir notícia %s: %s", pk, e)
         return JsonResponse({"error": f"Erro ao conectar com a API: {e}"}, status=500)
+
+
+# ==================================================
+# NOVA VIEW - VOTAÇÃO DA ENQUETE
+# ==================================================
+@login_required # REQUER LOGIN: Garante que só usuários logados votem
+@require_http_methods(["POST"]) # Só aceita requisições POST
+def votar_enquete(request, enquete_pk):
+    """
+    Registra o voto de um usuário em uma opção de enquete.
+    """
+    # Garante que a enquete existe
+    enquete = get_object_or_404(Enquete, pk=enquete_pk)
+    noticia = enquete.noticia # Precisamos da notícia para redirecionar de volta
+    
+    try:
+        # Pega o ID da opção enviada pelo formulário
+        # O 'name' do input no HTML deverá ser "opcao_enquete"
+        opcao_id = request.POST.get("opcao_enquete")
+        if not opcao_id:
+            # Se 'opcao_enquete' não veio no POST
+            raise Exception("Nenhuma opção selecionada.")
+            
+        # Garante que a opção selecionada existe E pertence a esta enquete
+        opcao_selecionada = get_object_or_404(OpcaoEnquete, pk=opcao_id, enquete=enquete)
+    
+    except Exception as e:
+        logger.warning(f"Tentativa de voto inválida na enquete {enquete_pk} pelo usuário {request.user.username}: {e}")
+        messages.error(request, "Seleção inválida. Tente novamente.")
+        return redirect(noticia.get_absolute_url())
+
+    # Verificação 1 (View): O usuário já votou?
+    # Usamos o método 'ja_votou' que criamos no models.py
+    if enquete.ja_votou(request.user):
+        messages.warning(request, "Você já votou nesta enquete.")
+        return redirect(noticia.get_absolute_url())
+        
+    # Se passou em tudo, cria o voto
+    try:
+        VotoEnquete.objects.create(
+            usuario=request.user,
+            enquete=enquete,
+            opcao_selecionada=opcao_selecionada
+        )
+        messages.success(request, "Seu voto foi registrado com sucesso!")
+        
+    except Exception as e:
+        # Verificação 2 (Database): Captura a falha do UniqueConstraint
+        # Isso pode acontecer em uma 'condição de corrida' (race condition)
+        logger.error(f"Erro ao salvar VotoEnquete (possível duplicata): {e}")
+        messages.warning(request, "Não foi possível registrar seu voto. Você já pode ter votado.")
+
+    # Redireciona o usuário de volta para a notícia
+    return redirect(noticia.get_absolute_url())

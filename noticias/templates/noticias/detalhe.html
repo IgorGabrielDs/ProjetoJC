@@ -5,6 +5,158 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
+
+<!-- ===== CSS DA ENQUETE (NOVO) ===== -->
+<style>
+  .enquete-box {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 24px;
+    margin-bottom: 24px;
+    background-color: #f9f9f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .enquete-titulo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 16px 0;
+  }
+
+  /* --- Formulário de Votação --- */
+  .enquete-form fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+  .enquete-opcao-radio {
+    display: block;
+    margin-bottom: 12px;
+  }
+  .enquete-opcao-radio label {
+    display: inline-flex;
+    align-items: center;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  .enquete-opcao-radio input[type="radio"] {
+    margin-right: 10px;
+    /* Estilização moderna do radio button */
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #555;
+    border-radius: 50%;
+    transition: 0.1s all linear;
+    position: relative;
+    top: -1px;
+  }
+  .enquete-opcao-radio input[type="radio"]:checked {
+    border-color: #007bff;
+  }
+  .enquete-opcao-radio input[type="radio"]:checked::before {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    background-color: #007bff;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .enquete-btn {
+    display: inline-block;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+  }
+  .enquete-btn:hover {
+    background-color: #0056b3;
+  }
+  .enquete-btn:disabled {
+    background-color: #c0c0c0;
+    cursor: not-allowed;
+  }
+
+  /* --- Exibição de Resultados --- */
+  .enquete-resultados {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .enquete-opcao-resultado {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .enquete-opcao-resultado .info-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+  }
+  .enquete-opcao-resultado .info-wrapper .texto-opcao {
+    font-weight: 600;
+    color: #333;
+  }
+  .enquete-opcao-resultado .info-wrapper .percentual {
+    font-weight: 700;
+    color: #007bff;
+  }
+  .enquete-barra {
+    width: 100%;
+    height: 12px;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .enquete-barra-preenchimento {
+    height: 100%;
+    background-color: #007bff;
+    border-radius: 6px;
+    transition: width 0.5s ease-in-out;
+  }
+  /* Destaca a opção que o usuário votou */
+  .enquete-voto-usuario .info-wrapper .texto-opcao,
+  .enquete-voto-usuario .info-wrapper .percentual {
+    color: #0056b3;
+    font-weight: 800;
+  }
+  .enquete-voto-usuario .enquete-barra-preenchimento {
+    background-color: #0056b3;
+  }
+  
+  .enquete-total-votos {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-top: 16px;
+    text-align: right;
+  }
+  .enquete-login-aviso {
+    font-size: 0.95rem;
+    color: #444;
+    margin-top: 16px;
+  }
+  .enquete-login-aviso a {
+    color: #007bff;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .enquete-login-aviso a:hover {
+    text-decoration: underline;
+  }
+</style>
+<!-- ===== FIM CSS DA ENQUETE ===== -->
 {% endblock %}
 
 {% block content %}
@@ -12,10 +164,11 @@
 
   <!-- Kicker -->
   <header class="art-top">
+    <!-- ... (seu código de header existente) ... -->
     <div class="art-kicker">
-      {% if noticia.categoria %}
-        <span class="kicker-link">{{ noticia.categoria.nome }}</span>
-      {% endif %}
+    {% if noticia.categoria %}
+      <span class="kicker-link">{{ noticia.categoria.nome }}</span>
+    {% endif %}
       <span class="kicker-sep">|</span>
       <span class="kicker-type">NOTÍCIA</span>
     </div>
@@ -31,14 +184,14 @@
 
     <!-- Ações -->
     <div class="art-actions">
-      {% if noticia.pk %}
+    {% if noticia.pk %}
       <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}" class="act" aria-label="Salvar matéria">
         {% csrf_token %}
         <button class="btn-icon" type="submit" title="Salvar">
           <svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M6 2h12a2 2 0 0 1 2 2v18l-8-4-8 4V4a 2 2 0 0 1 2-2z"/></svg>
         </button>
       </form>
-      {% endif %}
+    {% endif %}
 
       <button class="btn-icon" type="button" title="Compartilhar" id="shareBtn" aria-label="Compartilhar">
         <svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M18 8a3 3 0 1 0-2.83-2H10a2 2 0 0 0-2 2v3.17a3 3 0 1 0 0 3.66V18a2 2 0 0 0 2 2h5.17A3 3 0 1 0 18 18H11v-2.17A3.001 3.001 0 0 0 12 12a3 3 0 0 0-1-2.24V8h4.17A3 3 0 0 0 18 8z"/></svg>
@@ -49,6 +202,7 @@
   <!-- Imagem principal -->
   {% if noticia.imagem %}
   <figure class="art-hero" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+    <!-- ... (seu código de imagem existente) ... -->
     {% if noticia.alt_imagem %}
       <img src="{{ noticia.imagem.url }}" alt="{{ noticia.alt_imagem }}" class="hero-img">
     {% else %}
@@ -73,6 +227,7 @@
 
   <!-- Times -->
   <div class="art-times">
+    <!-- ... (seu código de times existente) ... -->
     <time itemprop="datePublished" datetime="{{ noticia.publicado_em|date:'c' }}">
       Publicado em {{ noticia.publicado_em|date:"d/m/Y" }} às {{ noticia.publicado_em|date:"H:i" }}
     </time>
@@ -97,12 +252,90 @@
     {% endif %}
   </div>
 
+  <!-- ============================= -->
+  <!-- ===== BLOCO DA ENQUETE (NOVO) ===== -->
+  <!-- ============================= -->
+  {% if enquete_data %}
+  <section class="enquete-box" aria-labelledby="enquete-titulo-{{ enquete_data.obj.pk }}">
+    <h2 class="enquete-titulo" id="enquete-titulo-{{ enquete_data.obj.pk }}">
+      {{ enquete_data.obj.titulo }}
+    </h2>
+
+    {% if user.is_authenticated %}
+      
+      <!-- Usuário LOGADO e JÁ VOTOU: Mostra resultados -->
+      {% if enquete_data.usuario_ja_votou %}
+        <div class="enquete-resultados">
+          {% for op in enquete_data.opcoes %}
+            <div classclass="enquete-opcao-resultado {% if op.id == enquete_data.voto_usuario_id %}enquete-voto-usuario{% endif %}">
+              <div class="info-wrapper">
+                <span class="texto-opcao">{{ op.texto }}</span>
+                <span class="percentual">{{ op.percentual }}%</span>
+              </div>
+              <div class="enquete-barra">
+                <div class="enquete-barra-preenchimento" style="width: {{ op.percentual }}%;"></div>
+              </div>
+            </div>
+          {% endfor %}
+          <span class="enquete-total-votos">Total de {{ enquete_data.total_votos }} votos.</span>
+        </div>
+
+      <!-- Usuário LOGADO e NÃO VOTOU: Mostra formulário -->
+      {% else %}
+        <form class="enquete-form" method="POST" action="{% url 'noticias:votar_enquete' enquete_data.obj.pk %}">
+          {% csrf_token %}
+          <fieldset>
+            <legend class="visually-hidden">Opções da enquete</legend>
+            {% for op in enquete_data.opcoes %}
+              <div class="enquete-opcao-radio">
+                <input type="radio" name="opcao_enquete" value="{{ op.id }}" id="op-{{ op.id }}" required>
+                <label for="op-{{ op.id }}">{{ op.texto }}</label>
+              </div>
+            {% empty %}
+              <p>Não há opções nesta enquete no momento.</p>
+            {% endfor %}
+          </fieldset>
+          {% if enquete_data.opcoes %}
+            <button class="enquete-btn" type="submit">Votar</button>
+          {% endif %}
+        </form>
+      {% endif %}
+
+    {% else %}
+      
+      <!-- Usuário DESLOGADO: Mostra resultados e aviso de login -->
+      <div class="enquete-resultados">
+        {% for op in enquete_data.opcoes %}
+          <div class="enquete-opcao-resultado">
+            <div class="info-wrapper">
+              <span class="texto-opcao">{{ op.texto }}</span>
+              <span class="percentual">{{ op.percentual }}%</span>
+            </div>
+            <div class="enquete-barra">
+              <div class="enquete-barra-preenchimento" style="width: {{ op.percentual }}%;"></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      
+      <p class="enquete-login-aviso">
+        <a href="{% url 'login' %}?next={{ request.path }}">Faça login</a> para votar nesta enquete.
+      </p>
+      <span class="enquete-total-votos">Total de {{ enquete_data.total_votos }} votos.</span>
+    
+    {% endif %}
+  </section>
+  {% endif %}
+  <!-- ===== FIM DA ENQUETE ===== -->
+
+
   <!-- ===== LEIA TAMBÉM ===== -->
   {% if relacionadas %}
   <section class="art-related">
+    <!-- ... (seu código de relacionadas existente) ... -->
     <h2 class="related-title">LEIA TAMBÉM</h2>
     <div class="related-grid">
-      {% for rel in relacionadas %}
+    {% for rel in relacionadas %}
       <a href="{% url 'noticias:noticia_detalhe' rel.pk %}" class="related-card">
         {% if rel.imagem %}
         <img src="{{ rel.imagem.url }}" alt="{{ rel.alt_imagem|default:rel.titulo }}" class="related-img">
@@ -115,13 +348,14 @@
           <p class="related-desc">{{ rel.resumo|default:rel.olho|default:rel.titulo|truncatewords:22 }}</p>
         </div>
       </a>
-      {% endfor %}
+    {% endfor %}
     </div>
   </section>
   {% endif %}
 
   <!-- ===== COMPARTILHE + SALVAR ===== -->
   <section class="art-share">
+    <!-- ... (seu código de share existente) ... -->
     <h2 class="share-title">Compartilhe</h2>
     <div class="share-icons">
       <a href="https://api.whatsapp.com/send?text={{ noticia.titulo|urlencode }}%20{{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" aria-label="WhatsApp">
@@ -142,7 +376,7 @@
     <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}">
       {% csrf_token %}
       <button class="save-main" type="submit">
-        <svg viewBox="0 0 24 24" class="save-ico"><path d="M6 2h12a2 2 0 0 1 2 2v18l-8-4-8 4V4a2 2 0 0 1 2-2z"/></svg>
+        <svg viewBox="0 0 24 24" class="save-ico"><path d="M6 2h12a2 2 0 0 1 2 2v18l-8-4-8 4V4a 2 2 0 0 1 2-2z"/></svg>
         <span>Salvar</span>
       </button>
     </form>
@@ -153,11 +387,12 @@
   {% with noticia.tags.all as tags %}
   {% if tags %}
   <section class="art-tags">
+    <!-- ... (seu código de tags existente) ... -->
     <h3 class="tags-title">Tags</h3>
     <div class="tags-wrap">
-      {% for tag in tags %}
+    {% for tag in tags %}
       <span class="tag-chip">{{ tag.nome|upper }}</span>
-      {% endfor %}
+    {% endfor %}
     </div>
   </section>
   {% endif %}
@@ -185,8 +420,22 @@
   document.getElementById("copyLink")?.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      alert("Link copiado!");
+      alert("Link copiado!"); // TODO: Substituir por um 'toast' não-bloqueante
     } catch (e) {}
   });
+
+  // (NOVO) Desabilitar botão da enquete após o envio
+  (function () {
+    const form = document.querySelector('.enquete-form');
+    if (form) {
+      form.addEventListener('submit', function() {
+        const btn = form.querySelector('.enquete-btn');
+        if (btn) {
+          btn.setAttribute('disabled', 'disabled');
+          btn.textContent = 'Votando...';
+        }
+      });
+    }
+  })();
 </script>
 {% endblock %}

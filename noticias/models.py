@@ -1,4 +1,4 @@
-from django.db import models 
+from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
@@ -69,6 +69,7 @@ class Noticia(models.Model):
 
     @property
     def votos(self):
+        # Referencia o Voto de upvote/downvote da notícia
         return Voto.objects.filter(noticia=self)
 
     def is_salva_por(self, user):
@@ -92,6 +93,8 @@ class Noticia(models.Model):
         return self.titulo
 
 
+# --- MODELOS DA ENQUETE MODIFICADOS/NOVOS ---
+
 class Enquete(models.Model):
     noticia = models.OneToOneField(
         Noticia,
@@ -100,23 +103,85 @@ class Enquete(models.Model):
         blank=True,
         null=True,
     )
-    titulo = models.CharField("Título da enquete", max_length=200, blank=True, null=True)
-    opcao_a = models.CharField("Opção A", max_length=100, blank=True, null=True)
-    opcao_b = models.CharField("Opção B", max_length=100, blank=True, null=True)
+    # O 'titulo' agora é a PERGUNTA da enquete
+    titulo = models.CharField("Pergunta da enquete", max_length=200, blank=True, null=True)
+
+    # Removemos opcao_a e opcao_b daqui
+    # Elas agora serão gerenciadas pelo modelo OpcaoEnquete
 
     def __str__(self):
         return self.titulo or f"Enquete da notícia: {self.noticia.titulo}"
 
+    def ja_votou(self, user):
+        """Verifica se um usuário específico já votou nesta enquete."""
+        if not user.is_authenticated:
+            return False
+        return VotoEnquete.objects.filter(enquete=self, usuario=user).exists()
+
+
+class OpcaoEnquete(models.Model):
+    """Uma opção de escolha para uma enquete."""
+    enquete = models.ForeignKey(
+        Enquete,
+        on_delete=models.CASCADE,
+        related_name="opcoes"
+    )
+    texto = models.CharField("Texto da opção", max_length=100)
+
+    def __str__(self):
+        return f"{self.enquete.titulo} -> {self.texto}"
+
+    @property
+    def total_votos(self):
+        """Calcula o total de votos para esta opção."""
+        # Contamos quantos VotoEnquete estão ligados a esta OpcaoEnquete
+        return self.votoenquete_set.count()
+
+
+class VotoEnquete(models.Model):
+    """Registra o voto de um usuário em uma enquete/opção."""
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="votos_enquete"
+    )
+    enquete = models.ForeignKey(
+        Enquete,
+        on_delete=models.CASCADE,
+        related_name="votos_registrados"
+    )
+    opcao_selecionada = models.ForeignKey(
+        OpcaoEnquete,
+        on_delete=models.CASCADE
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            # Garante que um usuário só pode votar UMA VEZ por enquete
+            models.UniqueConstraint(
+                fields=["usuario", "enquete"], name="unique_user_poll_vote"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.usuario.username} votou em '{self.opcao_selecionada.texto}'"
+
+
+# --- FIM DAS MODIFICAÇÕES DA ENQUETE ---
+
 
 class Voto(models.Model):
+    """Este é o Voto de UPVOTE/DOWNVOTE da Notícia (Score)"""
     noticia = models.ForeignKey(
         Noticia, on_delete=models.CASCADE, related_name="votos"
     )
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    valor = models.IntegerField()
+    valor = models.IntegerField() # -1 para downvote, 1 para upvote
 
     criado_em = models.DateTimeField(auto_now_add=True)
-    atualizado_em = models.DateTimeField(auto_now=True)
+    # Corrigindo um erro de digitação de antes: auto_now=True
+    atualizado_em = models.DateTimeField(auto_now=True) 
 
     class Meta:
         constraints = [

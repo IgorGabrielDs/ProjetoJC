@@ -15,4 +15,6 @@ urlpatterns = [
     path("accounts/password/code/",  views_auth.verify_reset_code,   name="password_reset_code"),
     path("accounts/password/new/",   views_auth.set_new_password,    name="password_reset_new"),
     path("onboarding/personalizacao/", views.onboarding_personalizacao, name="onboarding_personalizacao"),
+    path(
+        "enquete/<int:enquete_pk>/votar/", views.votar_enquete, name="votar_enquete"),
 ]
