@@ -5,7 +5,8 @@
 
 {% block extra_head %}
 <style>
-body { background: #f0f2f5; }
+/* base */
+body { background: #f0f2f5; font-family: Arial, sans-serif; }
 
 .caca-container {
     max-width: 520px;
@@ -16,112 +17,48 @@ body { background: #f0f2f5; }
     overflow: hidden;
 }
 
-/* HEADER */
+/* header */
 .header-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #ddd;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 16px; border-bottom:1px solid #ddd;
 }
-.header-left { display: flex; align-items: center; gap: 10px; }
-.header-logo { width: 40px; }
-.timer { font-weight: bold; }
-
+.header-left { display:flex; align-items:center; gap:10px; }
+.header-logo { width:40px; }
+#timer { font-weight:bold; }
 .pause-btn, .check-btn {
-    background: #000;
-    color: #fff;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+    background:#000; color:#fff; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;
 }
-.pause-btn:hover, .check-btn:hover { background: #333; }
+.pause-btn:hover, .check-btn:hover { background:#333; }
 
-/* GRID */
-#caca-grid {
-    display: grid;
-    margin: 15px;
-    border: 1px solid #ddd;
-}
-.caca-cell {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid #eee;
-    font-weight: bold;
-    cursor: pointer;
-    user-select: none;
-    aspect-ratio: 1 / 1;
-}
-.caca-cell.selected { background: #e3f2fd; color: #007bff; }
-.caca-cell.found { background: #d4edda; color: #28a745; }
+/* grid */
+#caca-grid { display:grid; margin:15px; border:1px solid #ddd; background:#fff; }
+.caca-cell { display:flex; justify-content:center; align-items:center; border:1px solid #eee; font-weight:bold; cursor:pointer; user-select:none; aspect-ratio:1/1; text-transform:uppercase; color:#333; }
+.caca-cell.selected { background:#e3f2fd; color:#007bff; }
+.caca-cell.found { background:#d4edda; color:#28a745; }
 
-/* TEXTO */
-.text-section { padding: 15px; line-height: 1.5; }
-.highlight-word {
-    color: #007bff;
-    font-weight: bold;
-    text-decoration: underline;
-}
-.highlight-word.found-text {
-    color: #28a745;
-    text-decoration: line-through;
-}
+/* texto */
+.text-section { padding:15px; line-height:1.5; color:#444; }
+.highlight-word { color:#007bff; font-weight:bold; text-decoration:underline; cursor:help; }
+.highlight-word.found-text { color:#28a745; text-decoration:line-through; }
 
-/* MODAL */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 5000;
-}
-.modal-overlay.active { display: flex; }
+/* modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:5000; }
+.modal-overlay.active { display:flex; }
+.modal-content { background:#fff; padding:24px; border-radius:12px; width:90%; max-width:420px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.15); }
+.win-btn { background:#D90429; color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:bold; margin:8px; }
 
-.modal-content {
-    background: #fff;
-    padding: 25px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-}
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 1.4rem;
-    position: absolute;
-    right: 12px;
-    top: 10px;
-    cursor: pointer;
-}
-
-/* PAUSA */
-#pause-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-    font-size: 2rem;
-    color: white;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 4000;
-}
-#pause-overlay.active { display: flex; }
+/* pause overlay */
+#pause-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); color:#fff; font-size:2rem; display:none; align-items:center; justify-content:center; z-index:4000; }
+#pause-overlay.active { display:flex; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="caca-container">
-
     <div class="header-controls">
         <div class="header-left">
-            <img src="{% static 'caca_links/img/logo-jcpe.png' %}" class="header-logo">
-            <span id="timer" class="timer">00:00</span>
+            <img src="{% static 'caca_links/img/logo-jcpe.png' %}" class="header-logo" alt="logo">
+            <span id="timer">00:00</span>
             <button id="pause-btn" class="pause-btn">⏸️ Pausar</button>
             <button id="check-btn" class="check-btn">✔ Conferir</button>
         </div>
@@ -129,26 +66,24 @@ body { background: #f0f2f5; }
         <input id="search" style="padding:6px;border:1px solid #ccc;border-radius:6px;" placeholder="Buscar palavras">
     </div>
 
-    <div id="caca-grid"></div>
+    <div id="caca-grid" aria-hidden="false"></div>
 
     <div class="text-section" id="texto-formatado">
         {% autoescape off %}
             {{ texto_da_noticia_formatado }}
         {% endautoescape %}
     </div>
-
 </div>
 
-<!-- MODAL VITÓRIA -->
-<div id="win-modal" class="modal-overlay">
+<!-- sucesso -->
+<div id="win-modal" class="modal-overlay" role="dialog" aria-modal="true">
     <div class="modal-content">
-        <button class="close-btn" onclick="document.getElementById('win-modal').classList.remove('active')">×</button>
         <h2>🎉 Parabéns!</h2>
-        <p>Você encontrou todas as palavras.</p>
-
-        <button onclick="window.location.href='{{ caca.noticia.get_absolute_url }}'" class="pause-btn">📰 Ver notícia</button>
-
-        <button onclick="window.location.href='?nivel={{ nivel|add:1 }}'" class="pause-btn">➡ Próximo nível</button>
+        <p>Você encontrou todas as palavras!</p>
+        <div>
+            <button id="go-news" class="win-btn">📰 Ver notícia</button>
+            <button id="next-level" class="win-btn">➡ Próximo nível</button>
+        </div>
     </div>
 </div>
 
@@ -161,150 +96,165 @@ body { background: #f0f2f5; }
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    /* TIMER */
+    /* ===== TIMER ===== */
     let paused = false;
-    let start = Date.now();
+    const timerEl = document.getElementById("timer");
+    const start = Date.now();
     setInterval(() => {
         if (!paused) {
             const t = Math.floor((Date.now() - start) / 1000);
-            const m = String(Math.floor(t / 60)).padStart(2,'0');
-            const s = String(t % 60).padStart(2,'0');
-            document.getElementById("timer").textContent = `${m}:${s}`;
+            const m = String(Math.floor(t/60)).padStart(2,'0');
+            const s = String(t%60).padStart(2,'0');
+            timerEl.textContent = `${m}:${s}`;
         }
     }, 1000);
 
-    /* PAUSE */
+    /* ===== PAUSE ===== */
     const pauseBtn = document.getElementById("pause-btn");
     const pauseOverlay = document.getElementById("pause-overlay");
     pauseBtn.addEventListener("click", () => {
         paused = !paused;
         pauseBtn.textContent = paused ? "▶️ Retomar" : "⏸️ Pausar";
         pauseOverlay.classList.toggle("active", paused);
+        document.getElementById("caca-grid").style.pointerEvents = paused ? "none" : "auto";
     });
 
-    /* GRID */
-    const gridData = JSON.parse(document.getElementById("grid-data").textContent);
-    const grid = document.getElementById("caca-grid");
-    grid.style.gridTemplateColumns = `repeat(${gridData.length}, 1fr)`;
+    /* ===== GRID RENDER ===== */
+    const gridScript = document.getElementById("grid-data");
+    if (!gridScript) return; // nada a renderizar
+    const gridData = JSON.parse(gridScript.textContent);
+    const gridEl = document.getElementById("caca-grid");
+    const size = gridData.length;
+    gridEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 
-    gridData.forEach((row, r) => {
-        row.forEach((letter, c) => {
-            const div = document.createElement("div");
-            div.className = "caca-cell";
-            div.textContent = letter;
-            div.dataset.r = r;
-            div.dataset.c = c;
-            grid.appendChild(div);
-        });
-    });
+    // cria células
+    for (let r=0; r<size; r++){
+        for (let c=0; c<size; c++){
+            const cell = document.createElement("div");
+            cell.className = "caca-cell";
+            cell.textContent = gridData[r][c];
+            cell.dataset.r = r;
+            cell.dataset.c = c;
+            gridEl.appendChild(cell);
+        }
+    }
 
-    /* PALAVRAS DO TEXTO */
-    const texto = document.getElementById("texto-formatado");
-    const palavrasMarcadas = Array.from(texto.querySelectorAll(".highlight-word"))
-        .map(e => e.dataset.word);
+    /* ===== PALAVRAS DO TEXTO ===== */
+    const textoEl = document.getElementById("texto-formatado");
+    const highlighted = Array.from(textoEl.querySelectorAll(".highlight-word")).map(e => e.dataset.word);
 
-    /* SELEÇÃO */
+    /* ===== SELEÇÃO POR CLIQUE + DRAG (linhas retas) ===== */
     let selecting = false;
     let selection = [];
     let startCell = null;
     let direction = null;
 
-    const getPos = cell => ({
-        r: +cell.dataset.r,
-        c: +cell.dataset.c
-    });
-
-    const getDirection = (s, c) => {
-        const dr = c.r - s.r;
-        const dc = c.c - s.c;
-
-        if (dr === 0 && dc !== 0) return "H";
-        if (dc === 0 && dr !== 0) return "V";
-        if (Math.abs(dr) === Math.abs(dc)) return "D";
+    function posOf(cell){
+        return { r: +cell.dataset.r, c: +cell.dataset.c };
+    }
+    function decideDirection(s, cur){
+        const dr = cur.r - s.r;
+        const dc = cur.c - s.c;
+        if (dr === 0 && dc !== 0) return 'H';
+        if (dc === 0 && dr !== 0) return 'V';
+        if (Math.abs(dr) === Math.abs(dc)) return 'D';
         return null;
-    };
-
-    /* CLIQUE INDIVIDUAL */
-    grid.addEventListener("click", e => {
-        if (!e.target.classList.contains("caca-cell")) return;
-
-        if (e.target.classList.contains("selected")) {
-            e.target.classList.remove("selected");
-            selection = selection.filter(x => x !== e.target);
+    }
+    // toggle por clique
+    gridEl.addEventListener("click", e => {
+        const t = e.target;
+        if (!t.classList.contains("caca-cell") || paused) return;
+        if (t.classList.contains("found")) return; // encontrada permanece
+        if (t.classList.contains("selected")) {
+            t.classList.remove("selected");
+            selection = selection.filter(x => x !== t);
         } else {
-            e.target.classList.add("selected");
-            selection.push(e.target);
+            t.classList.add("selected");
+            selection.push(t);
         }
     });
 
-    /* DRAG */
-    grid.addEventListener("mousedown", e => {
-        if (!e.target.classList.contains("caca-cell") || paused) return;
-
+    // drag start
+    gridEl.addEventListener("mousedown", e => {
+        const t = e.target;
+        if (!t.classList.contains("caca-cell") || paused) return;
         selecting = true;
-        selection = [e.target];
-        startCell = e.target;
+        selection = [t];
+        startCell = t;
         direction = null;
-
-        e.target.classList.add("selected");
+        if (!t.classList.contains("found")) t.classList.add("selected");
     });
 
-    grid.addEventListener("mouseover", e => {
+    // drag over
+    gridEl.addEventListener("mouseover", e => {
         if (!selecting || paused) return;
-        if (!e.target.classList.contains("caca-cell")) return;
-
-        const last = selection[selection.length - 1];
-        if (e.target === last) return;
-
-        const s = getPos(startCell);
-        const cur = getPos(e.target);
-
+        const t = e.target;
+        if (!t.classList.contains("caca-cell")) return;
+        if (t.classList.contains("found")) return;
+        if (selection.includes(t)) return; // não re-adiciona
+        const sPos = posOf(startCell);
+        const curPos = posOf(t);
         if (!direction) {
-            direction = getDirection(s, cur);
+            direction = decideDirection(sPos, curPos);
             if (!direction) return;
         }
-
-        if (getDirection(s, cur) !== direction) return;
-
-        selection.push(e.target);
-        e.target.classList.add("selected");
+        // garante que a célula atual esteja na mesma direção
+        if (decideDirection(sPos, curPos) !== direction) return;
+        // adiciona linha reta (adiciona células intermediárias)
+        const last = selection[selection.length - 1];
+        // adiciona t direto (aceitamos apenas linha reta)
+        selection.push(t);
+        t.classList.add("selected");
     });
 
+    // drag release
     document.addEventListener("mouseup", () => {
         selecting = false;
         startCell = null;
         direction = null;
+        // NOTA: a validação só acontece quando usuário clicar em "Conferir"
     });
 
-    /* BOTÃO CONFIRMAR PALAVRA */
-    document.getElementById("check-btn").addEventListener("click", () => {
+    /* ===== CONFIRMAR PALAVRA (botão) ===== */
+    const checkBtn = document.getElementById("check-btn");
+    checkBtn.addEventListener("click", () => {
+        if (selection.length === 0) return;
 
-        const word = selection.map(c => c.textContent).join("");
-        const rev = [...word].reverse().join("");
+        const word = selection.map(c => c.textContent).join('');
+        const rev = word.split('').reverse().join('');
 
-        let found = false;
+        let found = null;
+        for (const p of highlighted) {
+            if (p === word || p === rev) { found = p; break; }
+        }
 
-        palavrasMarcadas.forEach(p => {
-            if (p === word || p === rev) {
-                found = true;
-
-                selection.forEach(c => c.classList.add("found"));
-                document.querySelectorAll(".highlight-word").forEach(e => {
-                    if (e.dataset.word === p)
-                        e.classList.add("found-text");
-                });
-            }
-        });
-
-        if (!found) {
+        if (found) {
+            // marca como encontrada
+            selection.forEach(c => { c.classList.remove("selected"); c.classList.add("found"); });
+            document.querySelectorAll(".highlight-word").forEach(el => {
+                if (el.dataset.word === found) el.classList.add("found-text");
+            });
+        } else {
+            // limpa seleção (volta ao normal)
             selection.forEach(c => c.classList.remove("selected"));
         }
 
+        // zera seleção
         selection = [];
 
+        // verifica vitória
         if (document.querySelectorAll(".highlight-word:not(.found-text)").length === 0) {
             document.getElementById("win-modal").classList.add("active");
         }
+    });
+
+    /* ===== BOTÕES DO MODAL ===== */
+    document.getElementById("go-news").addEventListener("click", () => {
+        window.location.href = "{{ caca.noticia.get_absolute_url }}";
+    });
+    document.getElementById("next-level").addEventListener("click", () => {
+        // redireciona para mesmo tema com nivel+1
+        window.location.href = "{% url 'caca_links:jogar' tema.id %}?nivel={{ nivel|add:1 }}";
     });
 
 });

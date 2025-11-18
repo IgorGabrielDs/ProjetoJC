@@ -1,0 +1,22 @@
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: checkout: moving from main to main
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: reset: moving to HEAD~2
+[33m0552a95[m HEAD@{2}: checkout: moving from main to main
+[33m0552a95[m HEAD@{3}: commit (merge): Resolve merge conflicts removendo arquivos .pyc
+[33mf5ccda4[m HEAD@{4}: checkout: moving from main to main
+[33mf5ccda4[m HEAD@{5}: commit: Correções Caça Links
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{6}: reset: moving to ORIG_HEAD
+[33m730f4f8[m HEAD@{7}: reset: moving to ORIG_HEAD
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{8}: reset: moving to ORIG_HEAD
+[33m730f4f8[m HEAD@{9}: pull origin main: Fast-forward
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{10}: checkout: moving from fix/caca-links-migracao to main
+[33m0ef3328[m[33m ([m[1;32mfix/caca-links-migracao[m[33m)[m HEAD@{11}: commit: Limpeza: removendo venv do repositório
+[33m04bb10e[m HEAD@{12}: commit: Ajusta migrações e models de caca_links
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{13}: checkout: moving from main to fix/caca-links-migracao
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{14}: reset: moving to origin/main
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{15}: reset: moving to origin/main
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{16}: reset: moving to origin/main
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{17}: reset: moving to origin/main
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{18}: reset: moving to origin/main
+[33m458e750[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{19}: pull origin main: Fast-forward
+[33mcc477f2[m HEAD@{20}: commit: Corrige NoReverseMatch no Caça Links e bugs de geração
+[33m67ed2da[m HEAD@{21}: clone: from https://github.com/IgorGabrielDs/ProjetoJC.git

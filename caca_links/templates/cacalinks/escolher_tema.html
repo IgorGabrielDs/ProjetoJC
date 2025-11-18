@@ -30,14 +30,12 @@ body {
     flex-wrap: wrap;
     text-align: left;
 }
-
 .tema-header h2 {
     font-size: 1.6rem;
     color: #222;
     font-weight: bold;
     margin-bottom: 6px;
 }
-
 .tema-header p {
     color: #666;
     font-size: 0.95rem;
@@ -65,20 +63,7 @@ body {
     transition: transform 0.15s ease;
 }
 
-.header-btn:hover {
-    transform: scale(1.08);
-}
-
-.header-btn img {
-    width: 22px;
-    height: 22px;
-    transition: filter 0.2s ease;
-}
-
-/* Torna o ícone vermelho no hover */
-.header-btn:hover img {
-    filter: invert(25%) sepia(95%) saturate(7500%) hue-rotate(-10deg) brightness(90%) contrast(120%);
-}
+.header-btn img { width: 22px; height: 22px; }
 
 /* ======== LISTA DE TEMAS ======== */
 .tema-list {
@@ -104,102 +89,73 @@ body {
     background: #f7f7f7;
     transform: scale(1.01);
 }
-.tema-name {
-    font-size: 1rem;
-}
-.tema-icon {
-    font-size: 1.3rem;
-    color: #D90429;
-}
+.tema-name { font-size: 1rem; }
+.tema-icon { font-size: 1.3rem; color: #D90429; }
 
-/* ======== DRAWERS ======== */
+/* BOTÕES FIXOS (fallback) */
+.top-buttons {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2000;
+}
+.circle-btn {
+    width: 45px;
+    height: 45px;
+    border: none;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.circle-btn img { width: 24px; height: 24px; }
+
+/* DRAWER */
 .drawer {
     position: fixed;
     top: 0;
-    right: -320px;
-    width: 320px;
+    right: 0;
+    width: 100%;
+    max-width: 360px;
     height: 100vh;
-    background: #fff;
-    border-left: 4px solid #D90429;
-    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: flex-end;
+    align-items: stretch;
+    z-index: 3000;
+}
+.drawer-content {
+    background-color: #fff;
+    width: 320px;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    z-index: 3000;
-    opacity: 0;
-    transition: right 0.3s ease, opacity 0.3s ease;
+    border-left: 5px solid #D90429;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.25s ease forwards;
 }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
+.hidden { display: none; }
 
-.drawer.active {
-    right: 0;
-    opacity: 1;
-}
+/* drawer internal */
+.drawer-header { display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid #ddd }
+.drawer-body { padding:20px; overflow-y:auto; flex-grow:1 }
+.drawer-footer { height:8px; background:#D90429 }
+.close-btn { background:none; border:none; font-size:1.2rem; cursor:pointer; color:#555 }
 
-/* ======== CABEÇALHO DRAWER ======== */
-.drawer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 1px solid #ddd;
-}
-.drawer-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: bold;
-}
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 1.6rem;
-    cursor: pointer;
-    color: #555;
-}
+.profile-section { text-align:center; margin-bottom:20px }
+.profile-icon { font-size:2.6rem; color:#555 }
+.profile-name { font-weight:bold; margin-top:8px }
 
-/* ======== CONTEÚDO DRAWER ======== */
-.drawer-body {
-    flex-grow: 1;
-    padding: 20px;
-    overflow-y: auto;
-}
-.drawer-footer {
-    height: 8px;
-    background-color: #D90429;
-    margin-top: auto;
-}
+.stats-list p { margin:8px 0; display:flex; justify-content:space-between }
+.stats-list .value { color:#D90429; font-weight:700 }
 
-/* ======== ESTATÍSTICAS ======== */
-.profile-section {
-    text-align: center;
-    margin-bottom: 20px;
-}
-.profile-icon {
-    font-size: 3rem;
-    color: #555;
-}
-.profile-name {
-    margin-top: 8px;
-    font-weight: bold;
-}
-.stats-list p {
-    margin: 8px 0;
-    font-size: 1rem;
-    display: flex;
-    justify-content: space-between;
-}
-.stats-list .value {
-    color: #D90429;
-    font-weight: bold;
-}
-.share-btn {
-    background-color: #D90429;
-    color: white;
-    border: none;
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-}
 </style>
 {% endblock %}
 
@@ -210,6 +166,7 @@ body {
             <h2>Escolher Tema</h2>
             <p>Selecione um tema para começar o jogo do Caça Links.</p>
         </div>
+
         <div class="header-buttons">
             <button id="btn-stats" class="header-btn" title="Estatísticas">
                 <img src="{% static 'noticias/img/icon_stats.svg' %}" alt="Estatísticas">
@@ -232,54 +189,61 @@ body {
     </ul>
 </div>
 
-<!-- ======== DRAWER ESTATÍSTICAS ======== -->
-<div id="stats-modal" class="drawer">
-    <div class="drawer-header">
-        <h3>📊 Estatísticas</h3>
-        <button class="close-btn" id="close-stats">&times;</button>
-    </div>
-    <div class="drawer-body">
-        <div class="profile-section">
-            <div class="profile-icon">&#128100;</div>
-            <p class="profile-name">
-                {% if request.user.is_authenticated %}
-                    {{ request.user.get_full_name|default:request.user.username }}
-                {% else %}
-                    Visitante
-                {% endif %}
-            </p>
-        </div>
-        <div class="stats-list">
-            <p><strong>Último tempo:</strong> <span class="value">{{ stats.ultimo_tempo|default_if_none:"--" }}</span></p>
-            <p><strong>Tempo médio:</strong> <span class="value">{{ stats.tempo_medio|default_if_none:"--" }}</span></p>
-            <p><strong>Jogos em sequência:</strong> <span class="value">{{ stats.sequencia|default_if_none:"--" }}</span></p>
-            <p><strong>Total de jogos:</strong> <span class="value">{{ stats.total|default_if_none:"--" }}</span></p>
-        </div>
-        <button class="share-btn">📤 Compartilhar</button>
-    </div>
-    <div class="drawer-footer"></div>
+<!-- fallback buttons (mobile / global) -->
+<div class="top-buttons">
+    <button id="btn-stats-2" class="circle-btn">
+        <img src="{% static 'noticias/img/icon_stats.svg' %}" alt="Estatísticas">
+    </button>
+    <button id="btn-rules-2" class="circle-btn">
+        <img src="{% static 'noticias/img/icon_rules.svg' %}" alt="Regras">
+    </button>
 </div>
 
-<!-- ======== DRAWER REGRAS ======== -->
-<div id="rules-modal" class="drawer">
-    <div class="drawer-header">
-        <h3>📜 Regras</h3>
-        <button class="close-btn" id="close-rules">&times;</button>
+<!-- STATS DRAWER -->
+<div id="stats-modal" class="drawer hidden">
+    <div class="drawer-content">
+        <div class="drawer-header">
+            <h3>Estatísticas</h3>
+            <button class="close-btn" id="close-stats">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div class="profile-section">
+                <div class="profile-icon">&#128100;</div>
+                <p class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</p>
+            </div>
+            <div class="stats-list">
+                <p><strong>Último tempo:</strong> <span class="value">--</span></p>
+                <p><strong>Tempo médio:</strong> <span class="value">--</span></p>
+                <p><strong>Jogos em sequência:</strong> <span class="value">--</span></p>
+                <p><strong>Total de jogos:</strong> <span class="value">--</span></p>
+            </div>
+            <button class="share-btn">📤 Compartilhar</button>
+        </div>
+        <div class="drawer-footer"></div>
     </div>
-    <div class="drawer-body">
-        <p><strong>Objetivo:</strong> encontre todas as palavras escondidas relacionadas à notícia.</p>
-        <p>As palavras podem estar na horizontal, vertical ou diagonal, em qualquer direção.</p>
-        <p>Selecione as letras com o mouse ou o dedo e solte para confirmar.</p>
-        <p>Complete todas para resgatar o link final!</p>
-        <hr>
-        <p><strong>Dicas:</strong></p>
-        <ul>
-            <li>Palavras destacadas no texto são as que você deve procurar.</li>
-            <li>Quanto mais rápido você terminar, melhor o seu tempo.</li>
-            <li>Seu progresso é salvo automaticamente após concluir o nível.</li>
-        </ul>
+</div>
+
+<!-- RULES DRAWER -->
+<div id="rules-modal" class="drawer hidden">
+    <div class="drawer-content">
+        <div class="drawer-header">
+            <h3>Regras</h3>
+            <button class="close-btn" id="close-rules">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <p><strong>Objetivo:</strong> encontre todas as palavras escondidas relacionadas à notícia.</p>
+            <p>As palavras podem estar na horizontal, vertical ou diagonal, em qualquer direção.</p>
+            <p>Selecione as letras com o mouse ou o dedo e confirme com o botão "Conferir".</p>
+            <hr>
+            <p><strong>Dicas:</strong></p>
+            <ul>
+                <li>Palavras destacadas no texto são as que você deve procurar.</li>
+                <li>Quanto mais rápido você terminar, melhor o seu tempo.</li>
+                <li>Seu progresso é salvo automaticamente após concluir o nível.</li>
+            </ul>
+        </div>
+        <div class="drawer-footer"></div>
     </div>
-    <div class="drawer-footer"></div>
 </div>
 {% endblock %}
 
@@ -290,35 +254,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const rulesModal = document.getElementById("rules-modal");
     const btnStats = document.getElementById("btn-stats");
     const btnRules = document.getElementById("btn-rules");
+    const btnStats2 = document.getElementById("btn-stats-2");
+    const btnRules2 = document.getElementById("btn-rules-2");
     const closeStats = document.getElementById("close-stats");
     const closeRules = document.getElementById("close-rules");
 
-    function fecharTudo() {
-        statsModal.classList.remove("active");
-        rulesModal.classList.remove("active");
-    }
+    function openModal(modal){ modal.classList.remove("hidden"); }
+    function closeModal(modal){ modal.classList.add("hidden"); }
 
-    btnStats.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const aberto = statsModal.classList.contains("active");
-        fecharTudo();
-        if (!aberto) statsModal.classList.add("active");
-    });
+    [btnStats, btnStats2].forEach(b => { if (b) b.addEventListener("click", ()=> openModal(statsModal)); });
+    [btnRules, btnRules2].forEach(b => { if (b) b.addEventListener("click", ()=> openModal(rulesModal)); });
 
-    btnRules.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const aberto = rulesModal.classList.contains("active");
-        fecharTudo();
-        if (!aberto) rulesModal.classList.add("active");
-    });
+    if (closeStats) closeStats.addEventListener("click", ()=> closeModal(statsModal));
+    if (closeRules) closeRules.addEventListener("click", ()=> closeModal(rulesModal));
 
-    closeStats.addEventListener("click", fecharTudo);
-    closeRules.addEventListener("click", fecharTudo);
-
-    // Fecha ao clicar fora
-    document.addEventListener("click", e => {
-        const dentro = e.target.closest(".drawer, .header-btn");
-        if (!dentro) fecharTudo();
+    // fechar clicando fora
+    [statsModal, rulesModal].forEach(mod => {
+        if (!mod) return;
+        mod.addEventListener("click", (e)=> {
+            if (e.target === mod) closeModal(mod);
+        });
     });
 });
 </script>
