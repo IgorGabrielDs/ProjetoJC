@@ -1,428 +1,312 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Caça Links: {{ tema.nome }} - Nível {{ nivel }}{% endblock %}
+{% block title %}Caça Links - {{ tema.nome }}{% endblock %}
 
 {% block extra_head %}
 <style>
-    body {
-        background-color: #f0f2f5; 
-    }
+body { background: #f0f2f5; }
 
-    .caca-container {
-        max-width: 450px; 
-        margin: 15px auto;
-        padding: 0; 
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        overflow: hidden; 
-    }
+.caca-container {
+    max-width: 520px;
+    margin: 20px auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
 
-    .header-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
-        border-bottom: 1px solid #eee;
-        background-color: #fdfdfd;
-    }
+/* HEADER */
+.header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-logo { width: 40px; }
+.timer { font-weight: bold; }
 
-    .header-left, .header-right {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+.pause-btn, .check-btn {
+    background: #000;
+    color: #fff;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.pause-btn:hover, .check-btn:hover { background: #333; }
 
-    .header-logo {
-        width: 40px; 
-        height: auto;
-    }
+/* GRID */
+#caca-grid {
+    display: grid;
+    margin: 15px;
+    border: 1px solid #ddd;
+}
+.caca-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #eee;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    aspect-ratio: 1 / 1;
+}
+.caca-cell.selected { background: #e3f2fd; color: #007bff; }
+.caca-cell.found { background: #d4edda; color: #28a745; }
 
-    .timer, .level-counter {
-        font-size: 0.9em;
-        font-weight: bold;
-        color: #555;
-    }
+/* TEXTO */
+.text-section { padding: 15px; line-height: 1.5; }
+.highlight-word {
+    color: #007bff;
+    font-weight: bold;
+    text-decoration: underline;
+}
+.highlight-word.found-text {
+    color: #28a745;
+    text-decoration: line-through;
+}
 
-    .search-input {
-        flex-grow: 1; 
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        font-size: 0.9em;
-        color: #333;
-    }
+/* MODAL */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 5000;
+}
+.modal-overlay.active { display: flex; }
 
-    .icon-button {
-        background: none;
-        border: none;
-        font-size: 1.2em;
-        color: #555;
-        cursor: pointer;
-        padding: 5px;
-    }
+.modal-content {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    cursor: pointer;
+}
 
-    /* --- GRID DO CAÇA-PALAVRAS --- */
-    .grid-section {
-        padding: 15px;
-    }
-
-    #caca-grid {
-        display: grid;
-        gap: 0; 
-        border: 1px solid #ddd; 
-        margin: 0 auto; 
-        max-width: 100%; 
-        background-color: #fff;
-    }
-
-    .caca-cell {
-        background-color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.1em; 
-        font-weight: bold;
-        text-transform: uppercase;
-        cursor: pointer;
-        user-select: none;
-        aspect-ratio: 1 / 1; 
-        border: 1px solid #eee; 
-        color: #333;
-    }
-    
-    .caca-grid-row:last-child .caca-cell {
-        border-bottom: none;
-    }
-
-    .caca-cell.selected {
-        background-color: #e0f2f7; 
-        color: #007bff;
-    }
-
-    .caca-cell.found {
-        background-color: #d4edda; 
-        color: #28a745;
-    }
-    /* --- FIM GRID CAÇA-PALAVRAS --- */
-
-    .text-section {
-        padding: 15px;
-        text-align: left;
-        font-size: 0.95em;
-        line-height: 1.5;
-        color: #444;
-    }
-
-    .text-section h4 {
-        margin-top: 0;
-        color: #333;
-        font-size: 1.1em;
-    }
-
-    .highlight-word {
-        font-weight: bold;
-        color: #007bff; 
-        text-decoration: underline;
-        cursor: help;
-    }
-    .highlight-word.found-text {
-        color: #28a745; 
-        text-decoration: line-through;
-    }
-
-    .footer-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
-        border-top: 1px solid #eee;
-        background-color: #fdfdfd;
-        font-size: 0.9em;
-        color: #555;
-    }
-
-    .footer-level, .footer-theme {
-        font-weight: bold;
-    }
-
-    .user-icon {
-        font-size: 1.5em;
-        color: #888;
-    }
-    
-    /* --- 1. ESTILOS DO POP-UP (MODAL) --- */
-    .modal-overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-    .modal-content {
-        background: #fff;
-        padding: 24px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 400px;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .modal-content h3 { margin-top: 0; }
-    .modal-content p { font-size: 1.1em; }
-    .modal-form { margin-top: 20px; }
-    .btn {
-        padding: 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: bold;
-        display: block;
-        width: 100%;
-        box-sizing: border-box; /* Garante que o padding não quebre o layout */
-        border: none;
-        cursor: pointer;
-    }
-    .btn-primary { 
-        background: #D90429; /* Cor vermelha do seu botão original */
-        color: #fff; 
-    }
-    .hidden { display: none; }
-    /* --- FIM DOS ESTILOS DO POP-UP --- */
-
+/* PAUSA */
+#pause-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    font-size: 2rem;
+    color: white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 4000;
+}
+#pause-overlay.active { display: flex; }
 </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="caca-container">
-    
+
     <div class="header-controls">
         <div class="header-left">
-            <img src="{% static 'images/logo-jcpe.png' %}" alt="JC PE Logo" class="header-logo">
-            <span class="timer">00:00</span>
-            <button class="icon-button">&#8635;</button> {# Ícone de refresh #}
+            <img src="{% static 'caca_links/img/logo-jcpe.png' %}" class="header-logo">
+            <span id="timer" class="timer">00:00</span>
+            <button id="pause-btn" class="pause-btn">⏸️ Pausar</button>
+            <button id="check-btn" class="check-btn">✔ Conferir</button>
         </div>
-        <div class="header-right">
-            <input type="text" class="search-input" placeholder="Procure as palavras grifadas">
-            <button class="icon-button">&#128269;</button> {# Ícone de lupa #}
-        </div>
+
+        <input id="search" style="padding:6px;border:1px solid #ccc;border-radius:6px;" placeholder="Buscar palavras">
     </div>
 
-    <div class="grid-section">
-        <div id="caca-grid"></div>
-    </div>
+    <div id="caca-grid"></div>
 
-    <div class="text-section">
-        <h4>{{ caca.noticia.titulo|truncatewords:5 }}...</h4>
-        <p id="main-text-content">
-            {% autoescape off %}
-                {{ texto_da_noticia_formatado|default:caca.noticia.conteudo|linebreaks }} 
-            {% endautoescape %}
-            
-            </p>
-    </div>
-
-    <div class="footer-controls">
-        <span class="footer-level">#{{ nivel }}/3</span>
-        <span class="footer-theme">{{ tema.nome }}</span>
-        <span class="user-icon">&#128100;</span> {# Ícone de usuário #}
+    <div class="text-section" id="texto-formatado">
+        {% autoescape off %}
+            {{ texto_da_noticia_formatado }}
+        {% endautoescape %}
     </div>
 
 </div>
 
-<div id="nivel-concluido-modal" class="modal-overlay hidden">
+<!-- MODAL VITÓRIA -->
+<div id="win-modal" class="modal-overlay">
     <div class="modal-content">
-        <h3>Parabéns!</h3>
-        <p>Você encontrou todas as palavras do Nível {{ nivel }}/3.</p>
-        <p>Clique no botão abaixo para resgatar seu link e avançar.</p>
+        <button class="close-btn" onclick="document.getElementById('win-modal').classList.remove('active')">×</button>
+        <h2>🎉 Parabéns!</h2>
+        <p>Você encontrou todas as palavras.</p>
 
-        <form action="{% url 'cacalinks:concluir_nivel' tema.id %}" method="POST" class="modal-form">
-            {% csrf_token %}
-            <button id="concluir-button" class="btn btn-primary" type="submit">
-                {% if nivel < 3 %}
-                    Resgatar Link e Ir para o Nível {{ nivel|add:1 }}
-                {% else %}
-                    Resgatar Link Final e Concluir
-                {% endif %}
-            </button>
-        </form>
+        <button onclick="window.location.href='{{ caca.noticia.get_absolute_url }}'" class="pause-btn">📰 Ver notícia</button>
+
+        <button onclick="window.location.href='?nivel={{ nivel|add:1 }}'" class="pause-btn">➡ Próximo nível</button>
     </div>
 </div>
 
-{# Dados JSON passados do Django (views.py) #}
+<div id="pause-overlay">⏸️ Jogo Pausado</div>
+
 {{ caca.grade|json_script:"grid-data" }}
-
 {% endblock %}
-
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // 1. Pegar os dados do Django
-    const gridData = JSON.parse(document.getElementById('grid-data').textContent);
-    
-    const highlightElements = document.querySelectorAll('.highlight-word');
-    const palavrasData = Array.from(highlightElements).map(el => el.dataset.word);
+document.addEventListener("DOMContentLoaded", () => {
 
-    // 2. Pegar os elementos do HTML
-    const gridElement = document.getElementById('caca-grid');
-    const timerElement = document.querySelector('.timer');
-    
-    // 3. ALTERAÇÃO JS: Pegar o Modal (pop-up)
-    const popupModal = document.getElementById('nivel-concluido-modal');
-    // Não precisamos mais do 'concluirButton' aqui, pois ele está no modal
-    
-    // 3. Variáveis de estado do jogo
-    const TAMANHO_GRID = gridData.length; 
-    const totalPalavras = palavrasData.length;
-    let palavrasEncontradas = new Set();
-    
-    let isSelecting = false;
-    let selectedCells = []; 
+    /* TIMER */
+    let paused = false;
+    let start = Date.now();
+    setInterval(() => {
+        if (!paused) {
+            const t = Math.floor((Date.now() - start) / 1000);
+            const m = String(Math.floor(t / 60)).padStart(2,'0');
+            const s = String(t % 60).padStart(2,'0');
+            document.getElementById("timer").textContent = `${m}:${s}`;
+        }
+    }, 1000);
 
-    // --- Lógica do Timer ---
-    let startTime = Date.now();
-    let timerInterval;
-
-    function updateTimer() {
-        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-        const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
-        const seconds = String(elapsedTime % 60).padStart(2, '0');
-        timerElement.textContent = `${minutes}:${seconds}`;
-    }
-
-    timerInterval = setInterval(updateTimer, 1000);
-
-    // --- RENDERIZAÇÃO INICIAL ---
-
-    gridElement.style.gridTemplateColumns = `repeat(${TAMANHO_GRID}, 1fr)`;
-
-    // Popula o Grid com as células
-    gridData.forEach((row, r) => {
-        const rowElement = document.createElement('div');
-        rowElement.classList.add('caca-grid-row'); 
-
-        row.forEach((letter, c) => {
-            const cell = document.createElement('div');
-            cell.classList.add('caca-cell');
-            cell.textContent = letter;
-            
-            cell.dataset.r = r;
-            cell.dataset.c = c;
-            cell.dataset.letter = letter;
-            
-            cell.addEventListener('mousedown', handleMouseDown);
-            cell.addEventListener('mouseenter', handleMouseEnter);
-            
-            rowElement.appendChild(cell);
-        });
-        gridElement.appendChild(rowElement);
+    /* PAUSE */
+    const pauseBtn = document.getElementById("pause-btn");
+    const pauseOverlay = document.getElementById("pause-overlay");
+    pauseBtn.addEventListener("click", () => {
+        paused = !paused;
+        pauseBtn.textContent = paused ? "▶️ Retomar" : "⏸️ Pausar";
+        pauseOverlay.classList.toggle("active", paused);
     });
-    
-    document.addEventListener('mouseup', handleMouseUp);
-    
-    // Ajuste para o CSS de borda funcionar (baseado no tamanho do grid)
-    try {
-        const rule = `.caca-cell:nth-child(${TAMANHO_GRID}n) { border-right: none; }`;
-        document.styleSheets[0].insertRule(rule, 0);
-    } catch (e) {
-        console.warn("Não foi possível inserir a regra CSS para a borda do grid.");
-    }
 
-    // --- LÓGICA DA SELEÇÃO ---
+    /* GRID */
+    const gridData = JSON.parse(document.getElementById("grid-data").textContent);
+    const grid = document.getElementById("caca-grid");
+    grid.style.gridTemplateColumns = `repeat(${gridData.length}, 1fr)`;
 
-    function handleMouseDown(e) {
-        if (e.button !== 0) return; 
-        isSelecting = true;
-        clearVisualSelection(); 
-        selectedCells = [];
-        
-        e.target.classList.add('selected');
-        selectedCells.push(e.target);
-    }
-
-    function handleMouseEnter(e) {
-        if (!isSelecting) return;
-        
-        if (!selectedCells.includes(e.target)) {
-            e.target.classList.add('selected');
-            selectedCells.push(e.target);
-        }
-    }
-
-    function handleMouseUp() {
-        if (!isSelecting) return;
-        isSelecting = false;
-        checkSelection();
-    }
-    
-    function clearVisualSelection() {
-        const selected = gridElement.querySelectorAll('.selected');
-        selected.forEach(cell => {
-            if (!cell.classList.contains('found')) {
-                cell.classList.remove('selected');
-            }
+    gridData.forEach((row, r) => {
+        row.forEach((letter, c) => {
+            const div = document.createElement("div");
+            div.className = "caca-cell";
+            div.textContent = letter;
+            div.dataset.r = r;
+            div.dataset.c = c;
+            grid.appendChild(div);
         });
-    }
+    });
 
-    // --- LÓGICA DO JOGO ---
+    /* PALAVRAS DO TEXTO */
+    const texto = document.getElementById("texto-formatado");
+    const palavrasMarcadas = Array.from(texto.querySelectorAll(".highlight-word"))
+        .map(e => e.dataset.word);
 
-    function checkSelection() {
-        if (selectedCells.length === 0) return;
+    /* SELEÇÃO */
+    let selecting = false;
+    let selection = [];
+    let startCell = null;
+    let direction = null;
 
-        const selectedWord = selectedCells.map(cell => cell.dataset.letter).join('');
-        const selectedWordReversed = selectedWord.split('').reverse().join('');
+    const getPos = cell => ({
+        r: +cell.dataset.r,
+        c: +cell.dataset.c
+    });
 
-        let palavraEncontrada = null;
+    const getDirection = (s, c) => {
+        const dr = c.r - s.r;
+        const dc = c.c - s.c;
 
-        for (const palavra of palavrasData) {
-            // Compara em MAIÚSCULAS para garantir (grid é MAIÚSCULO, data-word é MAIÚSCULO)
-            if (palavra.toUpperCase() === selectedWord || palavra.toUpperCase() === selectedWordReversed) {
-                if (!palavrasEncontradas.has(palavra)) {
-                    palavraEncontrada = palavra;
-                }
-                break;
-            }
-        }
+        if (dr === 0 && dc !== 0) return "H";
+        if (dc === 0 && dr !== 0) return "V";
+        if (Math.abs(dr) === Math.abs(dc)) return "D";
+        return null;
+    };
 
-        if (palavraEncontrada) {
-            markAsFound(palavraEncontrada, selectedCells);
+    /* CLIQUE INDIVIDUAL */
+    grid.addEventListener("click", e => {
+        if (!e.target.classList.contains("caca-cell")) return;
+
+        if (e.target.classList.contains("selected")) {
+            e.target.classList.remove("selected");
+            selection = selection.filter(x => x !== e.target);
         } else {
-            clearVisualSelection();
+            e.target.classList.add("selected");
+            selection.push(e.target);
         }
-        
-        selectedCells = [];
-    }
+    });
 
-    function markAsFound(palavra, cells) {
-        palavrasEncontradas.add(palavra);
-        
-        cells.forEach(cell => {
-            cell.classList.remove('selected'); 
-            cell.classList.add('found'); 
-            cell.style.cursor = 'default'; 
-        });
-        
-        const highlightTextElement = document.querySelector(`.highlight-word[data-word="${palavra}"]`);
-        if (highlightTextElement) {
-            highlightTextElement.classList.add('found-text');
+    /* DRAG */
+    grid.addEventListener("mousedown", e => {
+        if (!e.target.classList.contains("caca-cell") || paused) return;
+
+        selecting = true;
+        selection = [e.target];
+        startCell = e.target;
+        direction = null;
+
+        e.target.classList.add("selected");
+    });
+
+    grid.addEventListener("mouseover", e => {
+        if (!selecting || paused) return;
+        if (!e.target.classList.contains("caca-cell")) return;
+
+        const last = selection[selection.length - 1];
+        if (e.target === last) return;
+
+        const s = getPos(startCell);
+        const cur = getPos(e.target);
+
+        if (!direction) {
+            direction = getDirection(s, cur);
+            if (!direction) return;
         }
 
-        // 4. ALTERAÇÃO JS: Mostrar o Pop-up
-        if (palavrasEncontradas.size === totalPalavras) {
-            clearInterval(timerInterval); // Para o timer
-            
-            // Substitui o 'alert()' por isto:
-            if(popupModal) {
-                popupModal.classList.remove('hidden');
+        if (getDirection(s, cur) !== direction) return;
+
+        selection.push(e.target);
+        e.target.classList.add("selected");
+    });
+
+    document.addEventListener("mouseup", () => {
+        selecting = false;
+        startCell = null;
+        direction = null;
+    });
+
+    /* BOTÃO CONFIRMAR PALAVRA */
+    document.getElementById("check-btn").addEventListener("click", () => {
+
+        const word = selection.map(c => c.textContent).join("");
+        const rev = [...word].reverse().join("");
+
+        let found = false;
+
+        palavrasMarcadas.forEach(p => {
+            if (p === word || p === rev) {
+                found = true;
+
+                selection.forEach(c => c.classList.add("found"));
+                document.querySelectorAll(".highlight-word").forEach(e => {
+                    if (e.dataset.word === p)
+                        e.classList.add("found-text");
+                });
             }
+        });
+
+        if (!found) {
+            selection.forEach(c => c.classList.remove("selected"));
         }
-    }
+
+        selection = [];
+
+        if (document.querySelectorAll(".highlight-word:not(.found-text)").length === 0) {
+            document.getElementById("win-modal").classList.add("active");
+        }
+    });
+
 });
 </script>
 {% endblock %}

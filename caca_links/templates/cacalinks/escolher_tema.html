@@ -1,126 +1,325 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Escolher Tema - Caça-Links{% endblock %}
+{% block title %}Escolher Tema - Caça Links{% endblock %}
 
 {% block extra_head %}
 <style>
-    .header-escolha { padding: 20px; border-bottom: 1px solid #ddd; background: #fff; border-radius: 8px 8px 0 0; }
-    .header-escolha h1 { margin: 0; }
-    .tema-list { list-style: none; padding: 0; margin: 0; background: #fff; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .tema-item { border-bottom: 1px solid #eee; }
-    .tema-item:last-child { border-bottom: none; }
-    .tema-link { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        padding: 20px; 
-        text-decoration: none; 
-        color: #333; 
-        font-weight: bold; 
-        font-size: 1.1em;
-    }
-    .tema-link:hover { background: #f9f9f9; }
-    .tema-progress { font-size: 0.9em; font-weight: normal; color: #666; }
-    .tema-progress.concluido { color: #28a745; font-weight: bold; }
+body {
+    background-color: #f0f2f5;
+    font-family: "Arial", sans-serif;
+}
 
-    /* Estilos do Modal (mantidos) */
-    .modal-overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-    .modal-content {
-        background: #fff;
-        padding: 24px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 400px;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .modal-content h3 { margin-top: 0; }
-    .modal-content p { font-size: 1.1em; }
-    .modal-footer { margin-top: 20px; }
-    .btn {
-        padding: 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: bold;
-        display: block;
-        background: #007bff; 
-        color: #fff; 
-    }
-    .hidden { display: none; }
+/* ======== CONTAINER ======== */
+.tema-container {
+    max-width: 700px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden;
+    padding: 20px;
+}
+
+/* ======== HEADER ======== */
+.tema-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    text-align: left;
+}
+
+.tema-header h2 {
+    font-size: 1.6rem;
+    color: #222;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.tema-header p {
+    color: #666;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* ======== BOTÕES AO LADO DO TÍTULO ======== */
+.header-buttons {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.header-btn {
+    width: 42px;
+    height: 42px;
+    border: none;
+    background-color: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.header-btn:hover {
+    transform: scale(1.08);
+}
+
+.header-btn img {
+    width: 22px;
+    height: 22px;
+    transition: filter 0.2s ease;
+}
+
+/* Torna o ícone vermelho no hover */
+.header-btn:hover img {
+    filter: invert(25%) sepia(95%) saturate(7500%) hue-rotate(-10deg) brightness(90%) contrast(120%);
+}
+
+/* ======== LISTA DE TEMAS ======== */
+.tema-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.tema-item {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 14px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+.tema-item:hover {
+    background: #f7f7f7;
+    transform: scale(1.01);
+}
+.tema-name {
+    font-size: 1rem;
+}
+.tema-icon {
+    font-size: 1.3rem;
+    color: #D90429;
+}
+
+/* ======== DRAWERS ======== */
+.drawer {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 320px;
+    height: 100vh;
+    background: #fff;
+    border-left: 4px solid #D90429;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    z-index: 3000;
+    opacity: 0;
+    transition: right 0.3s ease, opacity 0.3s ease;
+}
+
+.drawer.active {
+    right: 0;
+    opacity: 1;
+}
+
+/* ======== CABEÇALHO DRAWER ======== */
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #ddd;
+}
+.drawer-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: #555;
+}
+
+/* ======== CONTEÚDO DRAWER ======== */
+.drawer-body {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+.drawer-footer {
+    height: 8px;
+    background-color: #D90429;
+    margin-top: auto;
+}
+
+/* ======== ESTATÍSTICAS ======== */
+.profile-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.profile-icon {
+    font-size: 3rem;
+    color: #555;
+}
+.profile-name {
+    margin-top: 8px;
+    font-weight: bold;
+}
+.stats-list p {
+    margin: 8px 0;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+}
+.stats-list .value {
+    color: #D90429;
+    font-weight: bold;
+}
+.share-btn {
+    background-color: #D90429;
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
 </style>
 {% endblock %}
 
-
 {% block content %}
-<div class="header-escolha">
-    <h1>Escolher Tema</h1>
-</div>
-
-<ul class="tema-list">
-    {% for tema in temas %}
-        <li class="tema-item">
-            <a href="{% url 'cacalinks:jogar' tema.id %}" class="tema-link">
-                <span>{{ tema.nome }}</span>
-                
-                <span class="tema-progress">
-                    {% for p in progresso %}
-                        {% if p.tema == tema %}
-                            {% if p.concluido %}
-                                <span class="tema-progress concluido">Concluído!</span>
-                            {% else %}
-                                (Nível {{ p.nivel_atual }})
-                            {% endif %}
-                        {% endif %}
-                    {% endfor %}
-                </span>
-            </a>
-        </li>
-    {% endfor %}
-</ul>
-
-{% if messages %}
-    <div id="tema-concluido-modal" class="modal-overlay">
-        <div class="modal-content">
-            
-            {% for message in messages %}
-                {% if message.level_tag == 'info' %}
-                    <h3>Tema Concluído!</h3>
-                    <p>{{ message }}</p> {% endif %}
-            {% endfor %}
-            
-            <div class="modal-footer">
-                <a href="#" id="fechar-modal-btn" class="btn">Escolher Outro Tema</a>
-            </div>
+<div class="tema-container">
+    <div class="tema-header">
+        <div>
+            <h2>Escolher Tema</h2>
+            <p>Selecione um tema para começar o jogo do Caça Links.</p>
+        </div>
+        <div class="header-buttons">
+            <button id="btn-stats" class="header-btn" title="Estatísticas">
+                <img src="{% static 'noticias/img/icon_stats.svg' %}" alt="Estatísticas">
+            </button>
+            <button id="btn-rules" class="header-btn" title="Regras">
+                <img src="{% static 'noticias/img/icon_rules.svg' %}" alt="Regras">
+            </button>
         </div>
     </div>
-{% endif %}
 
+    <ul class="tema-list">
+        {% for tema in temas %}
+            <li class="tema-item" onclick="window.location.href='{% url 'caca_links:jogar' tema.id %}'">
+                <span class="tema-name">{{ tema.nome }}</span>
+                <span class="tema-icon">&#10140;</span>
+            </li>
+        {% empty %}
+            <p>Nenhum tema disponível no momento.</p>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- ======== DRAWER ESTATÍSTICAS ======== -->
+<div id="stats-modal" class="drawer">
+    <div class="drawer-header">
+        <h3>📊 Estatísticas</h3>
+        <button class="close-btn" id="close-stats">&times;</button>
+    </div>
+    <div class="drawer-body">
+        <div class="profile-section">
+            <div class="profile-icon">&#128100;</div>
+            <p class="profile-name">
+                {% if request.user.is_authenticated %}
+                    {{ request.user.get_full_name|default:request.user.username }}
+                {% else %}
+                    Visitante
+                {% endif %}
+            </p>
+        </div>
+        <div class="stats-list">
+            <p><strong>Último tempo:</strong> <span class="value">{{ stats.ultimo_tempo|default_if_none:"--" }}</span></p>
+            <p><strong>Tempo médio:</strong> <span class="value">{{ stats.tempo_medio|default_if_none:"--" }}</span></p>
+            <p><strong>Jogos em sequência:</strong> <span class="value">{{ stats.sequencia|default_if_none:"--" }}</span></p>
+            <p><strong>Total de jogos:</strong> <span class="value">{{ stats.total|default_if_none:"--" }}</span></p>
+        </div>
+        <button class="share-btn">📤 Compartilhar</button>
+    </div>
+    <div class="drawer-footer"></div>
+</div>
+
+<!-- ======== DRAWER REGRAS ======== -->
+<div id="rules-modal" class="drawer">
+    <div class="drawer-header">
+        <h3>📜 Regras</h3>
+        <button class="close-btn" id="close-rules">&times;</button>
+    </div>
+    <div class="drawer-body">
+        <p><strong>Objetivo:</strong> encontre todas as palavras escondidas relacionadas à notícia.</p>
+        <p>As palavras podem estar na horizontal, vertical ou diagonal, em qualquer direção.</p>
+        <p>Selecione as letras com o mouse ou o dedo e solte para confirmar.</p>
+        <p>Complete todas para resgatar o link final!</p>
+        <hr>
+        <p><strong>Dicas:</strong></p>
+        <ul>
+            <li>Palavras destacadas no texto são as que você deve procurar.</li>
+            <li>Quanto mais rápido você terminar, melhor o seu tempo.</li>
+            <li>Seu progresso é salvo automaticamente após concluir o nível.</li>
+        </ul>
+    </div>
+    <div class="drawer-footer"></div>
+</div>
 {% endblock %}
 
-
 {% block extra_js %}
-{{ block.super }}
 <script>
-    (function() {
-        // JavaScript para fechar o modal
-        const parabensModal = document.getElementById('tema-concluido-modal');
-        if (!parabensModal) return;
+document.addEventListener("DOMContentLoaded", () => {
+    const statsModal = document.getElementById("stats-modal");
+    const rulesModal = document.getElementById("rules-modal");
+    const btnStats = document.getElementById("btn-stats");
+    const btnRules = document.getElementById("btn-rules");
+    const closeStats = document.getElementById("close-stats");
+    const closeRules = document.getElementById("close-rules");
 
-        const closeBtn = document.getElementById('fechar-modal-btn');
-        closeBtn?.addEventListener('click', (e) => {
-            e.preventDefault();
-            parabensModal.style.display = 'none';
-        });
-    })();
+    function fecharTudo() {
+        statsModal.classList.remove("active");
+        rulesModal.classList.remove("active");
+    }
+
+    btnStats.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const aberto = statsModal.classList.contains("active");
+        fecharTudo();
+        if (!aberto) statsModal.classList.add("active");
+    });
+
+    btnRules.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const aberto = rulesModal.classList.contains("active");
+        fecharTudo();
+        if (!aberto) rulesModal.classList.add("active");
+    });
+
+    closeStats.addEventListener("click", fecharTudo);
+    closeRules.addEventListener("click", fecharTudo);
+
+    // Fecha ao clicar fora
+    document.addEventListener("click", e => {
+        const dentro = e.target.closest(".drawer, .header-btn");
+        if (!dentro) fecharTudo();
+    });
+});
 </script>
 {% endblock %}
