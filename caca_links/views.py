@@ -9,7 +9,6 @@ from .models import CacaPalavras, ProgressoJogador
 import re 
 from .utils import gerar_palavras_chave, gerar_grade, normalizar_palavra # Importa a função de normalizar
 
-
 @login_required
 def escolher_tema(request):
     temas = Assunto.objects.filter(slug__in=[
