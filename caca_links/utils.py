@@ -1,4 +1,3 @@
-import openai
 import random
 import string
 import re
