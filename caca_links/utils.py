@@ -15,38 +15,56 @@ def normalizar_palavra(palavra):
     return limpa
 
 def gerar_palavras_chave(conteudo, dificuldade):
+    import re
+    import random
+
     qtd = 6
 
-    try:
-        # Tenta usar a OpenAI (como antes)
-        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "user",
-                 "content": f"liste {qtd} palavras importantes (substantivos ou nomes próprios) desse texto jornalístico, separadas por vírgulas: {conteudo}"},
-            ],
-            max_tokens=150,
-            temperature=0.7
-        )
+    api_key = getattr(settings, "GEMINI_API_KEY", "")
+    if not api_key:
+        raise Exception("Chave GEMINI_API_KEY não configurada.")
 
-        texto = response.choices[0].message.content
+    try:
+        import google.generativeai as genai
+    except Exception:
+        raise Exception("Biblioteca google-generativeai não está instalada.")
+
+    try:
+        # Configura Gemini
+        genai.configure(api_key=api_key)  # type: ignore
+        model = genai.GenerativeModel("gemini-flash-latest")  # type: ignore
+
+        prompt = f"""
+        Extraia {qtd} palavras importantes deste texto jornalístico.
+        Somente substantivos, nomes próprios ou expressões relevantes.
+        Separe APENAS por vírgulas, sem explicação adicional.
+
+        <texto>
+        {conteudo}
+        </texto>
+        """
+
+        response = model.generate_content(prompt)
+        texto = (getattr(response, "text", "") or "").strip()
+
+        # Divide as palavras retornadas
         palavras_brutas = [p.strip() for p in texto.split(",") if p.strip()]
 
     except Exception:
-        # --- NOVO FALLBACK (MUITO MELHOR) ---
-        # 1. Limpa o texto de pontuação e o coloca em maiúsculo
+        # ---------- FALLBACK (caso a API falhe) ----------
         conteudo_limpo = re.sub(r'[^\w\s]', '', conteudo).upper()
-        # 2. Encontra todas as palavras únicas com 5 ou mais letras (agora com suporte a unicode)
-        palavras_brutas = list(set(re.findall(r'\b\w{5,}\b', conteudo_limpo, flags=re.UNICODE)))
+        palavras_brutas = list(set(re.findall(
+            r'\b\w{5,}\b', conteudo_limpo, flags=re.UNICODE)))
         random.shuffle(palavras_brutas)
 
-    # 2. NORMALIZA TODAS AS PALAVRAS (DA OPENAI OU DO FALLBACK)
+    # Normaliza
     palavras_normalizadas = [normalizar_palavra(p) for p in palavras_brutas]
-    # Retorna apenas as 'qtd' primeiras que não estão vazias
+
+    # Retorna somente as primeiras 'qtd'
     palavras_finais = [p for p in palavras_normalizadas if p][:qtd]
-    
+
     return palavras_finais
+
 
 # 3. GERAR GRADE (sem alteração, pois já usa .upper())
 def gerar_grade(palavras, dificuldade, tamanho=15):
