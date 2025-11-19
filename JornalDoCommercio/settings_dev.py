@@ -13,7 +13,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     # Se você também usa o App Service para testes, mantenha:
-    "jornaldocommercio.azurewebsites.net",
+    "jcproject.azurewebsites.net",
 ]
 
 # -----------------------

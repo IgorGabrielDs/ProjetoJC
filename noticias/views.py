@@ -374,7 +374,7 @@ def noticia_detalhe(request, pk):
     enquete_data = None
     try:
         # noticia.enquete usa o 'related_name' que definimos no models.py
-        enquete = noticia.enquete
+        enquete = noticia.enquete #type: ignore
         
         # Só processa se a enquete tiver sido configurada (tiver um título)
         if enquete and enquete.titulo:
