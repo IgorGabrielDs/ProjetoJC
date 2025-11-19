@@ -39,6 +39,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://jcproject.azurewebsites.net'
+]
+
 ROOT_URLCONF = 'JornalDoCommercio.urls'
 
 TEMPLATES = [
