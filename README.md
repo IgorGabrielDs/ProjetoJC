@@ -70,6 +70,8 @@ pytest -q
 
 ---
 
+Acesse o nosso vídeo de testes automatizados [aqui](https://youtu.be/jgPmHwQA0cM)
+
 ## 👥 Equipe Plumo — CESAR School
 
 | Nome | E-mail | Funções |
