@@ -38,7 +38,7 @@ A plataforma combina **conteúdo jornalístico** com **elementos de jogos, recom
 
 As histórias de usuário implementadas no Projeto JC estão descritas em detalhe neste documento:
 
-- [Histórias de Usuário — Projeto JC](docs/historias_usuario.md)
+- [Histórias de Usuário — Projeto JC](https://docs.google.com/document/d/1mwm4nb6xFgJM3tm10Y9zcyyIu7CfqOX0JvPXR5SX3ro/edit?usp=sharing)
   
 ---
 
