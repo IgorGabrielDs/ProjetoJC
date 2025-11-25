@@ -34,6 +34,12 @@ A plataforma combina **conteúdo jornalístico** com **elementos de jogos, recom
 ### 🧩 Autenticação e Gamificação
 - 🔐 Login, logout e controle de acesso com `django.contrib.auth`.  
 
+## 📄 Histórias de Usuário (BDD)
+
+As histórias de usuário implementadas no Projeto JC estão descritas em detalhe neste documento:
+
+- [Histórias de Usuário — Projeto JC](docs/historias_usuario.md)
+  
 ---
 
 ## 🧪 Testes e Qualidade
