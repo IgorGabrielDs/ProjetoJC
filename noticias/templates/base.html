@@ -6,35 +6,37 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}JC{% endblock %}</title>
+
   <link rel="icon" type="image/png" sizes="32x32" href="{% static 'noticias/img/favicon-32x32.png' %}">
   <link rel="icon" type="image/png" sizes="16x16" href="{% static 'noticias/img/favicon-16x16.png' %}">
   <link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
   <link rel="stylesheet" href="{% static 'noticias/css/menu.css' %}">
   <meta name="csrf-token" content="{{ csrf_token }}">
 
-  {# botão de logout com cara de ícone #}
+  <!-- Estilo do botão de logout -->
   <style>
-    .logout-btn{
-      border:0;
-      background:transparent;
-      padding:0;
-      margin:0;
-      cursor:pointer;
+    .logout-btn {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
     }
-    .logout-btn:focus{
-      outline:2px solid #bbb;
-      outline-offset:2px;
+    .logout-btn:focus {
+      outline: 2px solid #bbb;
+      outline-offset: 2px;
     }
   </style>
 
   {% block extra_head %}{% endblock %}
 </head>
 
-{# Opcional: expõe o nome do usuário para o modal usar se necessário #}
-<body{% if user.is_authenticated %} data-username="{{ user.first_name|default:user.username }}"{% endif %}>
+<body {% if user.is_authenticated %}data-username="{{ user.first_name|default:user.username }}"{% endif %}>
+
   <!-- ===== BARRA UOL ===== -->
   <div class="uol-bar">
     <div class="uol-container">
+
       <div class="uol-left">
         <a href="https://www.uol.com.br/" class="uol-logo" aria-label="UOL">
           <img src="{% static 'noticias/img/logo-uol.png' %}" alt="UOL">
@@ -64,6 +66,7 @@
           <span>EMAIL</span>
         </a>
       </div>
+
     </div>
   </div>
   <!-- ===== /BARRA UOL ===== -->
@@ -71,21 +74,18 @@
   <!-- ===== HEADER ===== -->
   <header class="header">
     <div class="container row">
-      <!-- Botão do menu lateral -->
+
+      <!-- Botão do menu -->
       <button class="icon-btn" id="menu-toggle" aria-label="Abrir menu" aria-controls="menu" aria-expanded="false">
         <img src="{% static 'noticias/img/menu_hamburguer.svg' %}" alt="Abrir menu" width="28" height="28">
       </button>
 
-      <!-- Logo JC -->
-      <a href="{% url 'noticias:index' %}" class="logo-link" aria-label="Voltar para a página inicial">
-        <img class="logo"
-             src="{% static 'noticias/img/logo-menor-jc.png' %}"
-             alt="JC Pernambuco">
+      <!-- Logo do JC -->
+      <a href="{% url 'noticias:index' %}" class="logo-link" aria-label="Página inicial">
+        <img class="logo" src="{% static 'noticias/img/logo-menor-jc.png' %}" alt="JC Pernambuco">
       </a>
 
-      <div style="flex:1"></div>
-
-      <!-- Botão de busca -->
+      <!-- Lupa -->
       <button class="icon-btn" aria-label="Buscar">
         <img src="{% static 'noticias/img/lupa.svg' %}" alt="Buscar" width="28" height="28">
       </button>
@@ -96,85 +96,126 @@
 
   <!-- ===== MENU LATERAL ===== -->
   <nav id="menu" class="menu" aria-hidden="true">
+
     <div class="menu-top">
-      <img src="{% static 'noticias/img/logo-jornalcommercio.png' %}" alt="Jornal do Commercio" class="menu-logo">
+      <img src="{% static 'noticias/img/logo-jornalcommercio.png' %}" class="menu-logo" alt="Jornal do Commercio">
       <button id="menu-close" class="menu-close" aria-label="Fechar menu">✕</button>
     </div>
 
     <div class="menu-user">
       {% if user.is_authenticated %}
         <div class="menu-user-icons">
-          <img src="{% static 'noticias/img/editar_uol.png' %}" alt="Editar perfil" class="edit-icon" title="Editar perfil">
-          <img src="{% static 'noticias/img/perfil_uol.png' %}" alt="Foto de perfil" class="avatar" title="Meu perfil">
+          <img src="{% static 'noticias/img/editar_uol.png' %}" class="edit-icon" title="Editar perfil" alt="Editar perfil">
+          <img src="{% static 'noticias/img/perfil_uol.png' %}" class="avatar" title="Meu perfil" alt="Foto de perfil">
 
-          {# Logout deve ser POST no Django 5.x #}
+          <!-- Logout via POST -->
           <form method="post" action="{% url 'logout' %}" style="display:inline;">
             {% csrf_token %}
-            <button type="submit" class="logout-btn" title="Sair da conta" aria-label="Sair da conta">
-              <img src="{% static 'noticias/img/sair_uol.png' %}" alt="Sair" class="logout-icon">
+            <button type="submit" class="logout-btn" title="Sair da conta">
+              <img src="{% static 'noticias/img/sair_uol.png' %}" class="logout-icon" alt="Sair">
             </button>
           </form>
         </div>
+
         <p class="user-name">{{ user.get_full_name|default:user.username }}</p>
+
       {% else %}
+
         <a href="{% url 'login' %}" class="login-btn">Login</a>
+
       {% endif %}
     </div>
 
-    <ul class="menu-links">
-      <li class="dropdown active">
-        <button class="drop-btn" aria-expanded="false">AO VIVO</button>
-        <ul class="submenu">
-          <li><a href="#">Rádio Jornal (RECIFE)</a></li>
-          <li><a href="#">Rádio Jornal (INTERIOR)</a></li>
-          <li><a href="#">TV Jornal (RECIFE)</a></li>
-          <li><a href="#">TV Jornal (INTERIOR)</a></li>
-        </ul>
-      </li>
-      <li><a href="#">Jornal Digital</a></li>
-      <li class="dropdown">
-        <button class="drop-btn" aria-expanded="false">Jogos</button>
-        <ul class="submenu">
-          <li><a href="#">Caça Palavras</a></li>
-          <li><a href="#">Sudoku</a></li>
-        </ul>
-      </li>
-      <li><a href="#">Últimas</a></li>
-      <li class="dropdown">
-        <button class="drop-btn" aria-expanded="false">Conteúdos</button>
-        <ul class="submenu">
-          <li><a href="#">Cultura</a></li>
-          <li><a href="#">Economia</a></li>
-          <li><a href="#">Educação</a></li>
-        </ul>
-      </li>
-      <li><a href="#">Colunistas</a></li>
-      <li class="dropdown">
-        <button class="drop-btn" aria-expanded="false">Nossos Produtos</button>
-        <ul class="submenu">
-          <li><a href="#">Blog do Torcedor</a></li>
-          <li><a href="#">Ne10 Interior</a></li>
-          <li><a href="#">Radio Jornal</a></li>
-          <li><a href="#">Receita da boa</a></li>
-          <li><a href="#">Social1</a></li>
-          <li><a href="#">TV jornal</a></li>
-        </ul>
-      </li>
-      <li class="dropdown">
-        <button class="drop-btn" aria-expanded="false">Institucionais</button>
-        <ul class="submenu">
-          <li><a href="#">Sobre</a></li>
-        </ul>
-      </li>
-      <li class="dropdown">
-        <button class="drop-btn" aria-expanded="false">Serviços</button>
-        <ul class="submenu">
-          <li><a href="#">Notícias pelo whatsapp</a></li>
-          <li><a href="#">Newsletter JC</a></li>
-          <li><a href="#">Anuncie conosco</a></li>
-        </ul>
-      </li>
-    </ul>
+    <!-- CONTEÚDO DO MENU -->
+    <div class="menu-content">
+      <ul class="menu-links">
+
+        <li class="dropdown live">
+          <button class="drop-btn" aria-expanded="false">AO VIVO</button>
+          <ul class="submenu">
+            <li><a href="#">Rádio Jornal (RECIFE)</a></li>
+            <li><a href="#">Rádio Jornal (INTERIOR)</a></li>
+            <li><a href="#">TV Jornal (RECIFE)</a></li>
+            <li><a href="#">TV Jornal (INTERIOR)</a></li>
+          </ul>
+        </li>
+
+        <li><a href="#">Jornal Digital</a></li>
+
+        <li class="dropdown">
+          <button class="drop-btn" aria-expanded="false">Jogos</button>
+          <ul class="submenu">
+            <li><a href="/caca-links/">Caça Palavras</a></li>
+            <li><a href="/sudoku/">Sudoku</a></li>
+          </ul>
+        </li>
+
+        <li><a href="#">Últimas</a></li>
+
+        <li class="dropdown">
+          <button class="drop-btn" aria-expanded="false">Conteúdos</button>
+          <ul class="submenu">
+            <li><a href="#">Cultura</a></li>
+            <li><a href="#">Economia</a></li>
+            <li><a href="#">Enem e educação</a></li>
+            <li><a href="#">Interior</a></li>
+            <li><a href="#">Mobilidade</a></li>
+            <li><a href="#">Mundo</a></li>
+            <li><a href="#">Opinião</a></li>
+            <li><a href="#">Pernambuco</a></li>
+            <li><a href="#">Política</a></li>
+            <li><a href="#">Publicidade legal</a></li>
+            <li><a href="#">Recall de Marca</a></li>
+            <li><a href="#">Saúde e Bem-Estar</a></li>
+            <li><a href="#">Segurança</a></li>
+          </ul>
+        </li>
+
+        <li><a href="#">Colunistas</a></li>
+
+        <li class="dropdown">
+          <button class="drop-btn" aria-expanded="false">Nossos Produtos</button>
+          <ul class="submenu">
+            <li><a href="#">Blog do Torcedor</a></li>
+            <li><a href="#">Ne10 Interior</a></li>
+            <li><a href="#">Rádio Jornal</a></li>
+            <li><a href="#">Receita da Boa</a></li>
+            <li><a href="#">Social1</a></li>
+            <li><a href="#">TV Jornal</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <button class="drop-btn" aria-expanded="false">Institucionais</button>
+          <ul class="submenu">
+            <li><a href="#">Quem somos</a></li>
+            <li><a href="#">Práticas ASG JCPM</a></li>
+            <li><a href="#">Privacidade</a></li>
+            <li><a href="#">Melhores Práticas</a></li>
+            <li><a href="#">LGPD</a></li>
+            <li><a href="#">Publicações</a></li>
+            <li><a href="#">Expediente</a></li>
+            <li><a href="#">Fale Conosco</a></li>
+            <li><a href="#">Trabalhe Conosco</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <button class="drop-btn" aria-expanded="false">Serviços</button>
+          <ul class="submenu">
+            <li><a href="#">Notícias pelo WhatsApp</a></li>
+            <li><a href="#">Newsletter JC</a></li>
+            <li><a href="#">Anuncie Conosco</a></li>
+          </ul>
+        </li>
+
+      </ul>
+
+      <!-- Quadrado vermelho -->
+      <div class="menu-box"></div>
+
+    </div>
+
   </nav>
 
   <!-- ===== CONTEÚDO PRINCIPAL ===== -->
@@ -182,54 +223,51 @@
     {% block content %}{% endblock %}
   </main>
 
-  <!-- ===== FOOTER ===== -->
-  <footer class="jc-footer">
-    <section class="produtos">
-      <h2>Nossos Produtos</h2>
-      <div class="produtos-logos">
-        <img src="{% static 'noticias/img/ne10interior.png' %}" alt="NE10 Interior">
-        <img src="{% static 'noticias/img/radiojornal.png' %}" alt="Rádio Jornal">
-        <img src="{% static 'noticias/img/tvjornal.png' %}" alt="TV Jornal">
-        <img src="{% static 'noticias/img/pejc.png' %}" alt="JCPE">
-      </div>
-    </section>
+  <!-- ===== NOSSOS PRODUTOS ===== -->
+  <section class="produtos">
+    <h2>Nossos Produtos</h2>
+    <div class="produtos-logos">
+      <a href="https://interior.ne10.uol.com.br" class="produto-item"><img src="{% static 'noticias/img/ne10interior.png' %}" alt="NE10 Interior"><p>NE10 Interior</p></a>
+      <a href="https://jc.uol.com.br/radio-jornal" class="produto-item"><img src="{% static 'noticias/img/radiojornal.png' %}" alt="Rádio Jornal"><p>Rádio Jornal</p></a>
+      <a href="https://jc.uol.com.br/tv-jornal" class="produto-item"><img src="{% static 'noticias/img/tvjornal.png' %}" alt="TV Jornal"><p>TV Jornal</p></a>
+      <a href="https://jc.uol.com.br" class="produto-item"><img src="{% static 'noticias/img/pejc.png' %}" alt="JC Pernambuco"><p>JC Pernambuco</p></a>
+      <a href="https://jc.uol.com.br/blog-do-torcedor/" class="produto-item"><img src="{% static 'noticias/img/blogdotorcedor.png' %}" alt="Blog do Torcedor"><p>Blog do Torcedor</p></a>
+      <a href="https://jc.uol.com.br/social1/" class="produto-item"><img src="{% static 'noticias/img/social1.png' %}" alt="Social1"><p>Social1</p></a>
+      <a href="https://receitadaboa.com.br" class="produto-item"><img src="{% static 'noticias/img/receitadaboa.png' %}" alt="Receita da Boa"><p>Receita da Boa</p></a>
+    </div>
 
-    <section class="redes">
-      <img src="{% static 'noticias/img/jcpe.png' %}" alt="JCPE Logo" class="jcpe-logo">
-      <p class="redes-titulo">Confira nossas redes</p>
+    <div class="carousel-dots">
+      <span class="dot active" data-index="0"></span>
+      <span class="dot" data-index="1"></span>
+    </div>
+  </section>
 
-      <div class="redes-icones">
-        <a href="#" aria-label="Facebook"><img src="{% static 'noticias/img/facebook.png' %}" alt="Facebook"></a>
-        <a href="#" aria-label="Instagram"><img src="{% static 'noticias/img/instagram.png' %}" alt="Instagram"></a>
-        <a href="#" aria-label="X"><img src="{% static 'noticias/img/x.png' %}" alt="X"></a>
-        <a href="#" aria-label="LinkedIn"><img src="{% static 'noticias/img/linkedin.png' %}" alt="LinkedIn"></a>
-        <a href="#" aria-label="YouTube"><img src="{% static 'noticias/img/youtube.png' %}" alt="YouTube"></a>
-      </div>
+  <!-- ===== RODAPÉ ===== -->
+  <section class="redes">
+    <img src="{% static 'noticias/img/jcpe.png' %}" alt="JCPE Logo" class="jcpe-logo">
+    <p class="redes-titulo">Confira nossas redes</p>
 
-      <img src="{% static 'noticias/img/jcpm90.png' %}" alt="Grupo JCPM 90 anos" class="jcpm-logo">
+    <div class="redes-icones">
+      <a href="https://www.facebook.com/jornaldocommercioPE/"><img src="{% static 'noticias/img/facebook.png' %}" alt="Facebook"></a>
+      <a href="https://www.instagram.com/jc_pe"><img src="{% static 'noticias/img/instagram.png' %}" alt="Instagram"></a>
+      <a href="https://x.com/jc_pe"><img src="{% static 'noticias/img/x.png' %}" alt="X"></a>
+      <a href="https://www.linkedin.com/company/sistema-jornal-do-commercio/"><img src="{% static 'noticias/img/linkedin.png' %}" alt="LinkedIn"></a>
+      <a href="https://www.youtube.com/@JCPlayOficial"><img src="{% static 'noticias/img/youtube.png' %}" alt="YouTube"></a>
+    </div>
 
-      <p class="footer-text">
-        Jornal © 2025 — Uma empresa do grupo JCPM<br>
-        PARA SOLICITAÇÃO DE LICENCIAMENTO, CONTATAR<br>
-        <a href="mailto:editores@ne10.com.br">EDITORES@NE10.COM.BR</a>
-      </p>
-    </section>
-  </footer>
+    <img src="{% static 'noticias/img/jcpm90.png' %}" alt="Grupo JCPM 90 anos" class="jcpm-logo">
 
-  {# === Gatilho do pop-up pós-signup vindo da view index === #}
-  {% if show_welcome %}
-    <script>
-      window.SHOW_PERSONALIZACAO = true;
-      window.JC_USER_NAME = "{{ welcome_name|default_if_none:''|escapejs }}";
-    </script>
-  {% endif %}
-
-  {# === Inclusão do componente do modal (HTML+CSS+JS) === #}
-  {% include "noticias/partials/popup_personalizacao.html" %}
+    <p class="footer-text">
+      Jornal © 2025 — Uma empresa do grupo JCPM<br>
+      PARA SOLICITAÇÃO DE LICENCIAMENTO, CONTATAR<br>
+      <a href="mailto:editores@ne10.com.br">EDITORES@NE10.COM.BR</a>
+    </p>
+  </section>
 
   {% block extra_js %}
-  <script src="{% static 'noticias/js/jc.js' %}"></script>
-  <script src="{% static 'noticias/js/menu.js' %}"></script>
+    <script src="{% static 'noticias/js/jc.js' %}"></script>
+    <script src="{% static 'noticias/js/menu.js' %}"></script>
   {% endblock %}
+
 </body>
 </html>
