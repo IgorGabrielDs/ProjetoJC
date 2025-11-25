@@ -8,7 +8,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = True
+DEBUG = os.getenv("WEBSITE_HOSTNAME") is None
 
 ALLOWED_HOSTS = ['jcproject.azurewebsites.net', '127.0.0.1', 'localhost']
 
