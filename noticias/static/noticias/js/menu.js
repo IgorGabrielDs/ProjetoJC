@@ -25,16 +25,20 @@
   toggleBtn.addEventListener('click', openMenu);
   closeBtn?.addEventListener('click', closeMenu);
   overlay.addEventListener('click', closeMenu);
+
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeMenu();
   });
 
-  // === DROPDOWNS ===
+  // === DROPDOWNS DO MENU ===
   document.querySelectorAll('#menu .dropdown .drop-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const li = btn.closest('.dropdown');
       const isOpen = li.classList.contains('open');
+
+      // fecha todos antes de abrir o clicado
       document.querySelectorAll('#menu .dropdown').forEach(d => d.classList.remove('open'));
+
       if (!isOpen) {
         li.classList.add('open');
         btn.setAttribute('aria-expanded', 'true');
@@ -44,30 +48,33 @@
     });
   });
 
-  // === ESCONDER / MOSTRAR BARRA UOL AO ROLAR ===
+  // === ESCONDER / MOSTRAR BARRA UOL NO SCROLL ===
   let lastScrollTop = 0;
   const uolBar = document.querySelector('.uol-bar');
 
   window.addEventListener('scroll', () => {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
     if (scrollTop > lastScrollTop && scrollTop > 80) {
       uolBar.style.transform = 'translateY(-100%)';
     } else {
       uolBar.style.transform = 'translateY(0)';
     }
+
     lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
   });
-    // === BLOCO AO VIVO (cápsula expansível) ===
+
+  // === BLOCO AO VIVO EXPANSÍVEL ===
   const liveDropdown = document.querySelector('#menu .dropdown.live');
   if (liveDropdown) {
     const liveBtn = liveDropdown.querySelector('.drop-btn');
     const submenu = liveDropdown.querySelector('.submenu');
 
-    // define altura inicial (fechado)
+    // altura quando fechado
     const closedHeight = liveBtn.offsetHeight || 56;
 
     function openLive() {
-      const totalHeight = closedHeight + submenu.scrollHeight + 16; // 16px de respiro
+      const totalHeight = closedHeight + submenu.scrollHeight + 16;
       liveDropdown.classList.add('is-open');
       liveDropdown.style.maxHeight = `${totalHeight}px`;
       liveBtn.setAttribute('aria-expanded', 'true');
@@ -85,7 +92,7 @@
       else openLive();
     });
 
-    // garante altura correta ao redimensionar
+    // atualiza ao redimensionar a tela
     window.addEventListener('resize', () => {
       if (liveDropdown.classList.contains('is-open')) openLive();
       else closeLive();
@@ -96,67 +103,46 @@
   }
 
 })();
+// === CARROSSEL MOBILE — NOSSOS PRODUTOS ===
+(function () {
+  const carrossel = document.querySelector(".produtos-logos");
+  const dots = document.querySelectorAll(".carousel-dots .dot");
 
-// === CARROSSEL DE PRODUTOS (MOBILE APENAS) ===
-document.addEventListener('DOMContentLoaded', () => {
-  const produtosSection = document.querySelector('.produtos');
-  if (!produtosSection) return;
+  // só funciona se existir (somente mobile)
+  if (!carrossel || dots.length === 0) return;
 
-  const produtosLogos = produtosSection.querySelector('.produtos-logos');
-  const dots = produtosSection.querySelectorAll('.dot');
-  const items = produtosSection.querySelectorAll('.produto-item');
-  if (!produtosLogos || dots.length === 0 || items.length === 0) return;
+  let page = 0; // página inicial
 
-  // só ativa o carrossel no mobile
-  if (window.innerWidth > 768) {
-    produtosLogos.style.transform = 'translateX(0)';
-    return;
+  function getPageWidth() {
+    return carrossel.clientWidth; // largura da viewport do carrossel
   }
 
-  let currentIndex = 0;
-  const totalItems = items.length; // 7 produtos
-  const visiblePerPage = 4;
-  const maxIndex = Math.ceil(totalItems / visiblePerPage) - 1; // 7/4 = 1.75 => 1 (0 e 1)
-
-  function goTo(index) {
-    if (index < 0) index = 0;
-    if (index > maxIndex) index = maxIndex;
-    currentIndex = index;
-
-    dots.forEach(d => d.classList.remove('active'));
-    dots[currentIndex].classList.add('active');
-
-    const shiftPercent = (100 / totalItems) * (visiblePerPage * index);
-    produtosLogos.style.transform = `translateX(-${shiftPercent}%)`;
+  // Atualiza a bolinha ativa
+  function updateDots() {
+    dots.forEach(dot => dot.classList.remove("active"));
+    dots[page].classList.add("active");
   }
 
-  // === CLIQUE NAS BOLINHAS ===
+  // Clicar nas bolinhas → deslizar carrossel
   dots.forEach(dot => {
-    dot.addEventListener('click', () => {
-      const index = parseInt(dot.dataset.index);
-      goTo(index);
+    dot.addEventListener("click", () => {
+      page = parseInt(dot.dataset.index);
+      carrossel.scrollTo({
+        left: getPageWidth() * page,
+        behavior: "smooth"
+      });
+      updateDots();
     });
   });
 
-  // === CONTROLE POR TOQUE (SWIPE) ===
-  let startX = 0;
-  let moveX = 0;
+  // Scroll manual → mudar bolinhas automaticamente
+  carrossel.addEventListener("scroll", () => {
+    const width = getPageWidth();
+    const newPage = Math.round(carrossel.scrollLeft / width);
 
-  produtosLogos.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-  });
-
-  produtosLogos.addEventListener('touchmove', e => {
-    moveX = e.touches[0].clientX - startX;
-  });
-
-  produtosLogos.addEventListener('touchend', () => {
-    if (Math.abs(moveX) > 50) {
-      if (moveX < 0 && currentIndex < maxIndex) goTo(currentIndex + 1);
-      else if (moveX > 0 && currentIndex > 0) goTo(currentIndex - 1);
+    if (newPage !== page) {
+      page = newPage;
+      updateDots();
     }
-    moveX = 0;
   });
-
-  goTo(0);
-});
+})();
