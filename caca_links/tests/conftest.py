@@ -46,13 +46,24 @@ def _has_field(Model, name: str) -> bool:
 def assunto(db):
     """Assunto mínimo, tolerante ao schema."""
     from noticias.models import Assunto as AssuntoModel
-    data = {}
+    
+    # Prepara os valores padrão para criação (se necessário)
+    defaults = {}
     if _has_field(AssuntoModel, "nome"):
-        data["nome"] = "Tema de Teste"
+        defaults["nome"] = "Tema de Teste"
+
+    # Se o modelo tem slug, usamos ele como chave única para buscar ou criar
     if _has_field(AssuntoModel, "slug"):
-        # usar um dos slugs que a view filtra
-        data["slug"] = "economia"
-    return AssuntoModel.objects.create(**data)
+        slug_val = "economia"
+        # get_or_create retorna uma tupla (objeto, boolean_se_foi_criado)
+        obj, _ = AssuntoModel.objects.get_or_create(
+            slug=slug_val,     # Campo de busca (UNIQUE)
+            defaults=defaults  # Outros campos a preencher se for criar novo
+        )
+        return obj
+
+    # Fallback: Se o schema mudou e não tem mais slug, cria normalmente
+    return AssuntoModel.objects.create(**defaults)
 
 
 @pytest.fixture
