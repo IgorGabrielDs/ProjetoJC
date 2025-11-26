@@ -92,45 +92,40 @@ def test_play_sudoku_renders_when_requirements_met(client):
     assert "puzzle" in resp.context
     assert "progress" in resp.context
 
-def test_play_sudoku_when_puzzle_missing_shows_error_page(client):
-    user = User.objects.create_user(username="u3", password="x")
+def test_play_sudoku_when_puzzle_missing_generates_on_demand(client):
+    """
+    Se o puzzle não existir, a view deve gerar um 'on-demand' e exibir o jogo
+    em vez de mostrar erro.
+    """
+    # Cria usuário e loga
+    # Nota: Se 'User' não estiver importado, use get_user_model() ou mantenha como está se já funcionar
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    user = User.objects.create_user(username="u_demand", password="123")
     client.force_login(user)
 
+    # Garante URL (pula se não existir reversão)
     url = _url_or_skip("sudoku:play_sudoku", difficulty="easy")
+    
+    # Executa requisição
     resp = client.get(url)
+    
+    # Agora esperamos SUCESSO (200), não erro.
     assert resp.status_code == 200
-
-    content = (resp.content or b"").decode("utf-8", errors="ignore").lower()
-
-    # 1) Verifica se o template de erro foi usado
-    used_error_template = False
-    if hasattr(resp, "templates") and resp.templates:
-        for t in resp.templates:
-            # t.name pode ser None em templates herdados
-            if getattr(t, "name", "") and "sudoku/sudoku_error.html" in t.name:
-                used_error_template = True
-                break
-
-    # 2) Verifica se existe a chave 'message' no contexto
-    has_message_in_context = False
-    if hasattr(resp, "context") and resp.context:
-        # resp.context é um ContextList; percorremos os dicts internos
-        try:
-            for ctx in resp.context:
-                if isinstance(ctx, dict) and "message" in ctx:
-                    has_message_in_context = True
-                    break
-        except TypeError:
-            # Algumas versões retornam um objeto único
-            has_message_in_context = isinstance(resp.context, dict) and "message" in resp.context
-
-    # 3) Verifica o conteúdo da resposta
-    has_error_text = ("ainda não foi gerado" in content) or ("sudoku_error" in content)
-
-    assert used_error_template or has_message_in_context or has_error_text, (
-        "Esperava template 'sudoku/sudoku_error.html', ou contexto com 'message', "
-        "ou conteúdo contendo a mensagem de erro."
-    )
+    
+    # Verifica se carregou o template do JOGO (sudoku.html), não o de erro
+    # A lista de templates pode vir vazia dependendo do setup, então protegemos a checagem
+    templates_names = [t.name for t in resp.templates if t.name]
+    
+    # Se sua view usa 'sudoku/sudoku.html', validamos isso. 
+    # Se for outro nome, ajuste aqui, mas geralmente é esse.
+    assert any("sudoku.html" in t for t in templates_names), f"Templates usados: {templates_names}"
+    
+    # Opcional: Verifica se o conteúdo parece ser o jogo (tabuleiro)
+    content = resp.content.decode("utf-8").lower()
+    # Verifica termos comuns de um tabuleiro de sudoku
+    assert "grid" in content or "tabuleiro" in content or "sudoku-board" in content
 
 def test_check_solution_success_easy_sets_progress_and_next_level(client):
     user = User.objects.create_user(username="u4", password="x")
