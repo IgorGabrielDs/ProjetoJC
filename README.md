@@ -34,6 +34,12 @@ A plataforma combina **conteúdo jornalístico** com **elementos de jogos, recom
 ### 🧩 Autenticação e Gamificação
 - 🔐 Login, logout e controle de acesso com `django.contrib.auth`.  
 
+## 📄 Histórias de Usuário (BDD)
+
+As histórias de usuário implementadas no Projeto JC estão descritas em detalhe neste documento:
+
+- [Histórias de Usuário — Projeto JC](https://docs.google.com/document/d/1mwm4nb6xFgJM3tm10Y9zcyyIu7CfqOX0JvPXR5SX3ro/edit?usp=sharing)
+  
 ---
 
 ## 🧪 Testes e Qualidade
@@ -69,6 +75,8 @@ pytest -q
 - 💬 Engajamento em “segundo clique”  
 
 ---
+
+Acesse o nosso vídeo de testes automatizados [aqui](https://youtu.be/jgPmHwQA0cM)
 
 ## 👥 Equipe Plumo — CESAR School
 
