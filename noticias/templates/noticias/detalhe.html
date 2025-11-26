@@ -4,213 +4,83 @@
 {% block title %}{{ noticia.titulo }} — JC{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'noticias/css/detalhe.css' %}">
-
-<!-- ===== CSS DA ENQUETE (NOVO) ===== -->
-<style>
-  .enquete-box {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 20px;
-    margin-top: 24px;
-    margin-bottom: 24px;
-    background-color: #f9f9f9;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
-  .enquete-titulo {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #333;
-    margin: 0 0 16px 0;
-  }
-
-  /* --- Formulário de Votação --- */
-  .enquete-form fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
-  }
-  .enquete-opcao-radio {
-    display: block;
-    margin-bottom: 12px;
-  }
-  .enquete-opcao-radio label {
-    display: inline-flex;
-    align-items: center;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-  .enquete-opcao-radio input[type="radio"] {
-    margin-right: 10px;
-    /* Estilização moderna do radio button */
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border: 2px solid #555;
-    border-radius: 50%;
-    transition: 0.1s all linear;
-    position: relative;
-    top: -1px;
-  }
-  .enquete-opcao-radio input[type="radio"]:checked {
-    border-color: #007bff;
-  }
-  .enquete-opcao-radio input[type="radio"]:checked::before {
-    content: '';
-    display: block;
-    width: 10px;
-    height: 10px;
-    background-color: #007bff;
-    border-radius: 50%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-  .enquete-btn {
-    display: inline-block;
-    background-color: #007bff;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    margin-top: 10px;
-  }
-  .enquete-btn:hover {
-    background-color: #0056b3;
-  }
-  .enquete-btn:disabled {
-    background-color: #c0c0c0;
-    cursor: not-allowed;
-  }
-
-  /* --- Exibição de Resultados --- */
-  .enquete-resultados {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .enquete-opcao-resultado {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .enquete-opcao-resultado .info-wrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.95rem;
-  }
-  .enquete-opcao-resultado .info-wrapper .texto-opcao {
-    font-weight: 600;
-    color: #333;
-  }
-  .enquete-opcao-resultado .info-wrapper .percentual {
-    font-weight: 700;
-    color: #007bff;
-  }
-  .enquete-barra {
-    width: 100%;
-    height: 12px;
-    background-color: #e9ecef;
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .enquete-barra-preenchimento {
-    height: 100%;
-    background-color: #007bff;
-    border-radius: 6px;
-    transition: width 0.5s ease-in-out;
-  }
-  /* Destaca a opção que o usuário votou */
-  .enquete-voto-usuario .info-wrapper .texto-opcao,
-  .enquete-voto-usuario .info-wrapper .percentual {
-    color: #0056b3;
-    font-weight: 800;
-  }
-  .enquete-voto-usuario .enquete-barra-preenchimento {
-    background-color: #0056b3;
-  }
-  
-  .enquete-total-votos {
-    font-size: 0.9rem;
-    color: #6c757d;
-    margin-top: 16px;
-    text-align: right;
-  }
-  .enquete-login-aviso {
-    font-size: 0.95rem;
-    color: #444;
-    margin-top: 16px;
-  }
-  .enquete-login-aviso a {
-    color: #007bff;
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .enquete-login-aviso a:hover {
-    text-decoration: underline;
-  }
-</style>
-<!-- ===== FIM CSS DA ENQUETE ===== -->
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'noticias/css/article.css' %}">
 {% endblock %}
 
 {% block content %}
 <article class="art-wrap" itemscope itemtype="https://schema.org/NewsArticle">
 
-  <!-- Kicker -->
+  <!-- Kicker + ações (topo, linha única) + título -->
   <header class="art-top">
-    <!-- ... (seu código de header existente) ... -->
-    <div class="art-kicker">
-    {% if noticia.categoria %}
-      <span class="kicker-link">{{ noticia.categoria.nome }}</span>
-    {% endif %}
-      <span class="kicker-sep">|</span>
-      <span class="kicker-type">NOTÍCIA</span>
+    <div class="art-topbar">
+      <div class="art-kicker">
+        {% if noticia.assuntos.first %}
+          <span class="kicker-link">{{ noticia.assuntos.first.nome }}</span>
+        {% endif %}
+        <span class="kicker-sep">|</span>
+        <span class="kicker-type">NOTÍCIA</span>
+      </div>
+
+      <div class="art-actions">
+        {% if noticia.pk %}
+        <form method="post"
+              action="{% url 'noticias:toggle_salvo' noticia.pk %}"
+              class="act"
+              aria-label="Salvar matéria">
+          {% csrf_token %}
+          <!-- ESTRELA DE SALVAR (estado vem do backend + salvar.js) -->
+          <button
+            class="btn-icon btn-save salvar-btn{% if is_saved %} is-saved{% endif %}"
+            type="submit"
+            title="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
+            aria-label="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
+            aria-pressed="{{ is_saved|yesno:'true,false' }}"
+            data-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
+            data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
+            data-login-url="{% url 'login' %}?next={{ request.path }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="ico ico-star">
+              <!-- contorno -->
+              <path class="star-outline"
+                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+              <!-- preenchimento -->
+              <path class="star-fill"
+                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+          </button>
+        </form>
+        {% endif %}
+
+        <!-- COMPARTILHAR (novo ícone) -->
+        <button class="btn-icon btn-share"
+                type="button"
+                title="Compartilhar"
+                id="shareBtn"
+                aria-label="Compartilhar">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="ico ico-share">
+            <!-- caixinha -->
+            <path d="M8 5h6a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3z"/>
+            <!-- seta saindo -->
+            <path d="M14 5V3h7v7h-2V7.83l-6.3 6.3-1.4-1.41L17.6 6H14z"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <h1 class="art-title" itemprop="headline">{{ noticia.titulo }}</h1>
-
-    <div class="art-byline">
-      <span class="by">Por</span>
-      <span class="who" itemprop="author" itemscope itemtype="https://schema.org/Organization">
-        <span itemprop="name">{{ noticia.autor_nome|default:"JC" }}</span>
-      </span>
-    </div>
-
-    <!-- Ações -->
-    <div class="art-actions">
-    {% if noticia.pk %}
-      <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}" class="act" aria-label="Salvar matéria">
-        {% csrf_token %}
-        <button class="btn-icon" type="submit" title="Salvar">
-          <svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M6 2h12a2 2 0 0 1 2 2v18l-8-4-8 4V4a 2 2 0 0 1 2-2z"/></svg>
-        </button>
-      </form>
-    {% endif %}
-
-      <button class="btn-icon" type="button" title="Compartilhar" id="shareBtn" aria-label="Compartilhar">
-        <svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M18 8a3 3 0 1 0-2.83-2H10a2 2 0 0 0-2 2v3.17a3 3 0 1 0 0 3.66V18a2 2 0 0 0 2 2h5.17A3 3 0 1 0 18 18H11v-2.17A3.001 3.001 0 0 0 12 12a3 3 0 0 0-1-2.24V8h4.17A3 3 0 0 0 18 8z"/></svg>
-      </button>
-    </div>
   </header>
 
-  <!-- Imagem principal -->
+  <!-- Imagem principal (hero) -->
   {% if noticia.imagem %}
   <figure class="art-hero" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-    <!-- ... (seu código de imagem existente) ... -->
-    {% if noticia.alt_imagem %}
-      <img src="{{ noticia.imagem.url }}" alt="{{ noticia.alt_imagem }}" class="hero-img">
+    {% if noticia.legenda %}
+      <img src="{{ noticia.imagem.url }}" alt="{{ noticia.legenda }}" class="hero-img">
     {% else %}
       <img src="{{ noticia.imagem.url }}" alt="Imagem de {{ noticia.titulo }}" class="hero-img">
     {% endif %}
-    {% if noticia.legenda_imagem or noticia.credito_imagem %}
+    {% if noticia.legenda or noticia.credito_imagem %}
     <figcaption class="hero-cap">
-      <span class="cap-txt">{{ noticia.legenda_imagem }}</span>
+      <span class="cap-txt">{{ noticia.legenda }}</span>
       {% if noticia.credito_imagem %}
         <span class="cap-credit"> — {{ noticia.credito_imagem }}</span>
       {% endif %}
@@ -220,40 +90,94 @@
   </figure>
   {% endif %}
 
-  <!-- Lead -->
-  {% if noticia.resumo %}
-  <p class="art-lead">{{ noticia.resumo }}</p>
-  {% endif %}
-
-  <!-- Times -->
+  <!-- Linha de data/atualização/autor (logo abaixo da imagem) -->
   <div class="art-times">
-    <!-- ... (seu código de times existente) ... -->
-    <time itemprop="datePublished" datetime="{{ noticia.publicado_em|date:'c' }}">
-      Publicado em {{ noticia.publicado_em|date:"d/m/Y" }} às {{ noticia.publicado_em|date:"H:i" }}
+    <time itemprop="datePublished" datetime="{{ noticia.criado_em|date:'c' }}">
+      Publicado em {{ noticia.criado_em|date:"d/m/Y" }} às {{ noticia.criado_em|date:"H:i" }}
     </time>
-    {% if noticia.atualizado_em and noticia.atualizado_em > noticia.publicado_em %}
+    {% if noticia.atualizado_em and noticia.atualizado_em > noticia.criado_em %}
       <span class="sep">|</span>
       <time itemprop="dateModified" datetime="{{ noticia.atualizado_em|date:'c' }}">
         Atualizado em {{ noticia.atualizado_em|date:"d/m/Y" }} às {{ noticia.atualizado_em|date:"H:i" }}
       </time>
     {% endif %}
+    <span class="sep">|</span>
+    <span class="byline">
+      Por: <span class="who" itemprop="author" itemscope itemtype="https://schema.org/Organization">
+        <span itemprop="name">{{ noticia.autor|default:"JC" }}</span>
+      </span>
+    </span>
   </div>
 
-  <!-- Corpo -->
-  <div class="art-body" itemprop="articleBody">
-    {% if noticia.conteudo_html %}
-      {{ noticia.conteudo_html|safe }}
-    {% else %}
-      {% for p in noticia.paragrafos.all %}
-        <p>{{ p.texto }}</p>
-      {% empty %}
-        <p>{{ noticia.conteudo|linebreaks }}</p>
-      {% endfor %}
-    {% endif %}
+  <!-- Corpo da matéria com “Continuar Lendo” progressivo -->
+  <div class="art-body-wrapper" id="artBodyWrapper">
+    <div class="art-body" id="artBody" itemprop="articleBody">
+      {{ noticia.conteudo|linebreaks }}
+    </div>
   </div>
+
+  <button type="button" class="read-more-btn" id="readMoreBtn">
+    <span class="read-more-label">Continuar Lendo</span>
+    <span class="read-more-chevron"></span>
+  </button>
+
+  {# ============================= #}
+  {# ===== RESUMO DA NOTÍCIA ===== #}
+  {# ============================= #}
+  {% with noticia.conteudo|default_if_none:""|wordcount as total_palavras %}
+  <section class="art-resumo" aria-labelledby="resumo-titulo">
+    <h2 id="resumo-titulo" class="resumo-title">Resumo da notícia</h2>
+
+    <div id="resumo-action" data-url="{% url 'noticias:resumir_noticia' noticia.pk %}">
+      {% if total_palavras < 300 %}
+        <button
+          type="button"
+          id="btn-resumo"
+          class="resumo-btn"
+          disabled
+          title="Texto curto demais para resumir"
+        >
+          Resumir
+        </button>
+        <p id="resumo-status" class="resumo-status">
+          Texto curto demais para resumir.
+        </p>
+      {% else %}
+        <button
+          type="button"
+          id="btn-resumo"
+          class="resumo-btn"
+        >
+          Resumir
+        </button>
+        <p id="resumo-status" class="resumo-status" aria-live="polite"></p>
+      {% endif %}
+    </div>
+
+    <aside
+      id="resumo-panel"
+      class="resumo-panel"
+      hidden
+      aria-hidden="true"
+      aria-label="Resumo gerado automaticamente"
+    >
+      <header class="resumo-header">
+        <strong>Resumo gerado automaticamente</strong>
+        <button type="button" id="btn-fechar" class="resumo-close">
+          Fechar
+        </button>
+      </header>
+      <p id="resumo-text" class="resumo-text"></p>
+      <p id="resumo-meta" class="resumo-meta"></p>
+      <button type="button" id="btn-copiar" class="resumo-copy">
+        Copiar resumo
+      </button>
+    </aside>
+  </section>
+  {% endwith %}
 
   <!-- ============================= -->
-  <!-- ===== BLOCO DA ENQUETE (NOVO) ===== -->
+  <!-- ===== BLOCO DA ENQUETE ===== -->
   <!-- ============================= -->
   {% if enquete_data %}
   <section class="enquete-box" aria-labelledby="enquete-titulo-{{ enquete_data.obj.pk }}">
@@ -262,12 +186,11 @@
     </h2>
 
     {% if user.is_authenticated %}
-      
-      <!-- Usuário LOGADO e JÁ VOTOU: Mostra resultados -->
+
       {% if enquete_data.usuario_ja_votou %}
         <div class="enquete-resultados">
           {% for op in enquete_data.opcoes %}
-            <div classclass="enquete-opcao-resultado {% if op.id == enquete_data.voto_usuario_id %}enquete-voto-usuario{% endif %}">
+            <div class="enquete-opcao-resultado {% if op.id == enquete_data.voto_usuario_id %}enquete-voto-usuario{% endif %}">
               <div class="info-wrapper">
                 <span class="texto-opcao">{{ op.texto }}</span>
                 <span class="percentual">{{ op.percentual }}%</span>
@@ -279,8 +202,6 @@
           {% endfor %}
           <span class="enquete-total-votos">Total de {{ enquete_data.total_votos }} votos.</span>
         </div>
-
-      <!-- Usuário LOGADO e NÃO VOTOU: Mostra formulário -->
       {% else %}
         <form class="enquete-form" method="POST" action="{% url 'noticias:votar_enquete' enquete_data.obj.pk %}">
           {% csrf_token %}
@@ -302,8 +223,6 @@
       {% endif %}
 
     {% else %}
-      
-      <!-- Usuário DESLOGADO: Mostra resultados e aviso de login -->
       <div class="enquete-resultados">
         {% for op in enquete_data.opcoes %}
           <div class="enquete-opcao-resultado">
@@ -317,45 +236,47 @@
           </div>
         {% endfor %}
       </div>
-      
+
       <p class="enquete-login-aviso">
         <a href="{% url 'login' %}?next={{ request.path }}">Faça login</a> para votar nesta enquete.
       </p>
       <span class="enquete-total-votos">Total de {{ enquete_data.total_votos }} votos.</span>
-    
     {% endif %}
   </section>
   {% endif %}
   <!-- ===== FIM DA ENQUETE ===== -->
 
-
   <!-- ===== LEIA TAMBÉM ===== -->
   {% if relacionadas %}
   <section class="art-related">
-    <!-- ... (seu código de relacionadas existente) ... -->
     <h2 class="related-title">LEIA TAMBÉM</h2>
     <div class="related-grid">
-    {% for rel in relacionadas %}
+      {% for rel in relacionadas %}
       <a href="{% url 'noticias:noticia_detalhe' rel.pk %}" class="related-card">
         {% if rel.imagem %}
-        <img src="{{ rel.imagem.url }}" alt="{{ rel.alt_imagem|default:rel.titulo }}" class="related-img">
+          {% if rel.legenda %}
+            <img src="{{ rel.imagem.url }}" alt="{{ rel.legenda }}" class="related-img">
+          {% else %}
+            <img src="{{ rel.imagem.url }}" alt="{{ rel.titulo }}" class="related-img">
+          {% endif %}
         {% endif %}
         <div class="related-info">
-          {% if rel.categoria %}
-          <p class="related-cat">{{ rel.categoria.nome|upper }}</p>
+          {% if rel.assuntos.first %}
+            <p class="related-cat">{{ rel.assuntos.first.nome|upper }}</p>
           {% endif %}
           <h3 class="related-head">{{ rel.titulo }}</h3>
-          <p class="related-desc">{{ rel.resumo|default:rel.olho|default:rel.titulo|truncatewords:22 }}</p>
+          <p class="related-desc">
+            {{ rel.resumo|default:rel.conteudo|default:rel.titulo|truncatewords:22 }}
+          </p>
         </div>
       </a>
-    {% endfor %}
+      {% endfor %}
     </div>
   </section>
   {% endif %}
 
   <!-- ===== COMPARTILHE + SALVAR ===== -->
   <section class="art-share">
-    <!-- ... (seu código de share existente) ... -->
     <h2 class="share-title">Compartilhe</h2>
     <div class="share-icons">
       <a href="https://api.whatsapp.com/send?text={{ noticia.titulo|urlencode }}%20{{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" aria-label="WhatsApp">
@@ -375,24 +296,32 @@
     {% if noticia.pk %}
     <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}">
       {% csrf_token %}
-      <button class="save-main" type="submit">
-        <svg viewBox="0 0 24 24" class="save-ico"><path d="M6 2h12a2 2 0 0 1 2 2v18l-8-4-8 4V4a 2 2 0 0 1 2-2z"/></svg>
-        <span>Salvar</span>
+      <button
+        class="save-main salvar-btn{% if is_saved %} is-saved{% endif %}"
+        type="submit"
+        aria-pressed="{{ is_saved|yesno:'true,false' }}"
+        aria-label="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
+        data-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
+        data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
+        data-login-url="{% url 'login' %}?next={{ request.path }}">
+        <svg viewBox="0 0 24 24" class="save-ico">
+          <path d="M6 2h12a 2 2 0 0 1 2 2v18l-8-4-8 4V4a 2 2 0 0 1 2-2z"/>
+        </svg>
+        <span>{% if is_saved %}Salvo{% else %}Salvar{% endif %}</span>
       </button>
     </form>
     {% endif %}
   </section>
 
-  <!-- ===== TAGS ===== -->
-  {% with noticia.tags.all as tags %}
+  <!-- ===== TAGS / ASSUNTOS ===== -->
+  {% with noticia.assuntos.all as tags %}
   {% if tags %}
   <section class="art-tags">
-    <!-- ... (seu código de tags existente) ... -->
     <h3 class="tags-title">Tags</h3>
     <div class="tags-wrap">
-    {% for tag in tags %}
-      <span class="tag-chip">{{ tag.nome|upper }}</span>
-    {% endfor %}
+      {% for tag in tags %}
+        <span class="tag-chip">{{ tag.nome|upper }}</span>
+      {% endfor %}
     </div>
   </section>
   {% endif %}
@@ -403,39 +332,102 @@
 
 {% block extra_js %}
 {{ block.super }}
+<script src="{% static 'noticias/js/salvar.js' %}"></script>
+<script src="{% static 'noticias/js/resumo.js' %}"></script>
 <script>
-  // Web Share (mobile) + fallback
+  // SHARE NATIVO / COPIAR LINK
   (function () {
     var btn = document.getElementById('shareBtn');
     if (btn) {
       btn.addEventListener('click', async function () {
-        const data = { title: document.title, text: "{{ noticia.titulo|escapejs }}", url: window.location.href };
-        if (navigator.share) { try { await navigator.share(data); } catch(e) {} }
-        else { try { await navigator.clipboard.writeText(data.url); } catch(e) {} }
+        const data = {
+          title: document.title,
+          text: "{{ noticia.titulo|escapejs }}",
+          url: window.location.href
+        };
+        if (navigator.share) {
+          try { await navigator.share(data); } catch (e) {}
+        } else {
+          try { await navigator.clipboard.writeText(data.url); } catch (e) {}
+        }
+      });
+    }
+
+    var copyBtn = document.getElementById("copyLink");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", async function () {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          alert("Link copiado!");
+        } catch (e) {}
       });
     }
   })();
 
-  // Copiar link
-  document.getElementById("copyLink")?.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      alert("Link copiado!"); // TODO: Substituir por um 'toast' não-bloqueante
-    } catch (e) {}
-  });
-
-  // (NOVO) Desabilitar botão da enquete após o envio
+  // DESABILITAR BOTÃO DA ENQUETE ENQUANTO ENVIA
   (function () {
     const form = document.querySelector('.enquete-form');
-    if (form) {
-      form.addEventListener('submit', function() {
-        const btn = form.querySelector('.enquete-btn');
-        if (btn) {
-          btn.setAttribute('disabled', 'disabled');
-          btn.textContent = 'Votando...';
-        }
-      });
+    if (!form) {
+      return;
     }
+    form.addEventListener('submit', function () {
+      const btn = form.querySelector('.enquete-btn');
+      if (btn) {
+        btn.setAttribute('disabled', 'disabled');
+        btn.textContent = 'Votando...';
+      }
+    });
+  })();
+
+  // ==============================
+  //  CONTINUAR LENDO (DETALHE)
+  // ==============================
+  (function () {
+    const wrapper = document.getElementById('artBodyWrapper');
+    const body    = document.getElementById('artBody');
+    const btn     = document.getElementById('readMoreBtn');
+
+    if (!wrapper || !body || !btn) {
+      return;
+    }
+
+    const CLAMP_HEIGHT = 260; // px
+    const fullHeight = body.offsetHeight;
+
+    if (fullHeight <= CLAMP_HEIGHT + 10) {
+      btn.style.display = 'none';
+      wrapper.classList.remove('is-clamped');
+      return;
+    }
+
+    wrapper.classList.add('is-clamped');
+    btn.style.display = 'flex';
+
+    const label = btn.querySelector('.read-more-label');
+    let expanded = false;
+
+    btn.addEventListener('click', function () {
+      expanded = !expanded;
+
+      if (expanded) {
+        wrapper.classList.remove('is-clamped');
+        btn.classList.add('is-expanded');
+        if (label) {
+          label.textContent = 'Mostrar menos';
+        }
+      } else {
+        wrapper.classList.add('is-clamped');
+        btn.classList.remove('is-expanded');
+        if (label) {
+          label.textContent = 'Continuar Lendo';
+        }
+
+        window.scrollTo({
+          top: wrapper.offsetTop - 120,
+          behavior: 'smooth'
+        });
+      }
+    });
   })();
 </script>
 {% endblock %}
