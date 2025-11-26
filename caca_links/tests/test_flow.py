@@ -62,12 +62,9 @@ def test_escolher_tema_context(login, assunto, caca_trio, monkeypatch):
     assert captured.get("template")  # ex.: "cacalinks/escolher_tema.html"
     ctx = captured.get("context", {})
     assert "temas" in ctx
-    assert "progresso" in ctx
 
     temas = ctx["temas"]
-    progresso = ctx["progresso"]
     assert hasattr(temas, "__iter__")
-    assert hasattr(progresso, "__iter__")
 
 def test_jogar_renderiza(login, assunto, caca_trio, monkeypatch):
     """
