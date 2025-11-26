@@ -1,5 +1,6 @@
 name: CI/CD Pipeline - Django para Azure
 
+# 🔑 Gatilho: Inicia a pipeline a cada push no branch 'prod'
 on:
   push:
     branches:
@@ -22,12 +23,25 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          # Instala dependências de teste se não estiverem no requirements.txt
+          pip install pytest pytest-django
 
-      - name: 🧪 Rodar testes (não bloqueante)
-        run: pytest || echo "⚠️ Testes falharam, mas a pipeline continuará."
+      - name: 🧪 Rodar testes
+        # Configura variáveis de ambiente necessárias para o Django
+        env:
+          # Usada para iniciar o Django no ambiente de teste do CI
+          SECRET_KEY: 'django-insecure-test-key-for-ci-pipeline'
+          # Assume DEBUG=True para evitar problemas de ALLOWED_HOSTS nos testes
+          DEBUG: 'True'
+          # Observação: O DJANGO_SETTINGS_MODULE é definido no seu pytest.ini
+        run: |
+          # O pytest usa a configuração do seu pytest.ini, incluindo -v e --maxfail=1.
+          # Se este passo falhar (teste falhando), a pipeline é interrompida.
+          pytest
 
       - name: 📦 Preparar artefato para deploy
-        run: zip -r release.zip . -x "venv/*" "__pycache__/*" ".git/*" "db.sqlite3*"
+        # Só executa se os testes passarem
+        run: zip -r release.zip . -x "venv/*" "__pycache__/*" ".git/*" "db.sqlite3*" "pytest_cache/*" ".pytest_cache/*"
 
       - name: ⬆️ Upload do artefato
         uses: actions/upload-artifact@v4
@@ -38,6 +52,7 @@ jobs:
   # --- JOB 2: DEPLOY ---
   deploy:
     runs-on: ubuntu-latest
+    # 🛑 Depende do sucesso do job 'build'
     needs: build
     permissions:
       id-token: write
@@ -53,6 +68,7 @@ jobs:
         run: unzip release.zip
 
       - name: 🔑 Login no Azure via OIDC
+        # Este passo usa as secrets configuradas no seu repositório do GitHub
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
