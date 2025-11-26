@@ -51,10 +51,17 @@ def test_filtra_por_assunto_e_periodo(client, assunto_factory, noticia_factory):
     # no contexto, podemos validar diretamente esse queryset no futuro.)
 
 
-def test_index_contem_blocos_chave(client):
+def test_index_contem_blocos_chave(client, noticia_factory):
     """Sanidade: blocos principais aparecem (previne 'passar' com template quebrado)."""
+    
+    # 1. Crie algumas notícias para garantir que os blocos do template sejam renderizados
+    noticia_factory(titulo="Noticia Destaque", conteudo="Conteúdo...")
+    noticia_factory(titulo="Noticia Para Você", conteudo="Conteúdo...")
+    
     r = client.get(reverse("noticias:index"))
     html = r.content.decode("utf-8")
+    
+    # Agora a verificação deve passar
     assert "Destaques" in html
     assert "Para você" in html
     assert "Mais lidas" in html
