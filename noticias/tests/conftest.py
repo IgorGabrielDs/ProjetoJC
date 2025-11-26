@@ -19,7 +19,13 @@ def client_logged(client, user):
 @pytest.fixture
 def assunto_factory(db):
     def make(nome="Política", slug="politica"):
-        return Assunto.objects.create(nome=nome, slug=slug)
+        # MUDANÇA AQUI: De .create() para .get_or_create()
+        # get_or_create retorna uma tupla (objeto, criado), pegamos o [0]
+        assunto, _ = Assunto.objects.get_or_create(
+            slug=slug, 
+            defaults={'nome': nome}
+        )
+        return assunto
     return make
 
 
