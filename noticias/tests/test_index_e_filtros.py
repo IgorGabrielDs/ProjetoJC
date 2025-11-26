@@ -51,17 +51,26 @@ def test_filtra_por_assunto_e_periodo(client, assunto_factory, noticia_factory):
     # no contexto, podemos validar diretamente esse queryset no futuro.)
 
 
-def test_index_contem_blocos_chave(client, noticia_factory):
-    """Sanidade: blocos principais aparecem (previne 'passar' com template quebrado)."""
+def test_index_contem_blocos_chave(client, noticia_factory, assunto_factory):
+    """Sanidade: blocos principais aparecem."""
     
-    # 1. Crie algumas notícias para garantir que os blocos do template sejam renderizados
-    noticia_factory(titulo="Noticia Destaque", conteudo="Conteúdo...")
-    noticia_factory(titulo="Noticia Para Você", conteudo="Conteúdo...")
+    # 1. Crie um assunto (obrigatório para muitas views exibirem a notícia)
+    assunto = assunto_factory(nome="Geral", slug="geral")
+
+    # 2. Crie notícias VINCULADAS a esse assunto
+    noticia_factory(titulo="Manchete Principal", assuntos=[assunto])
+    noticia_factory(titulo="Noticia Secundária", assuntos=[assunto])
+    noticia_factory(titulo="Extra", assuntos=[assunto])
     
     r = client.get(reverse("noticias:index"))
+    
+    # Decodifica para verificar o texto
     html = r.content.decode("utf-8")
     
-    # Agora a verificação deve passar
+    # Debug: Se falhar novamente, o print ajuda a ver o que foi renderizado
+    if "Para você" not in html:
+        print(html) 
+
     assert "Destaques" in html
     assert "Para você" in html
     assert "Mais lidas" in html
