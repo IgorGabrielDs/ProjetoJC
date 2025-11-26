@@ -2,6 +2,7 @@
 import pytest
 from django.urls import reverse
 from django.utils import timezone
+import django.urls
 
 pytestmark = pytest.mark.django_db
 
@@ -96,9 +97,9 @@ def test_fluxo_concluir_nivel(login, assunto, caca_trio, django_db_reset_sequenc
     from django.contrib.auth import get_user_model
 
     # Evita NoReverseMatch para 'noticias:detalhe_noticia'
-    def fake_reverse(name, args=None, kwargs=None):
+    def fake_reverse(viewname, urlconf=None, args=None, kwargs=None, current_app=None):
         return "/fake/noticia/1/"
-    monkeypatch.setattr(views, "reverse", fake_reverse)
+    monkeypatch.setattr(django.urls, "reverse", fake_reverse)
 
     # Evita NoReverseMatch para 'cacalinks:jogar' caso exista legado
     def fake_redirect(to, *args, **kwargs):
