@@ -36,7 +36,6 @@
       const li = btn.closest('.dropdown');
       const isOpen = li.classList.contains('open');
 
-      // fecha todos antes de abrir o clicado
       document.querySelectorAll('#menu .dropdown').forEach(d => d.classList.remove('open'));
 
       if (!isOpen) {
@@ -70,7 +69,6 @@
     const liveBtn = liveDropdown.querySelector('.drop-btn');
     const submenu = liveDropdown.querySelector('.submenu');
 
-    // altura quando fechado
     const closedHeight = liveBtn.offsetHeight || 56;
 
     function openLive() {
@@ -92,57 +90,67 @@
       else openLive();
     });
 
-    // atualiza ao redimensionar a tela
     window.addEventListener('resize', () => {
       if (liveDropdown.classList.contains('is-open')) openLive();
       else closeLive();
     });
 
-    // inicia fechado
     closeLive();
   }
 
 })();
+
+
 // === CARROSSEL MOBILE — NOSSOS PRODUTOS ===
 (function () {
   const carrossel = document.querySelector(".produtos-logos");
   const dots = document.querySelectorAll(".carousel-dots .dot");
 
-  // só funciona se existir (somente mobile)
   if (!carrossel || dots.length === 0) return;
 
-  let page = 0; // página inicial
+  let page = 0;
 
   function getPageWidth() {
-    return carrossel.clientWidth; // largura da viewport do carrossel
+    return carrossel.clientWidth;
   }
 
-  // Atualiza a bolinha ativa
+  // ---- Função principal (scroll + atualizar bolinhas) ----
+  function goToPage(index) {
+    page = index;
+
+    carrossel.scrollTo({
+      left: getPageWidth() * page,
+      behavior: "smooth"
+    });
+
+    updateDots();
+  }
+
+  // ---- Atualiza bolinha ativa ----
   function updateDots() {
     dots.forEach(dot => dot.classList.remove("active"));
     dots[page].classList.add("active");
   }
 
-  // Clicar nas bolinhas → deslizar carrossel
+  // ---- Clique nas bolinhas ----
   dots.forEach(dot => {
     dot.addEventListener("click", () => {
-      page = parseInt(dot.dataset.index);
-      carrossel.scrollTo({
-        left: getPageWidth() * page,
-        behavior: "smooth"
-      });
-      updateDots();
+      goToPage(parseInt(dot.dataset.index));
     });
   });
 
-  // Scroll manual → mudar bolinhas automaticamente
+  // ---- Scroll lateral chama a mesma ação do clique ----
+  let scrollTimeout;
   carrossel.addEventListener("scroll", () => {
-    const width = getPageWidth();
-    const newPage = Math.round(carrossel.scrollLeft / width);
+    clearTimeout(scrollTimeout);
 
-    if (newPage !== page) {
-      page = newPage;
-      updateDots();
-    }
+    scrollTimeout = setTimeout(() => {
+      const width = getPageWidth();
+      const newPage = Math.round(carrossel.scrollLeft / width);
+
+      if (newPage !== page) {
+        goToPage(newPage); 
+      }
+    }, 80);
   });
 })();
