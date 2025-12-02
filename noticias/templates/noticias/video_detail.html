@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<section class="section" style="padding: 40px 0;">
+    <div class="container" style="max-width: 800px; margin: 0 auto; padding: 0 15px;">
+        
+        <div class="section-title" style="margin-bottom: 20px;">
+            <h1 class="title">{{ video.titulo }}</h1>
+            <span class="rule"></span>
+        </div>
+
+        <div class="video-container" style="background: #000; width: 100%; margin-bottom: 20px; border-radius: 8px; overflow: hidden;">
+            
+            {% if video.arquivo %}
+                <video width="100%" height="auto" controls autoplay style="display: block;">
+                    <source src="{{ video.arquivo.url }}" type="video/mp4">
+                    Seu navegador não suporta a reprodução de vídeos.
+                    <a href="{{ video.arquivo.url }}">Baixe o vídeo aqui</a>.
+                </video>
+
+            {% elif video.link %}
+                <div style="padding: 40px; text-align: center; color: white;">
+                    <p>Este vídeo está hospedado externamente.</p>
+                    <a href="{{ video.link }}" target="_blank" class="btn btn-primary" style="background: white; color: black; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; margin-top: 10px;">
+                        Assistir no YouTube/Vimeo
+                    </a>
+                </div>
+
+            {% else %}
+                <div style="padding: 40px; text-align: center; color: white;">
+                    <p>Arquivo de vídeo não encontrado.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="video-info" style="margin-bottom: 30px;">
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">
+                Publicado em: {{ video.criado_em|date:"d/m/Y H:i" }}
+            </p>
+            
+            {% if video.descricao %}
+                <div class="description" style="line-height: 1.6;">
+                    {{ video.descricao|linebreaks }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="actions">
+            <a href="{% url 'noticias:galeria_videos' %}" class="btn" style="text-decoration: underline; color: #333;">
+                &larr; Voltar para a Galeria
+            </a>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

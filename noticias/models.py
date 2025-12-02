@@ -1,11 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.conf import settings
-from django.utils import timezone
 from django.urls import reverse
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+# --- PERFIL E USUÁRIO ---
 
 class Perfil(models.Model):
     user = models.OneToOneField(
@@ -22,6 +21,8 @@ class Perfil(models.Model):
         return f"Perfil de {self.user}"
 
 
+# --- TAXONOMIA (ASSUNTOS) ---
+
 class Assunto(models.Model):
     nome = models.CharField(max_length=80, unique=True)
     slug = models.SlugField(max_length=80, unique=True)
@@ -32,6 +33,8 @@ class Assunto(models.Model):
     def __str__(self):
         return self.nome
 
+
+# --- CONTEÚDO PRINCIPAL (NOTÍCIA) ---
 
 class Noticia(models.Model):
     titulo = models.CharField(max_length=200)
@@ -93,7 +96,40 @@ class Noticia(models.Model):
         return self.titulo
 
 
-# --- MODELOS DA ENQUETE MODIFICADOS/NOVOS ---
+# --- NOVO MODELO: VÍDEO (INDEPENDENTE) ---
+
+class Video(models.Model):
+    titulo = models.CharField("Título do Vídeo", max_length=200)
+    descricao = models.TextField("Descrição", blank=True, null=True)
+    
+    # IMPORTANTE: Adicionei este campo pois seu HTML exige uma capa para o carrossel
+    imagem = models.ImageField("Capa do Vídeo", upload_to='videos/capas/', blank=True, null=True)
+    
+    # Opção para Link Externo (YouTube/Vimeo)
+    link = models.URLField("Link do YouTube/Vimeo", blank=True, null=True)
+    
+    # Opção para Upload de Arquivo
+    arquivo = models.FileField("Arquivo de Vídeo", upload_to='videos/', blank=True, null=True)
+    
+    # Se você tiver um model de "Assunto" ou "Categoria", descomente a linha abaixo:
+    # assuntos = models.ManyToManyField('Assunto', blank=True)
+    
+    criado_em = models.DateTimeField(auto_now_add=True)
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Vídeo"
+        verbose_name_plural = "Vídeos"
+        ordering = ["-criado_em"]
+
+    def __str__(self):
+        return self.titulo
+
+    def get_absolute_url(self):
+        return reverse('noticias:detalhe_video', args=[self.pk])
+
+
+# --- SISTEMA DE ENQUETES ---
 
 class Enquete(models.Model):
     noticia = models.OneToOneField(
@@ -105,9 +141,6 @@ class Enquete(models.Model):
     )
     # O 'titulo' agora é a PERGUNTA da enquete
     titulo = models.CharField("Pergunta da enquete", max_length=200, blank=True, null=True)
-
-    # Removemos opcao_a e opcao_b daqui
-    # Elas agora serão gerenciadas pelo modelo OpcaoEnquete
 
     def __str__(self):
         return self.titulo or f"Enquete da notícia: {self.noticia.titulo}"
@@ -134,7 +167,6 @@ class OpcaoEnquete(models.Model):
     @property
     def total_votos(self):
         """Calcula o total de votos para esta opção."""
-        # Contamos quantos VotoEnquete estão ligados a esta OpcaoEnquete
         return self.votoenquete_set.count()
 
 
@@ -168,20 +200,18 @@ class VotoEnquete(models.Model):
         return f"{self.usuario.username} votou em '{self.opcao_selecionada.texto}'"
 
 
-# --- FIM DAS MODIFICAÇÕES DA ENQUETE ---
-
+# --- INTERAÇÕES (SCORE E SALVOS) ---
 
 class Voto(models.Model):
     """Este é o Voto de UPVOTE/DOWNVOTE da Notícia (Score)"""
     noticia = models.ForeignKey(
         Noticia, on_delete=models.CASCADE, related_name="votos"
     )
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     valor = models.IntegerField() # -1 para downvote, 1 para upvote
 
     criado_em = models.DateTimeField(auto_now_add=True)
-    # Corrigindo um erro de digitação de antes: auto_now=True
-    atualizado_em = models.DateTimeField(auto_now=True) 
+    atualizado_em = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [
@@ -205,6 +235,8 @@ class Salvo(models.Model):
     def __str__(self):
         return f"{self.usuario} salvou {self.noticia}"
 
+
+# --- SIGNALS ---
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def criar_perfil_ao_criar_usuario(sender, instance, created, **kwargs):

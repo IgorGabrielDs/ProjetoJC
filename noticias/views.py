@@ -25,7 +25,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-# Imports da Enquete adicionados
+# Imports dos Modelos (Incluindo o novo Video)
 from .models import (
     Noticia,
     Voto,
@@ -34,6 +34,7 @@ from .models import (
     Enquete,
     OpcaoEnquete,
     VotoEnquete,
+    Video,  
 )
 
 logger = logging.getLogger(__name__)
@@ -90,7 +91,6 @@ def _persistir_preferencias_no_perfil(user, identificacao, assuntos_ids):
     perfil, _ = Perfil.objects.get_or_create(user=user)
 
     # Flag de identificação pública (se existir)
-    # exemplos de nomes de campo comuns: mostrar_nome_publico / identificacao_publica / publico
     for campo in ("mostrar_nome_publico", "identificacao_publica", "publico"):
         if hasattr(perfil, campo):
             try:
@@ -103,7 +103,6 @@ def _persistir_preferencias_no_perfil(user, identificacao, assuntos_ids):
         try:
             prefs = perfil.preferencias or {}
             if not isinstance(prefs, dict):
-                # caso prefs venha como str
                 try:
                     prefs = json.loads(prefs)
                 except Exception:
@@ -271,16 +270,11 @@ def index(request):
     if not jc360.exists():
         jc360 = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:4]
 
-    # 5) Vídeos (com fallback)
-    try:
-        videos_assunto = Assunto.objects.get(slug="videos")
-        videos_qs = all_qs.filter(assuntos=videos_assunto)
-    except Assunto.DoesNotExist:
-        videos_qs = all_qs.filter(assuntos__nome__iexact="videos")
-
-    videos = _annotate_is_saved(videos_qs.order_by("-criado_em"), request.user)[:2]
-    if not videos.exists():
-        videos = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:2]
+    # =========================================================
+    # 5) VÍDEOS - AQUI ESTÁ A CORREÇÃO PARA O CARROSSEL FUNCIONAR
+    # =========================================================
+    # Buscamos direto do Model Video, ordenado por data
+    videos_tv = Video.objects.filter(ativo=True).order_by("-criado_em")[:4]
 
     # 6) Pernambuco (destaque único com fallback)
     try:
@@ -323,7 +317,7 @@ def index(request):
         "titulo_para_voce": titulo_para_voce,
         "mais_lidas": mais_lidas,
         "jc360": jc360,
-        "videos": videos,
+        "videos_tv": videos_tv,
         "pernambuco": pernambuco,
         "top3": top3,
         "show_welcome": show_welcome,
@@ -715,7 +709,7 @@ def resumir_noticia(request, pk):
 
 
 # ==================================================
-# NOVA VIEW - VOTAÇÃO DA ENQUETE
+# VOTAÇÃO DA ENQUETE
 # ==================================================
 @login_required # REQUER LOGIN: Garante que só usuários logados votem
 @require_http_methods(["POST"]) # Só aceita requisições POST
@@ -766,3 +760,20 @@ def votar_enquete(request, enquete_pk):
 
     # Redireciona o usuário de volta para a notícia
     return redirect(noticia.get_absolute_url())
+
+
+# ==================================================
+# (NOVA) GALERIA DE VÍDEOS INDEPENDENTES
+# ==================================================
+def galeria_videos(request):
+    """
+    Exibe a lista de vídeos independentes (YouTube ou Upload),
+    sem necessidade de estarem vinculados a notícias.
+    """
+    videos = Video.objects.filter(ativo=True).order_by('-criado_em')
+    return render(request, 'noticias/galeria_videos.html', {'videos_tv': videos})
+
+def video_detail(request, pk):
+    # Pega o vídeo pelo ID ou retorna erro 404 se não achar
+    video = get_object_or_404(Video, pk=pk)
+    return render(request, 'noticias/video_detail.html', {'video': video})

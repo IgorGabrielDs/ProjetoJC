@@ -1,433 +1,590 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ noticia.titulo }} — JC{% endblock %}
-
-{% block extra_css %}
-{{ block.super }}
-<link rel="stylesheet" href="{% static 'noticias/css/article.css' %}">
-{% endblock %}
+{% block title %}JC — Início{% endblock %}
 
 {% block content %}
-<article class="art-wrap" itemscope itemtype="https://schema.org/NewsArticle">
 
-  <!-- Kicker + ações (topo, linha única) + título -->
-  <header class="art-top">
-    <div class="art-topbar">
-      <div class="art-kicker">
-        {% if noticia.assuntos.first %}
-          <span class="kicker-link">{{ noticia.assuntos.first.nome }}</span>
-        {% endif %}
-        <span class="kicker-sep">|</span>
-        <span class="kicker-type">NOTÍCIA</span>
-      </div>
-
-      <div class="art-actions">
-        {% if noticia.pk %}
-        <form method="post"
-              action="{% url 'noticias:toggle_salvo' noticia.pk %}"
-              class="act"
-              aria-label="Salvar matéria">
-          {% csrf_token %}
-          <!-- ESTRELA DE SALVAR (estado vem do backend + salvar.js) -->
-          <button
-            class="btn-icon btn-save salvar-btn{% if is_saved %} is-saved{% endif %}"
-            type="submit"
-            title="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
-            aria-label="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
-            aria-pressed="{{ is_saved|yesno:'true,false' }}"
-            data-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
-            data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
-            data-login-url="{% url 'login' %}?next={{ request.path }}">
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="ico ico-star">
-              <!-- contorno -->
-              <path class="star-outline"
-                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-              <!-- preenchimento -->
-              <path class="star-fill"
-                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-            </svg>
-          </button>
-        </form>
-        {% endif %}
-
-        <!-- COMPARTILHAR (novo ícone) -->
-        <button class="btn-icon btn-share"
-                type="button"
-                title="Compartilhar"
-                id="shareBtn"
-                aria-label="Compartilhar">
-          <svg viewBox="0 0 24 24" aria-hidden="true" class="ico ico-share">
-            <!-- caixinha -->
-            <path d="M8 5h6a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3z"/>
-            <!-- seta saindo -->
-            <path d="M14 5V3h7v7h-2V7.83l-6.3 6.3-1.4-1.41L17.6 6H14z"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <h1 class="art-title" itemprop="headline">{{ noticia.titulo }}</h1>
-  </header>
-
-  <!-- Imagem principal (hero) -->
-  {% if noticia.imagem %}
-  <figure class="art-hero" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-    {% if noticia.legenda %}
-      <img src="{{ noticia.imagem.url }}" alt="{{ noticia.legenda }}" class="hero-img">
-    {% else %}
-      <img src="{{ noticia.imagem.url }}" alt="Imagem de {{ noticia.titulo }}" class="hero-img">
-    {% endif %}
-    {% if noticia.legenda or noticia.credito_imagem %}
-    <figcaption class="hero-cap">
-      <span class="cap-txt">{{ noticia.legenda }}</span>
-      {% if noticia.credito_imagem %}
-        <span class="cap-credit"> — {{ noticia.credito_imagem }}</span>
-      {% endif %}
-    </figcaption>
-    {% endif %}
-    <meta itemprop="url" content="{{ noticia.imagem.url }}">
-  </figure>
-  {% endif %}
-
-  <!-- Linha de data/atualização/autor (logo abaixo da imagem) -->
-  <div class="art-times">
-    <time itemprop="datePublished" datetime="{{ noticia.criado_em|date:'c' }}">
-      Publicado em {{ noticia.criado_em|date:"d/m/Y" }} às {{ noticia.criado_em|date:"H:i" }}
-    </time>
-    {% if noticia.atualizado_em and noticia.atualizado_em > noticia.criado_em %}
-      <span class="sep">|</span>
-      <time itemprop="dateModified" datetime="{{ noticia.atualizado_em|date:'c' }}">
-        Atualizado em {{ noticia.atualizado_em|date:"d/m/Y" }} às {{ noticia.atualizado_em|date:"H:i" }}
-      </time>
-    {% endif %}
-    <span class="sep">|</span>
-    <span class="byline">
-      Por: <span class="who" itemprop="author" itemscope itemtype="https://schema.org/Organization">
-        <span itemprop="name">{{ noticia.autor|default:"JC" }}</span>
-      </span>
+<!-- ===== EDIÇÃO DO DIA (banner cinza) ===== -->
+<div class="container">
+  <div class="daily-edition" role="note" aria-label="Edição do dia">
+    <span class="daily-strip" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="24" height="24" role="img" focusable="false" aria-hidden="true">
+        <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5L4 8V6l8 5 8-5Z" fill="#fff"/>
+      </svg>
     </span>
+    <strong class="daily-text">Edição do dia</strong>
+  </div>
+</div>
+
+<!-- =========================
+     DESTAQUES — HERO CARROSSEL
+     ========================= -->
+<section class="section accent-red">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Destaques</span>
+    <span class="rule"></span>
   </div>
 
-  <!-- Corpo da matéria com “Continuar Lendo” progressivo -->
-  <div class="art-body-wrapper" id="artBodyWrapper">
-    <div class="art-body" id="artBody" itemprop="articleBody">
-      {{ noticia.conteudo|linebreaks }}
-    </div>
-  </div>
+  {% if destaques %}
+    {% with destaques|slice:":3" as destaques3 %}
+    <div class="carousel" data-count="3">
+      <input type="radio" name="hero" id="r1" checked>
+      <input type="radio" name="hero" id="r2">
+      <input type="radio" name="hero" id="r3">
 
-  <button type="button" class="read-more-btn" id="readMoreBtn">
-    <span class="read-more-label">Continuar Lendo</span>
-    <span class="read-more-chevron"></span>
-  </button>
-
-  {# ============================= #}
-  {# ===== RESUMO DA NOTÍCIA ===== #}
-  {# ============================= #}
-  {% with noticia.conteudo|default_if_none:""|wordcount as total_palavras %}
-  <section class="art-resumo" aria-labelledby="resumo-titulo">
-    <h2 id="resumo-titulo" class="resumo-title">Resumo da notícia</h2>
-
-    <div id="resumo-action" data-url="{% url 'noticias:resumir_noticia' noticia.pk %}">
-      {% if total_palavras < 300 %}
-        <button
-          type="button"
-          id="btn-resumo"
-          class="resumo-btn"
-          disabled
-          title="Texto curto demais para resumir"
-        >
-          Resumir
-        </button>
-        <p id="resumo-status" class="resumo-status">
-          Texto curto demais para resumir.
-        </p>
-      {% else %}
-        <button
-          type="button"
-          id="btn-resumo"
-          class="resumo-btn"
-        >
-          Resumir
-        </button>
-        <p id="resumo-status" class="resumo-status" aria-live="polite"></p>
-      {% endif %}
-    </div>
-
-    <aside
-      id="resumo-panel"
-      class="resumo-panel"
-      hidden
-      aria-hidden="true"
-      aria-label="Resumo gerado automaticamente"
-    >
-      <header class="resumo-header">
-        <strong>Resumo gerado automaticamente</strong>
-        <button type="button" id="btn-fechar" class="resumo-close">
-          Fechar
-        </button>
-      </header>
-      <p id="resumo-text" class="resumo-text"></p>
-      <p id="resumo-meta" class="resumo-meta"></p>
-      <button type="button" id="btn-copiar" class="resumo-copy">
-        Copiar resumo
-      </button>
-    </aside>
-  </section>
-  {% endwith %}
-
-  <!-- ============================= -->
-  <!-- ===== BLOCO DA ENQUETE ===== -->
-  <!-- ============================= -->
-  {% if enquete_data %}
-  <section class="enquete-box" aria-labelledby="enquete-titulo-{{ enquete_data.obj.pk }}">
-    <h2 class="enquete-titulo" id="enquete-titulo-{{ enquete_data.obj.pk }}">
-      {{ enquete_data.obj.titulo }}
-    </h2>
-
-    {% if user.is_authenticated %}
-
-      {% if enquete_data.usuario_ja_votou %}
-        <div class="enquete-resultados">
-          {% for op in enquete_data.opcoes %}
-            <div class="enquete-opcao-resultado {% if op.id == enquete_data.voto_usuario_id %}enquete-voto-usuario{% endif %}">
-              <div class="info-wrapper">
-                <span class="texto-opcao">{{ op.texto }}</span>
-                <span class="percentual">{{ op.percentual }}%</span>
+      <div class="carousel-inner">
+        <div class="carousel-track">
+          {% for item in destaques3 %}
+          <article class="carousel-slide card" data-href="{{ item.get_absolute_url }}" aria-roledescription="slide">
+            <a href="{{ item.get_absolute_url }}">
+              <div class="card-media">
+                {% if item.imagem %}
+                  <img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">
+                {% else %}
+                  <span class="caption">Imagem 16:9</span>
+                {% endif %}
               </div>
-              <div class="enquete-barra">
-                <div class="enquete-barra-preenchimento" style="width: {{ op.percentual }}%;"></div>
-              </div>
+            </a>
+            <div class="card-body">
+              {% if item.assuntos.first %}
+                <div class="tag">
+                  {{ item.assuntos.first.nome }}
+                  <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}">
+                    <span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span>
+                  </button>
+                </div>
+              {% endif %}
+              <h2 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h2>
+              {% if item.resumo %}<p class="lead lead-border">{{ item.resumo }}</p>{% endif %}
+              <p class="caption">
+                {% if item.criado_em %}{{ item.criado_em|timesince }} atrás{% endif %}
+                {% if item.localidade %} • {{ item.localidade }}{% endif %}
+              </p>
             </div>
+          </article>
           {% endfor %}
-          <span class="enquete-total-votos">Total de {{ enquete_data.total_votos }} votos.</span>
         </div>
-      {% else %}
-        <form class="enquete-form" method="POST" action="{% url 'noticias:votar_enquete' enquete_data.obj.pk %}">
-          {% csrf_token %}
-          <fieldset>
-            <legend class="visually-hidden">Opções da enquete</legend>
-            {% for op in enquete_data.opcoes %}
-              <div class="enquete-opcao-radio">
-                <input type="radio" name="opcao_enquete" value="{{ op.id }}" id="op-{{ op.id }}" required>
-                <label for="op-{{ op.id }}">{{ op.texto }}</label>
-              </div>
-            {% empty %}
-              <p>Não há opções nesta enquete no momento.</p>
-            {% endfor %}
-          </fieldset>
-          {% if enquete_data.opcoes %}
-            <button class="enquete-btn" type="submit">Votar</button>
-          {% endif %}
-        </form>
-      {% endif %}
-
-    {% else %}
-      <div class="enquete-resultados">
-        {% for op in enquete_data.opcoes %}
-          <div class="enquete-opcao-resultado">
-            <div class="info-wrapper">
-              <span class="texto-opcao">{{ op.texto }}</span>
-              <span class="percentual">{{ op.percentual }}%</span>
-            </div>
-            <div class="enquete-barra">
-              <div class="enquete-barra-preenchimento" style="width: {{ op.percentual }}%;"></div>
-            </div>
-          </div>
-        {% endfor %}
       </div>
 
-      <p class="enquete-login-aviso">
-        <a href="{% url 'login' %}?next={{ request.path }}">Faça login</a> para votar nesta enquete.
-      </p>
-      <span class="enquete-total-votos">Total de {{ enquete_data.total_votos }} votos.</span>
-    {% endif %}
-  </section>
+      <div class="dots" aria-label="Paginação do carrossel">
+        <label for="r1" class="dot d1" aria-label="Slide 1"></label>
+        <label for="r2" class="dot d2" aria-label="Slide 2"></label>
+        <label for="r3" class="dot d3" aria-label="Slide 3"></label>
+      </div>
+    </div>
+    {% endwith %}
   {% endif %}
-  <!-- ===== FIM DA ENQUETE ===== -->
+</section>
 
-  <!-- ===== LEIA TAMBÉM ===== -->
-  {% if relacionadas %}
-  <section class="art-related">
-    <h2 class="related-title">LEIA TAMBÉM</h2>
-    <div class="related-grid">
-      {% for rel in relacionadas %}
-      <a href="{% url 'noticias:noticia_detalhe' rel.pk %}" class="related-card">
-        {% if rel.imagem %}
-          {% if rel.legenda %}
-            <img src="{{ rel.imagem.url }}" alt="{{ rel.legenda }}" class="related-img">
-          {% else %}
-            <img src="{{ rel.imagem.url }}" alt="{{ rel.titulo }}" class="related-img">
-          {% endif %}
-        {% endif %}
-        <div class="related-info">
-          {% if rel.assuntos.first %}
-            <p class="related-cat">{{ rel.assuntos.first.nome|upper }}</p>
-          {% endif %}
-          <h3 class="related-head">{{ rel.titulo }}</h3>
-          <p class="related-desc">
-            {{ rel.resumo|default:rel.conteudo|default:rel.titulo|truncatewords:22 }}
-          </p>
+<!-- =========================
+     RECOMENDADO PARA VOCÊ
+     ========================= -->
+<section class="section accent-blue">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">{{ titulo_para_voce|default:"Para você" }}</span>
+    <span class="rule"></span>
+  </div>
+
+  {% with pv=pv|default:para_voce %}
+  {% if pv %}
+  <div class="carousel">
+    <input type="radio" name="pv" id="pv1" checked>
+    <input type="radio" name="pv" id="pv2">
+    <input type="radio" name="pv" id="pv3">
+
+    <div class="carousel-inner">
+      <div class="carousel-track">
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in pv|slice:":2" %}
+            <article class="card" data-href="{{ item.get_absolute_url }}">
+              <a href="{{ item.get_absolute_url }}">
+                <div class="card-media">
+                  {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+                </div>
+              </a>
+              <div class="card-body">
+                {% if item.assuntos.first %}
+                  <div class="tag">
+                    {{ item.assuntos.first.nome }}
+                    <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}"><span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span></button>
+                  </div>
+                {% endif %}
+                <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
         </div>
-      </a>
-      {% endfor %}
-    </div>
-  </section>
-  {% endif %}
 
-  <!-- ===== COMPARTILHE + SALVAR ===== -->
-  <section class="art-share">
-    <h2 class="share-title">Compartilhe</h2>
-    <div class="share-icons">
-      <a href="https://api.whatsapp.com/send?text={{ noticia.titulo|urlencode }}%20{{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" aria-label="WhatsApp">
-        <img src="{% static 'noticias/img/whatsapp.svg' %}" alt="WhatsApp">
-      </a>
-      <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" aria-label="Facebook">
-        <img src="{% static 'noticias/img/facebook.svg' %}" alt="Facebook">
-      </a>
-      <a href="https://www.instagram.com/" target="_blank" rel="noopener" class="share-btn" aria-label="Instagram">
-        <img src="{% static 'noticias/img/instagram.svg' %}" alt="Instagram">
-      </a>
-      <button type="button" class="share-btn" id="copyLink" title="Copiar link" aria-label="Copiar link">
-        <img src="{% static 'noticias/img/share.svg' %}" alt="Copiar link">
-      </button>
+        {% if pv|length > 2 %}
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in pv|slice:"2:4" %}
+            <article class="card" data-href="{{ item.get_absolute_url }}">
+              <a href="{{ item.get_absolute_url }}">
+                <div class="card-media">
+                  {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+                </div>
+              </a>
+              <div class="card-body">
+                {% if item.assuntos.first %}
+                  <div class="tag">
+                    {{ item.assuntos.first.nome }}
+                    <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}"><span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span></button>
+                  </div>
+                {% endif %}
+                <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if pv|length > 4 %}
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in pv|slice:"4:6" %}
+            <article class="card" data-href="{{ item.get_absolute_url }}">
+              <a href="{{ item.get_absolute_url }}">
+                <div class="card-media">
+                  {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+                </div>
+              </a>
+              <div class="card-body">
+                {% if item.assuntos.first %}
+                  <div class="tag">
+                    {{ item.assuntos.first.nome }}
+                    <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}"><span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span></button>
+                  </div>
+                {% endif %}
+                <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
     </div>
 
-    {% if noticia.pk %}
-    <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}">
-      {% csrf_token %}
-      <button
-        class="save-main salvar-btn{% if is_saved %} is-saved{% endif %}"
-        type="submit"
-        aria-pressed="{{ is_saved|yesno:'true,false' }}"
-        aria-label="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
-        data-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
-        data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
-        data-login-url="{% url 'login' %}?next={{ request.path }}">
-        <svg viewBox="0 0 24 24" class="save-ico">
-          <path d="M6 2h12a 2 2 0 0 1 2 2v18l-8-4-8 4V4a 2 2 0 0 1 2-2z"/>
-        </svg>
-        <span>{% if is_saved %}Salvo{% else %}Salvar{% endif %}</span>
-      </button>
-    </form>
-    {% endif %}
-  </section>
-
-  <!-- ===== TAGS / ASSUNTOS ===== -->
-  {% with noticia.assuntos.all as tags %}
-  {% if tags %}
-  <section class="art-tags">
-    <h3 class="tags-title">Tags</h3>
-    <div class="tags-wrap">
-      {% for tag in tags %}
-        <span class="tag-chip">{{ tag.nome|upper }}</span>
-      {% endfor %}
+    <div class="dots" aria-label="Paginação do carrossel">
+      <label for="pv1" class="dot d1"></label>
+      <label for="pv2" class="dot d2"></label>
+      <label for="pv3" class="dot d3"></label>
     </div>
-  </section>
+  </div>
   {% endif %}
   {% endwith %}
 
-</article>
-{% endblock %}
+  <!-- CTA WhatsApp -->
+  <div class="container">
+    <aside class="cta-zap" aria-label="WhatsApp CTA">
+      <div class="zap-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="64" height="64" role="img" focusable="false" aria-hidden="true">
+          <circle cx="32" cy="32" r="32" fill="#8F959E"/><circle cx="32" cy="32" r="24" fill="#7C828A"/>
+          <path d="M27 20a3 3 0 0 0-3 3c0 10.5 8.5 18 18 18a3 3 0 0 0 3-3v-2.1a1 1 0 0 0-.7-.95l-5-1.6a1 1 0 0 0-1 .26l-1.5 1.5c-.26.26-.63.36-.98.25-2.5-.8-5.1-3.4-5.9-5.9-.11-.35-.01-.72.25-.98l1.5-1.5a1 1 0 0 0 .26-1l-1.6-5a1 1 0 0 0-.95-.7H27Z" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="zap-text">
+        <strong>Vamos conversar no zap?</strong>
+        <p>Receba notícias na palma da sua mão. Entre agora mesmo no nosso canal exclusivo do WhatsApp</p>
+      </div>
+      <a class="zap-action" href="https://whatsapp.com" target="_blank" rel="noopener">Entrar</a>
+    </aside>
+  </div>
+</section>
 
-{% block extra_js %}
-{{ block.super }}
-<script src="{% static 'noticias/js/salvar.js' %}"></script>
-<script src="{% static 'noticias/js/resumo.js' %}"></script>
-<script>
-  // SHARE NATIVO / COPIAR LINK
-  (function () {
-    var btn = document.getElementById('shareBtn');
-    if (btn) {
-      btn.addEventListener('click', async function () {
-        const data = {
-          title: document.title,
-          text: "{{ noticia.titulo|escapejs }}",
-          url: window.location.href
-        };
-        if (navigator.share) {
-          try { await navigator.share(data); } catch (e) {}
-        } else {
-          try { await navigator.clipboard.writeText(data.url); } catch (e) {}
-        }
-      });
-    }
+<!-- =========================
+     MAIS LIDAS
+     ========================= -->
+<section class="section accent-red">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Mais lidas</span>
+    <span class="rule"></span>
+  </div>
 
-    var copyBtn = document.getElementById("copyLink");
-    if (copyBtn) {
-      copyBtn.addEventListener("click", async function () {
-        try {
-          await navigator.clipboard.writeText(window.location.href);
-          alert("Link copiado!");
-        } catch (e) {}
-      });
-    }
-  })();
+  {% if mais_lidas %}
+  <ol class="list list-ranked">
+    {% for item in mais_lidas|slice:":5" %}
+    <li class="list-item" value="{{ forloop.counter }}">
+      <article class="card card-list" data-href="{{ item.get_absolute_url }}">
+        <a href="{{ item.get_absolute_url }}">
+          <div class="card-media">
+            {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+            <span class="rank-badge">{{ forloop.counter }}</span>
+          </div>
+        </a>
+        <div class="card-body">
+          <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+        </div>
+      </article>
+    </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+</section>
 
-  // DESABILITAR BOTÃO DA ENQUETE ENQUANTO ENVIA
-  (function () {
-    const form = document.querySelector('.enquete-form');
-    if (!form) {
-      return;
-    }
-    form.addEventListener('submit', function () {
-      const btn = form.querySelector('.enquete-btn');
-      if (btn) {
-        btn.setAttribute('disabled', 'disabled');
-        btn.textContent = 'Votando...';
-      }
-    });
-  })();
+<!-- =========================
+     PUBLICIDADE LEGAL
+     ========================= -->
+<section class="section accent-green">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Publicidade legal</span>
+    <span class="rule"></span>
+  </div>
 
-  // ==============================
-  //  CONTINUAR LENDO (DETALHE)
-  // ==============================
-  (function () {
-    const wrapper = document.getElementById('artBodyWrapper');
-    const body    = document.getElementById('artBody');
-    const btn     = document.getElementById('readMoreBtn');
+  {% if publicidade_legal %}
+  <div class="grid-2">
+    {% for item in publicidade_legal|slice:":2" %}
+    <article class="card" data-href="{{ item.get_absolute_url }}">
+      <a href="{{ item.get_absolute_url }}">
+        <div class="card-media">
+          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+        <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  <div class="see-more">
+    <a class="btn-pill" href="{% url 'noticias:index' %}?sec=publicidade">Ver mais</a>
+  </div>
+  {% endif %}
+</section>
 
-    if (!wrapper || !body || !btn) {
-      return;
-    }
+<!-- =========================
+     JC360
+     ========================= -->
+<section class="section accent-purple">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">JC360</span>
+    <span class="rule"></span>
+  </div>
 
-    const CLAMP_HEIGHT = 260; // px
-    const fullHeight = body.offsetHeight;
+  {% if jc360 %}
+  <div class="grid-2">
+    {% for item in jc360|slice:":2" %}
+    <article class="card" data-href="{{ item.get_absolute_url }}">
+      <a href="{{ item.get_absolute_url }}">
+        <div class="card-media">
+          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        {% if item.assuntos.first %}
+          <div class="tag">
+            {{ item.assuntos.first.nome }}
+            <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}"><span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span></button>
+          </div>
+        {% endif %}
+        <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
 
-    if (fullHeight <= CLAMP_HEIGHT + 10) {
-      btn.style.display = 'none';
-      wrapper.classList.remove('is-clamped');
-      return;
-    }
+  <div class="grid-2 mt-16">
+    {% for item in jc360|slice:"2:4" %}
+    <article class="card" data-href="{{ item.get_absolute_url }}">
+      <a href="{{ item.get_absolute_url }}">
+        <div class="card-media">
+          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        {% if item.assuntos.first %}
+          <div class="tag">
+            {{ item.assuntos.first.nome }}
+            <button class="bookmark-btn" aria-label="Salvar" data-id="{{ item.pk }}"><span class="bm-icon bm-outline">🔖</span><span class="bm-icon bm-solid">🔖</span></button>
+          </div>
+        {% endif %}
+        <h3 class="title" style="font-size:var(--fs-lg)"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
 
-    wrapper.classList.add('is-clamped');
-    btn.style.display = 'flex';
+  <div class="see-more">
+    <a class="btn-pill" href="{% url 'noticias:index' %}?sec=jc360">Ver mais</a>
+  </div>
+  {% endif %}
+</section>
 
-    const label = btn.querySelector('.read-more-label');
-    let expanded = false;
+<!-- =========================
+     SEÇÃO: VÍDEOS (MODIFICADO)
+     ========================= -->
+<section class="section accent-blue">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Vídeos</span>
+    <span class="rule"></span>
+  </div>
 
-    btn.addEventListener('click', function () {
-      expanded = !expanded;
+  {% if videos %}
+  <div class="carousel">
+    <input type="radio" name="tv" id="tv1" checked>
+    <input type="radio" name="tv" id="tv2">
+    <input type="radio" name="tv" id="tv3">
 
-      if (expanded) {
-        wrapper.classList.remove('is-clamped');
-        btn.classList.add('is-expanded');
-        if (label) {
-          label.textContent = 'Mostrar menos';
-        }
-      } else {
-        wrapper.classList.add('is-clamped');
-        btn.classList.remove('is-expanded');
-        if (label) {
-          label.textContent = 'Continuar Lendo';
-        }
+    <div class="carousel-inner">
+      <div class="carousel-track">
+        
+        <!-- Slide 1 (Vídeos 1 e 2) -->
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in videos|slice:":2" %}
+            <article class="card">
+              <!-- Área do Player -->
+              <div class="card-media" style="aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #000;">
+                {% if item.link %}
+                    <!-- YouTube Iframe -->
+                    <iframe width="100%" height="100%" src="{{ item.link }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                {% elif item.arquivo %}
+                    <!-- Uploaded Video -->
+                    <video width="100%" height="100%" controls>
+                        <source src="{{ item.arquivo.url }}" type="video/mp4">
+                        Seu navegador não suporta vídeos.
+                    </video>
+                {% else %}
+                    <p style="color:#fff; font-size:0.8rem;">Vídeo indisponível</p>
+                {% endif %}
+              </div>
+              
+              <!-- Título -->
+              <div class="card-body">
+                <h3 class="title" style="font-size:var(--fs-lg); margin-top: 0.5rem;">{{ item.titulo }}</h3>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
 
-        window.scrollTo({
-          top: wrapper.offsetTop - 120,
-          behavior: 'smooth'
-        });
-      }
-    });
-  })();
-</script>
+        <!-- Slide 2 (Vídeos 3 e 4) - Se houver -->
+        {% if videos|length > 2 %}
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in videos|slice:"2:4" %}
+            <article class="card">
+              <div class="card-media" style="aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #000;">
+                {% if item.link %}
+                    <iframe width="100%" height="100%" src="{{ item.link }}" frameborder="0" allowfullscreen></iframe>
+                {% elif item.arquivo %}
+                    <video width="100%" height="100%" controls>
+                        <source src="{{ item.arquivo.url }}" type="video/mp4">
+                    </video>
+                {% endif %}
+              </div>
+              <div class="card-body">
+                <h3 class="title" style="font-size:var(--fs-lg); margin-top: 0.5rem;">{{ item.titulo }}</h3>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Slide 3 (Vídeos 5 e 6) - Se houver -->
+        {% if videos|length > 4 %}
+        <div class="carousel-slide">
+          <div class="grid-2">
+            {% for item in videos|slice:"4:6" %}
+            <article class="card">
+              <div class="card-media" style="aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #000;">
+                {% if item.link %}
+                    <iframe width="100%" height="100%" src="{{ item.link }}" frameborder="0" allowfullscreen></iframe>
+                {% elif item.arquivo %}
+                    <video width="100%" height="100%" controls>
+                        <source src="{{ item.arquivo.url }}" type="video/mp4">
+                    </video>
+                {% endif %}
+              </div>
+              <div class="card-body">
+                <h3 class="title" style="font-size:var(--fs-lg); margin-top: 0.5rem;">{{ item.titulo }}</h3>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <div class="dots">
+      <label for="tv1" class="dot d1"></label>
+      <label for="tv2" class="dot d2"></label>
+      <label for="tv3" class="dot d3"></label>
+    </div>
+  </div>
+  {% else %}
+    <p class="caption" style="padding: 1rem;">Sem vídeos disponíveis agora.</p>
+  {% endif %}
+</section>
+
+<!-- =========================
+     PERNAMBUCO
+     ========================= -->
+<section class="section accent-red">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Pernambuco</span>
+    <span class="rule"></span>
+  </div>
+
+  {% if pernambuco %}
+    {% with item=pernambuco %}
+    <article class="card" data-href="{{ item.get_absolute_url }}">
+      <a href="{{ item.get_absolute_url }}">
+        <div class="card-media">
+          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+        <h2 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h2>
+        {% if item.resumo %}<p class="lead lead-border">{{ item.resumo }}</p>{% endif %}
+      </div>
+    </article>
+    {% endwith %}
+  {% endif %}
+</section>
+
+<!-- =========================
+     CHARGE DO DIA
+     ========================= -->
+<section class="section accent-red">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">CHARGE / {{ charge.charge_autor|default:"Nome do artista" }}</span>
+    <span class="rule"></span>
+  </div>
+
+  {% if charge and charge.charge_imagem %}
+  <article class="card">
+    <div class="card-media charge-box">
+      <img src="{{ charge.charge_imagem.url }}" alt="Charge: {{ charge.charge_autor|default:'Artista' }}">
+    </div>
+  </article>
+  {% endif %}
+</section>
+
+<!-- =========================
+     ÚLTIMAS NOTÍCIAS
+     ========================= -->
+<section class="section accent-red">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Últimas notícias</span>
+    <span class="rule"></span>
+  </div>
+
+  {% if ultimas %}
+  <div class="grid-2">
+    {% for item in ultimas|slice:":8" %}
+    <article class="card" data-href="{{ item.get_absolute_url }}">
+      <a href="{{ item.get_absolute_url }}">
+        <div class="card-media">
+          {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+        <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+
+<!-- =========================
+     BLOG DO TORCEDOR
+     ========================= -->
+<section class="section accent-green">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Blog do torcedor</span>
+    <span class="rule"></span>
+  </div>
+
+  {% if blog_torcedor %}
+    {% with top=blog_torcedor|first rest=blog_torcedor|slice:"1:5" %}
+    <article class="card" data-href="{{ top.get_absolute_url }}">
+      <a href="{{ top.get_absolute_url }}">
+        <div class="card-media">
+          {% if top.imagem %}<img src="{{ top.imagem.url }}" alt="{{ top.alt_imagem|default:top.titulo }}">{% endif %}
+        </div>
+      </a>
+      <div class="card-body">
+        {% if top.assuntos.first %}<div class="tag">{{ top.assuntos.first.nome }}</div>{% endif %}
+        <h3 class="title"><a href="{{ top.get_absolute_url }}">{{ top.titulo }}</a></h3>
+      </div>
+    </article>
+
+    <div class="grid-2 mt-16">
+      {% for item in rest %}
+      <article class="card" data-href="{{ item.get_absolute_url }}">
+        <a href="{{ item.get_absolute_url }}">
+          <div class="card-media">
+            {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+          </div>
+        </a>
+        <div class="card-body">
+          {% if item.assuntos.first %}<div class="tag">{{ item.assuntos.first.nome }}</div>{% endif %}
+          <h3 class="title"><a href="{{ item.get_absolute_url }}">{{ item.titulo }}</a></h3>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% endwith %}
+  {% endif %}
+</section>
+
+<!-- =========================
+     RECORTES
+     ========================= -->
+<section class="section recortes">
+  <div class="section-title">
+    <span class="rule"></span>
+    <span class="label">Recortes</span>
+    <span class="rule"></span>
+  </div>
+
+  <div class="container">
+    {% if recortes %}
+      {% with item=recortes|first %}
+      <a class="recortes-hero" href="{{ item.get_absolute_url }}">
+        {% if item.imagem %}<img src="{{ item.imagem.url }}" alt="{{ item.alt_imagem|default:item.titulo }}">{% endif %}
+        <span class="play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="44" height="44" role="img" focusable="false" aria-hidden="true">
+            <path d="M8 5v14l11-7z" fill="#b4bbc6"/>
+          </svg>
+        </span>
+      </a>
+      {% endwith %}
+    {% else %}
+      <div class="recortes-hero">
+        <span class="play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="44" height="44"><path d="M8 5v14l11-7z" fill="#b4bbc6"/></svg>
+        </span>
+      </div>
+    {% endif %}
+
+    <div class="recortes-dots" aria-label="Paginação dos recortes">
+      <span class="dot is-active"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+  </div>
+</section>
+
 {% endblock %}
