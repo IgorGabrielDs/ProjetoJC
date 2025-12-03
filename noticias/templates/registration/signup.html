@@ -1,110 +1,121 @@
 {% extends "base.html" %}
-{% block title %}Cadastro — JC{% endblock %}
+{% load static %}
+
+{% block title %}JC - Cadastro{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'noticias/css/cadastro.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="auth-page">
-  <div class="auth-back">
-    <a href="{% url 'noticias:index' %}">← Voltar</a>
-  </div>
 
-  <div class="auth-card">
-    <h1>Cadastre-se no Jornal do Commercio</h1>
-    <p class="auth-subtitle">Experiência completa em uma conta só.</p>
+<div class="auth-wrap">
 
-    <!-- Mensagens globais (ex: sucesso/erro após envio) -->
-    {% if messages %}
-      <div class="messages">
-        {% for m in messages %}
-          <p class="message {{ m.tags }}">{{ m }}</p>
-        {% endfor %}
-      </div>
-    {% endif %}
+    <!-- VOLTAR -->
+    <a class="auth-back" href="{% url 'login' %}">
+        <span class="back-arrow">‹</span> Voltar
+    </a>
 
-    <form method="post" class="auth-form" action="">
-      {% csrf_token %}
-      {% if next %}
-        <input type="hidden" name="next" value="{{ next }}">
-      {% endif %}
+    <!-- LOGO -->
+    <img class="auth-logo" src="{% static 'noticias/img/logo-menor-jc.png' %}" alt="JC PE">
 
-      <!-- ====== Nome ====== -->
-      <div class="field has-tip {% if errors.nome %}has-error{% endif %}">
-        <label for="id_nome">Nome completo</label>
-        <input id="id_nome" name="nome" type="text" class="auth-input"
-               placeholder="Informe o seu nome completo"
-               value="{{ old.nome|default_if_none:'' }}"
-               required autocomplete="name">
+    <!-- TÍTULO -->
+    <h1 class="auth-title">
+        Cadastre-se no Jornal do<br>Commercio
+    </h1>
+
+    <!-- FORMULÁRIO -->
+    <form method="post" action="{% url 'noticias:signup' %}">
+        {% csrf_token %}
+
+        {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <!-- NOME -->
+        <label class="auth-label" for="id_nome">Nome completo</label>
+        <input
+            id="id_nome"
+            name="nome"
+            type="text"
+            class="auth-input"
+            placeholder="Informe o seu nome completo"
+            value="{{ old.nome|default_if_none:'' }}"
+            required
+        >
         {% if errors.nome %}
-          <div class="helper">{{ errors.nome }}</div>
+            <p class="auth-error">{{ errors.nome }}</p>
         {% endif %}
-      </div>
 
-      <!-- ====== E-mail ====== -->
-      <div class="field has-tip {% if errors.email %}has-error{% endif %}">
-        <label for="id_email">Endereço de e-mail</label>
-        <input id="id_email" name="email" type="email" class="auth-input"
-               placeholder="Ex: seuemail@provedor.com"
-               value="{{ old.email|default_if_none:'' }}"
-               required autocomplete="email">
+        <!-- EMAIL -->
+        <label class="auth-label" for="id_email">Endereço de e-mail</label>
+        <input
+            id="id_email"
+            name="email"
+            type="email"
+            class="auth-input"
+            placeholder="Ex: usuario@gmail.com"
+            value="{{ old.email|default_if_none:'' }}"
+            required
+        >
         {% if errors.email %}
-          <div class="helper">{{ errors.email }}</div>
+            <p class="auth-error">{{ errors.email }}</p>
         {% endif %}
-      </div>
 
-      <!-- ====== Data de nascimento ====== -->
-      <div class="field has-tip">
-        <label for="id_data_nascimento">Data de nascimento</label>
-        <input id="id_data_nascimento" name="data_nascimento" type="date" class="auth-input"
-               placeholder="dd/mm/aaaa"
-               value="{{ old.data_nascimento|default_if_none:'' }}"
-               autocomplete="bday">
-      </div>
+        <!-- DATA DE NASCIMENTO -->
+        <label class="auth-label" for="id_data_nascimento">Data de nascimento</label>
+        <input
+            id="id_data_nascimento"
+            name="data_nascimento"
+            type="date"
+            class="auth-input"
+            value="{{ old.data_nascimento|default_if_none:'' }}"
+        >
 
-      <!-- ====== Senha 1 ====== -->
-      <div class="field has-tip {% if errors.password1 %}has-error{% endif %}">
-        <label for="id_password1">Crie uma senha</label>
-        <input id="id_password1" name="password1" type="password" class="auth-input"
-               placeholder="Informe sua senha"
-               required minlength="8"
-               autocomplete="new-password"
-               aria-describedby="help_pass1">
+        <!-- SENHA -->
+        <label class="auth-label" for="id_password1">Crie uma senha</label>
+        <input
+            id="id_password1"
+            name="password1"
+            type="password"
+            class="auth-input"
+            placeholder="Informe sua senha"
+            required
+        >
         {% if errors.password1 %}
-          <div class="helper" id="help_pass1">{{ errors.password1 }}</div>
-        {% else %}
-          <div class="helper" id="help_pass1">Mínimo de 8 caracteres.</div>
+            <p class="auth-error">{{ errors.password1 }}</p>
         {% endif %}
-      </div>
 
-      <!-- ====== Senha 2 ====== -->
-      <div class="field has-tip {% if errors.password2 %}has-error{% endif %}">
-        <label for="id_password2">Confirme sua senha</label>
-        <input id="id_password2" name="password2" type="password" class="auth-input"
-               placeholder="Repita sua senha"
-               required autocomplete="new-password"
-               aria-describedby="help_pass2">
+        <!-- CONFIRMAR SENHA -->
+        <label class="auth-label" for="id_password2">Confirme sua senha</label>
+        <input
+            id="id_password2"
+            name="password2"
+            type="password"
+            class="auth-input"
+            placeholder="Digite novamente sua senha"
+            required
+        >
         {% if errors.password2 %}
-          <div class="helper" id="help_pass2">{{ errors.password2 }}</div>
+            <p class="auth-error">{{ errors.password2 }}</p>
         {% endif %}
-      </div>
 
-      <!-- ====== Termos ====== -->
-      <div class="auth-terms {% if errors.terms %}has-error{% endif %}">
-        <!-- fallback: garante que sempre exista 'terms' no POST -->
-        <input type="hidden" name="terms" value="off">
-        <input id="id_terms" type="checkbox" name="terms" value="on"
-               {% if old.terms %}checked{% endif %} required>
-        <label for="id_terms">Li e concordo com os Termos de Uso.</label>
-      </div>
-      {% if errors.terms %}
-        <div class="helper">{{ errors.terms }}</div>
-      {% endif %}
+        <!-- TERMOS -->
+        <label class="auth-checkbox">
+            <input type="checkbox" name="terms" {% if old.terms %}checked{% endif %}>
+            Concordo com os Termos de Uso
+        </label>
+        {% if errors.terms %}
+            <p class="auth-error">{{ errors.terms }}</p>
+        {% endif %}
 
-      <!-- ====== Botão ====== -->
-      <button type="submit"
-              class="auth-submit"
-              onclick="this.disabled=true; this.form.submit();">
-        Continuar
-      </button>
+        <!-- BOTÃO -->
+        <button type="submit" class="auth-submit">
+            Continuar
+        </button>
+
     </form>
-  </div>
+
 </div>
+
 {% endblock %}
