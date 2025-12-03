@@ -15,7 +15,7 @@ django-apscheduler
 
 # API do Google
 google-generativeai
-
+openai
 pytz
 tzlocal
 APScheduler
@@ -25,3 +25,4 @@ django-apscheduler
 pytest
 pytest-django
 pytest-lazy-fixture
+
