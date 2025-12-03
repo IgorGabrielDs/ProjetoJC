@@ -21,36 +21,36 @@
     border:none;font-weight:bold;font-size:1.2em;font-family:inherit;text-align:center;
     background:transparent;cursor:pointer;appearance:none;
   }
-  .timer-wrapper{display:flex;flex-direction:row-reverse;align-items:center;justify-content:center;gap:8px;}
-  .pause-icon{font-size:1.5em;font-weight:bold;color:#555;cursor:pointer;}
 
   #sudoku-grid{
-    display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:#000;border:2px solid #000;
-    margin:20px auto;max-width:400px;padding:0;position:relative;
+    display:flex;flex-direction:column;gap:2px;background:#000;border:2px solid #000;
+    margin:20px auto;max-width:400px;padding:2px;
   }
-  .sudoku-block{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#999;}
+
+  .sudoku-row{
+    display:grid;
+    grid-template-columns:repeat(9,1fr);
+    gap:2px;
+  }
+
   .sudoku-cell{
-    width:100%;aspect-ratio:1/1;background:#fff;box-sizing:border-box;overflow:hidden;
+    width:100%;aspect-ratio:1/1;background:#fff;box-sizing:border-box;
     display:flex;align-items:center;justify-content:center;
   }
+
   .sudoku-cell input{
-    width:100%;height:100%;border:none;text-align:center;font-size:1.6em;font-family:Arial, sans-serif;
-    padding:0;box-sizing:border-box;color:#0d47a1;background:transparent;transition:background-color .2s ease;
-    -moz-appearance:textfield;overflow:hidden;text-overflow:clip;white-space:nowrap;
+    width:100%;height:100%;border:none;text-align:center;font-size:1.6em;
+    color:#0d47a1;background:transparent;font-family:Arial;
   }
-  .sudoku-cell input::-webkit-outer-spin-button,
-  .sudoku-cell input::-webkit-inner-spin-button{appearance:none;margin:0;}
-  .sudoku-cell input.clue{background:#f0f0f0;color:#333;font-weight:bold;}
-  .sudoku-cell input:not(.clue):focus{background:#fffde7;outline:2px solid #D90429;outline-offset:-2px;}
+
+  .sudoku-cell input.clue{
+    background:#f0f0f0;color:#333;font-weight:bold;
+  }
 
   #check-button{
     display:block;width:100%;margin:20px auto 10px;padding:15px 25px;font-size:1.1em;font-weight:700;color:#fff;
-    background:#D90429;border:none;border-radius:8px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.2);
-    transition:background-color .3s ease, transform .1s ease;
+    background:#D90429;border:none;border-radius:8px;cursor:pointer;
   }
-  #check-button:hover:not(:disabled){background:#b80324;}
-  #check-button:active:not(:disabled){transform:scale(.98);}
-  #check-button:disabled{background:#aaa;box-shadow:none;cursor:not-allowed;}
 
   #message-area{font-size:1.1em;font-weight:bold;margin-top:10px;}
   #message-area.success{color:green;}
@@ -60,7 +60,8 @@
 
 {% block content %}
 <div class="sudoku-container">
-  <img src="{% static 'images/logo-jcpe.png' %}" alt="JC PE Logo" class="sudoku-logo">
+  <img src="{% static 'images/logo-jcpe.png' %}" class="sudoku-logo">
+
   <h2 class="sudoku-title">Sudoku</h2>
 
   <p class="progress-message">
@@ -78,240 +79,146 @@
   <div class="control-panel">
     <div class="control-item">
       <span class="control-label">Dificuldade</span>
-      <select id="difficulty-selector" class="control-value" aria-label="Selecionar dificuldade">
-        <option value="easy"   {% if difficulty == 'easy' %}selected{% endif %}>Fácil</option>
+      <select id="difficulty-selector" class="control-value">
+        <option value="easy" {% if difficulty == 'easy' %}selected{% endif %}>Fácil</option>
         <option value="medium" {% if difficulty == 'medium' %}selected{% endif %}>Médio</option>
-        <option value="hard"   {% if difficulty == 'hard' %}selected{% endif %}>Difícil</option>
+        <option value="hard" {% if difficulty == 'hard' %}selected{% endif %}>Difícil</option>
       </select>
     </div>
+
     <div class="control-item">
       <span class="control-label">Tempo</span>
-      <div class="timer-wrapper">
-        <span class="pause-icon" aria-hidden="true">&#9208;</span>
-        <span id="timer" class="control-value">00:00</span>
-      </div>
+      <span id="timer" class="control-value">00:00</span>
     </div>
   </div>
 
   {% csrf_token %}
-  <div id="sudoku-grid" aria-label="Tabuleiro de Sudoku"></div>
-  <button id="check-button">Verificar Solução</button>
-  <div id="message-area" role="status" aria-live="polite"></div>
+  <div id="sudoku-grid"></div>
 
-  {# sempre presente: problema #}
+  <button id="check-button">Verificar Solução</button>
+  <div id="message-area"></div>
+
   {{ problem_board_json|json_script:"problem-board" }}
   {{ puzzle.id|json_script:"puzzle-id" }}
 
-  {# opcional: solução (qualquer um dos dois nomes do modelo) #}
   {% if puzzle.solution %}
     {{ puzzle.solution|json_script:"solution-board" }}
   {% elif puzzle.solution_board %}
     {{ puzzle.solution_board|json_script:"solution-board" }}
   {% endif %}
-
-  {# ajuda JS a decidir quantas dicas semear, se necessário #}
-  {{ difficulty|json_script:"difficulty-name" }}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 {{ block.super }}
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const grid = document.getElementById('sudoku-grid');
-  const rawProblem = JSON.parse(document.getElementById('problem-board').textContent);
-  const puzzleId = JSON.parse(document.getElementById('puzzle-id').textContent);
-  const diffName = JSON.parse(document.getElementById('difficulty-name').textContent);
-  const solutionNode = document.getElementById('solution-board');
-  const rawSolution = solutionNode ? JSON.parse(solutionNode.textContent) : null;
-  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+document.addEventListener("DOMContentLoaded", () => {
 
-  // ---- Normalização de formatos ----
-  const toFlatString = (data) => {
-    // aceita string, array 1D, array 2D (9x9), com pontos ou zeros
-    if (typeof data === 'string') return data;
-    if (Array.isArray(data)) {
-      if (Array.isArray(data[0])) {
-        // 2D
-        return data.flat().join('');
+  const grid = document.getElementById("sudoku-grid");
+
+  // ---------------------------
+  // CARREGAR O PROBLEMA
+  // ---------------------------
+  let rawProblem = JSON.parse(document.getElementById("problem-board").textContent);
+  rawProblem = rawProblem.replace(/[^0-9.]/g, "");
+  if (rawProblem.length !== 81) rawProblem = ".".repeat(81);
+
+  // ---------------------------
+  // GERAR GRID LINHA X COLUNA
+  // ---------------------------
+  for (let r = 0; r < 9; r++) {
+
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "sudoku-row";
+
+    for (let c = 0; c < 9; c++) {
+
+      const idx = r * 9 + c;
+      const ch = rawProblem[idx];
+
+      const cell = document.createElement("div");
+      cell.className = "sudoku-cell";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.maxLength = 1;
+      input.inputMode = "numeric";
+
+      input.dataset.row = r;
+      input.dataset.col = c;
+
+      if (/[1-9]/.test(ch)) {
+        input.value = ch;
+        input.readOnly = true;
+        input.classList.add("clue");
       }
-      // 1D
-      return data.join('');
-    }
-    return '';
-  };
 
-  let problem = toFlatString(rawProblem);
-  let solution = rawSolution ? toFlatString(rawSolution) : null;
+      input.addEventListener("input", e => {
+        if (!/^[1-9]$/.test(e.target.value)) e.target.value = "";
+      });
 
-  // saneamento
-  const sanitize = (s) => s
-    .replace(/[^0-9.]/g, '')   // só 0-9 e '.'
-    .replace(/0/g, '.');       // zeros viram vazios
-  problem = sanitize(problem);
-  if (solution) solution = sanitize(solution);
-
-  // Ajusta tamanho para 81
-  const pad81 = (s) => (s && s.length === 81) ? s : '.'.repeat(81);
-  problem = pad81(problem);
-  if (solution) solution = pad81(solution);
-
-  // ---- Se não há nenhuma dica no "problem", semeia a partir da solução ----
-  const countDigits = (s) => (s.match(/[1-9]/g) || []).length;
-
-  if (countDigits(problem) === 0 && solution && countDigits(solution) === 81) {
-    // quantidade de dicas por dificuldade (valores típicos)
-    const seedsByDiff = { easy: 32, medium: 28, hard: 24 };
-    const targetClues = seedsByDiff[diffName] || 28;
-
-    // escolha determinística simples para não mudar a cada refresh:
-    // usa um "seed" baseado no puzzleId
-    const seededRandom = (() => {
-      let seed = Number(String(puzzleId).replace(/\D/g, '').slice(-6)) || 123457;
-      return () => {
-        seed = (seed * 9301 + 49297) % 233280;
-        return seed / 233280;
-      };
-    })();
-
-    const idxs = Array.from({length:81}, (_,i)=>i);
-    // embaralha parcialmente
-    for (let i = idxs.length - 1; i > 0; i--) {
-      const j = Math.floor(seededRandom() * (i + 1));
-      [idxs[i], idxs[j]] = [idxs[j], idxs[i]];
+      cell.appendChild(input);
+      rowDiv.appendChild(cell);
     }
 
-    let arr = problem.split('');
-    let planted = 0;
-    for (let k = 0; k < idxs.length && planted < targetClues; k++) {
-      const i = idxs[k];
-      if (arr[i] === '.' && /[1-9]/.test(solution[i])) {
-        arr[i] = solution[i];
-        planted++;
-      }
-    }
-    problem = arr.join('');
-    // agora o tabuleiro tem dicas reais
+    grid.appendChild(rowDiv);
   }
 
-  // ---- Montagem do grid 9x9 em blocos 3x3 ----
-  for (let br = 0; br < 3; br++) {
-    for (let bc = 0; bc < 3; bc++) {
-      const block = document.createElement('div');
-      block.className = 'sudoku-block';
+  // ---------------------------
+  // TIMER
+  // ---------------------------
+  const timerEl = document.getElementById("timer");
+  const start = Date.now();
 
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 3; c++) {
-          const i = (br * 3 + r) * 9 + (bc * 3 + c);
-          const cell = document.createElement('div');
-          cell.className = 'sudoku-cell';
-
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.inputMode = 'numeric';
-          input.maxLength = 1;
-          input.pattern = '[1-9]';
-          input.autocomplete = 'off';
-          input.setAttribute('aria-label', `Linha ${br*3+r+1}, coluna ${bc*3+c+1}`);
-
-          const ch = problem[i]; // '.' ou '1'..'9'
-          if (/[1-9]/.test(ch)) {
-            input.value = ch;
-            input.readOnly = true;
-            input.classList.add('clue');
-          }
-
-          // Permite apenas 1–9
-          input.addEventListener('input', (e) => {
-            const v = e.target.value;
-            if (v === '' || /^[1-9]$/.test(v)) return;
-            e.target.value = '';
-          });
-          input.addEventListener('paste', (e) => {
-            const t = (e.clipboardData || window.clipboardData).getData('text');
-            if (!/^[1-9]$/.test(t)) e.preventDefault();
-          });
-
-          cell.appendChild(input);
-          block.appendChild(cell);
-        }
-      }
-      grid.appendChild(block);
-    }
-  }
-
-  // ---- Timer ----
-  const timerEl = document.getElementById('timer');
-  const startTime = Date.now();
   setInterval(() => {
-    const sec = Math.floor((Date.now() - startTime) / 1000);
-    const mm = String(Math.floor(sec / 60)).padStart(2, '0');
-    const ss = String(sec % 60).padStart(2, '0');
+    const sec = Math.floor((Date.now() - start) / 1000);
+    const mm = String(Math.floor(sec / 60)).padStart(2, "0");
+    const ss = String(sec % 60).padStart(2, "0");
     timerEl.textContent = `${mm}:${ss}`;
   }, 1000);
 
-  // ---- Troca de dificuldade ----
-  document.getElementById('difficulty-selector').addEventListener('change', (e) => {
-    window.location.href = `/sudoku/${e.target.value}/`;
-  });
+  // ---------------------------
+  // ENVIO CORRETO PARA O BACKEND
+  // ---------------------------
+  const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
+  const puzzleId = JSON.parse(document.getElementById("puzzle-id").textContent);
 
-  // ---- Verificar solução ----
-  const btn = document.getElementById('check-button');
-  const msg = document.getElementById('message-area');
+  document.getElementById("check-button").addEventListener("click", () => {
 
-  btn.addEventListener('click', () => {
-    const inputs = grid.querySelectorAll('input');
-    let solutionStr = '';
-    let complete = true;
+    const msg = document.getElementById("message-area");
+    let solutionStr = "";
 
-    inputs.forEach(inp => {
-      if (inp.value === '') complete = false;
-      solutionStr += (inp.value || '.');
-    });
-
-    if (!complete) {
-      msg.textContent = 'Por favor, preencha todas as células.';
-      msg.className = 'error';
-      return;
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const inp = document.querySelector(`input[data-row="${r}"][data-col="${c}"]`);
+        if (!inp || !inp.value) {
+          msg.textContent = "Por favor, preencha todas as células.";
+          msg.className = "error";
+          return;
+        }
+        solutionStr += inp.value;
+      }
     }
 
-    msg.textContent = 'Verificando...';
-    msg.className = '';
-    btn.disabled = true;
-
     fetch("{% url 'sudoku:check_solution' %}", {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
       body: JSON.stringify({
         puzzle_id: puzzleId,
-        solution: solutionStr,
-        elapsed_seconds: Math.floor((Date.now() - startTime) / 1000)
+        solution: solutionStr
       })
     })
     .then(r => r.json())
     .then(d => {
-      if (d.success) {
-        msg.textContent = 'Parabéns! Solução correta!';
-        msg.className = 'success';
-        if (d.next_level) {
-          alert('Correto! Você será redirecionado para o próximo nível.');
-          window.location.href = `/sudoku/${d.next_level}/`;
-        } else {
-          alert('Você completou todos os desafios de hoje!');
-        }
-      } else {
-        msg.textContent = d.message || 'Solução incorreta. Tente novamente!';
-        msg.className = 'error';
-        btn.disabled = false;
-      }
-    })
-    .catch(err => {
-      console.error('Erro:', err);
-      msg.textContent = 'Erro de comunicação. Tente novamente.';
-      msg.className = 'error';
-      btn.disabled = false;
+      msg.textContent = d.success ?
+        "Parabéns! Solução correta!" :
+        (d.message || "Solução incorreta.");
+      msg.className = d.success ? "success" : "error";
     });
   });
+
 });
 </script>
+
 {% endblock %}
