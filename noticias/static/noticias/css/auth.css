@@ -1,0 +1,791 @@
+/* =========================================================
+   LOGIN PAGE STYLES
+   ========================================================= */
+
+.login-wrap{
+  max-width:520px;
+  margin:0 auto;
+  padding:24px 0 56px;
+}
+
+.login-logo{
+  display:block;
+  margin:8px auto 12px;
+  height:104px;
+}
+
+.login-sub{
+  margin:6px 0 18px;
+  text-align:center;
+  color:#1f2937;
+  font-weight:600;
+}
+
+/* Logos/marcas sob o título */
+.brands{
+  display:flex;
+  gap:14px;
+  justify-content:center;
+  align-items:center;
+  margin:0 0 22px;
+}
+
+.brands img{
+  height:36px;
+  opacity:.9;
+}
+
+/* Cartão principal do login */
+.login-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px 18px 22px;
+}
+
+.login-title{
+  text-align:center;
+  font-size:22px;
+  font-weight:700;
+  margin:2px 0 14px;
+}
+
+/* Form */
+.form-row{
+  margin:10px 0;
+}
+
+.form-label{
+  display:block;
+  font-size:14px;
+  color:#374151;
+  margin:0 0 6px;
+}
+
+.input{
+  width:100%;
+  height:46px;
+  border:1px solid #d1d5db;
+  border-radius:12px;
+  padding:0 14px;
+  font-size:16px;
+  background:#f3f4f6;
+}
+
+.btn-primary{
+  width:100%;
+  height:48px;
+  border-radius:14px;
+  border:0;
+  background:#cfcfd1;   /* mesma cor do mock */
+  color:#111827;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.btn-primary:hover{
+  background:#d9d9dc;
+}
+
+/* Divisor “ou” */
+.divider{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:16px 0;
+}
+
+.divider:before,
+.divider:after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:#e5e7eb;
+}
+
+.divider span{
+  color:#6b7280;
+  font-size:12px;
+}
+
+/* Botões sociais (placeholders) */
+.providers{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin:6px 0 12px;
+}
+
+.prov{
+  height:72px;
+  border-radius:18px;
+  border:0;
+  background:#f3f4f6;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 6px 14px rgba(0,0,0,.08);
+  cursor:pointer;
+}
+
+.prov:active{
+  transform:translateY(1px);
+}
+
+.prov--full{
+  grid-column:1 / -1;
+  height:56px;
+}
+
+.prov img{
+  height:32px;
+}
+
+/* Textos auxiliares */
+.hint{
+  text-align:center;
+  color:#6b7280;
+  margin-top:10px;
+}
+
+.link{
+  color:#2563eb;
+  text-decoration:underline;
+}
+
+/* Erros */
+.errors{
+  background:#fef2f2;
+  border:1px solid #fecaca;
+  color:#991b1b;
+  border-radius:12px;
+  padding:10px 12px;
+  margin:8px 0;
+}
+
+.helper{
+  font-size:12px;
+  color:#9ca3af;
+}
+
+/* =========================================================
+   AUTH (LOGIN + SIGNUP) – visual idêntico ao mock
+   ========================================================= */
+
+/* contêiner da página de autenticação (login e signup) */
+.auth-page,
+.login-wrap{                          /* compat: login existente */
+  max-width:520px;
+  margin:0 auto;
+  padding:28px 16px 56px;
+}
+
+/* “voltar” acima do card */
+.auth-back{
+  width:100%;
+  max-width:520px;
+  margin:0 auto 8px;
+  font-size:var(--fs-sm);
+  color:var(--muted);
+}
+
+.auth-back a{
+  display:inline-flex;
+  gap:6px;
+  align-items:center;
+}
+
+/* logo central */
+.auth-logo,
+.login-logo{                          /* compat: login existente */
+  display:block;
+  margin:6px auto 10px;
+  height:104px;
+}
+
+/* card / miolo do formulário */
+.auth-card,
+.login-card{                          /* compat: login existente */
+  width:100%;
+  max-width:520px;
+  margin:0 auto;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px 18px 22px;
+}
+
+/* título e subtítulo */
+.auth-card h1,
+.login-title{
+  text-align:left;
+  font-size:1.35rem;
+  font-weight:900;
+  letter-spacing:-.2px;
+  margin:2px 0 8px;
+}
+
+.auth-subtitle,
+.login-sub{
+  margin:0 0 18px;
+  color:var(--muted);
+  font-size:var(--fs-sm);
+  font-weight:600;
+}
+
+/* linhas/campos */
+.auth-form .field,
+.form-row{                            /* compat: login existente */
+  margin-bottom:14px;
+}
+
+.auth-form label,
+.form-label{                          /* compat: login existente */
+  display:block;
+  margin:0 0 6px;
+  font-weight:700;
+  font-size:var(--fs-sm);
+  color:#374151;
+}
+
+/* INPUT “PÍLULA” – aplica mesmo sem class em <input> */
+.auth-input,
+.auth-form input[type="text"],
+.auth-form input[type="email"],
+.auth-form input[type="password"],
+.auth-form input[type="date"],
+.input{                               /* compat: login existente */
+  width:100%;
+  border:1px solid #d1d5db;
+  background:#fff;
+  border-radius:999px;                /* pílula */
+  padding:11px 44px 11px 14px;        /* espaço pro ícone "i" à direita */
+  font-size:var(--fs-md);
+  outline:none;
+  transition:box-shadow .15s ease, border-color .15s ease, background .15s ease;
+}
+
+.auth-input:focus,
+.auth-form input:focus,
+.input:focus{
+  border-color:#d1d5db;
+  box-shadow:0 0 0 3px rgba(124,58,237,.08); /* roxo bem suave */
+}
+
+/* ícone cinza “i” à direita do input */
+.field.has-tip,
+.has-tip{
+  position:relative;
+}
+
+.field.has-tip::after,
+.has-tip::after{
+  content:"i";
+  position:absolute;
+  right:10px;
+  top:38px;                            /* centraliza verticalmente no input */
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  border:1px solid #d9dbe1;
+  color:#8b8fa1;
+  font-size:12px;
+  font-weight:700;
+  background:#fff;
+  pointer-events:none;
+}
+
+/* date – mantém o mesmo visual */
+.auth-form input[type="date"]{
+  appearance:none;
+  -webkit-appearance:none;
+  background-position:right 12px center;
+}
+
+/* termos */
+.auth-terms{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:6px 0 16px;
+  font-size:var(--fs-sm);
+}
+
+.auth-terms input[type="checkbox"]{
+  width:18px;
+  height:18px;
+  border-radius:4px;
+  border:1px solid var(--line);
+}
+
+/* botão principal cinza */
+.auth-submit,
+.btn-primary{                          /* compat: login existente */
+  width:100%;
+  height:48px;
+  border-radius:999px;
+  border:1px solid #dadce3;
+  background:#d9d9dd;                 /* cinza do mock */
+  color:#111;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.auth-submit:disabled{
+  opacity:.85;
+  cursor:not-allowed;
+}
+
+.auth-submit:not(:disabled):hover,
+.btn-primary:hover{
+  filter:brightness(.98);
+}
+
+/* divisor “ou” (reaproveitável) */
+.divider{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:16px 0;
+}
+
+.divider:before,
+.divider:after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:#e5e7eb;
+}
+
+.divider span{
+  color:#6b7280;
+  font-size:12px;
+}
+
+/* provedores sociais (placeholders) */
+.providers{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin:6px 0 12px;
+}
+
+.prov{
+  height:72px;
+  border-radius:18px;
+  background:#f3f4f6;
+  border:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 6px 14px rgba(0,0,0,.08);
+  cursor:pointer;
+}
+
+.prov:active{
+  transform:translateY(1px);
+}
+
+.prov--full{
+  grid-column:1 / -1;
+  height:56px;
+}
+
+.prov img{
+  height:32px;
+}
+
+/* hints/erros */
+.hint{
+  text-align:center;
+  color:#6b7280;
+  margin-top:10px;
+}
+
+.link{
+  color:#2563eb;
+  text-decoration:underline;
+}
+
+.errors{
+  background:#fef2f2;
+  border:1px solid #fecaca;
+  color:#991b1b;
+  border-radius:12px;
+  padding:10px 12px;
+  margin:8px 0;
+}
+
+.helper{
+  font-size:12px;
+  color:#9ca3af;
+}
+
+/* responsividade pequena */
+@media (min-width:480px){
+  .auth-page{
+    padding-top:32px;
+  }
+
+  .auth-card h1{
+    font-size:1.45rem;
+  }
+
+  .auth-logo{
+    height:112px;
+  }
+}
+
+/* Ajustes finos do visual (inputs, labels, botão) */
+.auth-input,
+.auth-form input[type="text"],
+.auth-form input[type="email"],
+.auth-form input[type="password"],
+.auth-form input[type="date"]{
+  background:#f6f6f7;            /* tom mais leve que o botão */
+  border:1px solid #e3e4e6;
+  color:#222;
+  font-weight:400;               /* remove negrito */
+}
+
+/* Estado de foco sutil */
+.auth-input:focus,
+.auth-form input:focus{
+  background:#fefefe;
+  border-color:#d0d0d4;
+  box-shadow:0 0 0 3px rgba(124,58,237,0.06);
+}
+
+/* Labels e textos padrão sem negrito */
+.auth-form label,
+.auth-subtitle,
+.auth-terms{
+  font-weight:400;
+}
+
+/* Checkbox alinhado */
+.auth-terms input[type="checkbox"]{
+  accent-color:var(--jc-red);
+  margin-top:-1px;
+}
+
+/* Botão continua igual (forte contraste) */
+.auth-submit{
+  background:#d9d9dd;
+  color:#111;
+  font-weight:700;
+  border:1px solid #d1d1d1;
+}
+
+.auth-submit:hover{
+  background:#e1e1e3;
+}
+
+/* Ícone "i" cinza mais suave */
+.field.has-tip::after{
+  border-color:#e0e0e3;
+  color:#9a9ca3;
+  background:#fafafa;
+}
+
+/* =========================================================
+   MODAL — “Bem-vindo(a) / Personalizar experiência”
+   ========================================================= */
+
+/* container */
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:999;
+  display:none;                 /* oculto por padrão */
+}
+
+.modal.is-open{
+  display:block;
+} /* abre via JS adicionando esta classe */
+
+/* backdrop */
+.modal__backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.44);
+  backdrop-filter:blur(2px);
+  opacity:0;
+  transition:opacity .25s ease;
+}
+
+/* card */
+.modal__card{
+  position:relative;
+  max-width:560px;
+  width:calc(100% - 32px);
+  margin:7vh auto 0;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:20px;
+  box-shadow:0 12px 36px rgba(17,24,39,.18);
+  padding:28px 22px 20px;
+  transform:translateY(10px) scale(.98);
+  opacity:0;
+  transition:transform .28s ease, opacity .28s ease;
+}
+
+/* animação de entrada quando abrir */
+.modal.is-open .modal__backdrop{
+  opacity:1;
+}
+
+.modal.is-open .modal__card{
+  transform:translateY(0) scale(1);
+  opacity:1;
+}
+
+/* botão X */
+.modal__close{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:36px;
+  height:36px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:#fff;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+}
+
+.modal__close:hover{
+  background:#fafafa;
+}
+
+/* avatar/ícone grande */
+.modal__avatar{
+  width:120px;
+  height:120px;
+  border-radius:999px;
+  border:3px solid #000;
+  display:grid;
+  place-items:center;
+  margin:6px auto 14px;
+  color:#000;
+}
+
+/* títulos e textos */
+.modal__title{
+  text-align:center;
+  font-size:clamp(1.25rem, 2.3vw, 1.6rem);
+  font-weight:800;
+  letter-spacing:-.2px;
+  margin:6px 0 8px;
+  color:var(--ink);
+}
+
+.modal__subtitle{
+  text-align:center;
+  color:var(--ink);
+  font-size:var(--fs-lg);
+  font-weight:700;
+  margin-bottom:18px;
+}
+
+.modal__text{
+  text-align:center;
+  color:var(--ink);
+  font-size:var(--fs-md);
+  margin-bottom:18px;
+}
+
+/* ações */
+.modal__actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:6px;
+}
+
+.modal__btn{
+  height:56px;
+  border-radius:16px;
+  border:1px solid #dadce3;
+  background:#e7e7ea;           /* cinza claro (mais claro que o botão “Continuar”) */
+  color:#111;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.modal__btn:hover{
+  filter:brightness(.98);
+}
+
+.modal__btn--primary{
+  background:#d9d9dd;           /* cinza do mock do JC */
+}
+
+/* link voltar ao rodapé do modal */
+.modal__back{
+  margin-top:12px;
+  text-align:center;
+  color:var(--muted);
+  font-size:var(--fs-sm);
+}
+
+.modal__back a{
+  display:inline-flex;
+  gap:6px;
+  align-items:center;
+}
+
+/* acessibilidade: foco visível */
+.modal__close:focus-visible,
+.modal__btn:focus-visible{
+  outline:3px solid rgba(124,58,237,.25);
+  outline-offset:2px;
+}
+
+/* responsivo */
+@media (max-width:420px){
+  .modal__card{
+    padding:24px 16px 18px;
+  }
+
+  .modal__actions{
+    grid-template-columns:1fr;
+  }
+}
+
+/* =========================================================
+   PASSWORD RESET — título
+   ========================================================= */
+
+.auth-title{
+  font-size:28px;
+  line-height:1.2;
+  text-align:center;
+  margin:8px 0 8px;
+}
+
+@media (max-width:480px){
+  .auth-title{
+    font-size:24px;
+  }
+}
+
+/* =========================================================
+   PASSWORD RESET — OTP (código de 6 dígitos)
+   ========================================================= */
+
+.otp-page{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.otp-back{
+  width:100%;
+  max-width:520px;
+  margin:8px auto 0;
+  font-size:var(--fs-sm);
+  color:var(--muted);
+}
+
+.otp-back a{
+  display:inline-flex;
+  gap:6px;
+  align-items:center;
+}
+
+.otp-wrap{
+  width:100%;
+  max-width:520px;
+  margin:6px auto 0;
+  text-align:center;
+}
+
+.otp-logo{
+  display:block;
+  margin:6px auto 10px;
+  height:112px;
+}
+
+.otp-title{
+  font-size:1.75rem;
+  line-height:1.2;
+  font-weight:900;
+  margin:8px 0 12px;
+  color:var(--ink);
+}
+
+.otp-sub{
+  color:var(--muted);
+  font-size:var(--fs-sm);
+  margin:0 auto 22px;
+  max-width:420px;
+}
+
+.otp-sub strong{
+  color:var(--ink);
+}
+
+.otp-boxes{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  margin:12px 0 22px;
+}
+
+.otp-inp{
+  width:56px;
+  height:56px;
+  text-align:center;
+  font-size:24px;
+  font-weight:600;
+  color:var(--ink);
+  background:#eeeeee;
+  border:1px solid var(--line);
+  border-radius:12px;
+  outline:none;
+  transition:box-shadow .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.otp-inp:focus{
+  background:#f6f6f7;
+  border-color:#d0d0d4;
+  box-shadow:0 0 0 3px rgba(0,0,0,.05);
+}
+
+.otp-submit{
+  width:100%;
+  max-width:420px;
+  height:48px;
+  border:1px solid #dadce3;
+  border-radius:999px;
+  background:#d9d9dd;
+  color:#111;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.otp-submit:hover{
+  filter:brightness(.98);
+}
+
+.otp-foot{
+  color:var(--muted);
+  font-size:var(--fs-sm);
+  margin-top:24px;
+}
+
+@media (max-width:480px){
+  .otp-title{
+    font-size:1.5rem;
+  }
+
+  .otp-inp{
+    width:48px;
+    height:48px;
+    font-size:20px;
+  }
+}

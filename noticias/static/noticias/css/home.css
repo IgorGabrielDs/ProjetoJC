@@ -1,0 +1,2263 @@
+/* ---------- HOME: seções e títulos ---------- */
+
+/* Cada seção de home */
+.section{
+  padding-top:2.5rem;
+  padding-bottom:2.5rem;
+}
+
+/* Título central com linhas laterais, seguindo o modelo da .receita-title */
+.section-title{
+  max-width:var(--container);
+  margin:0 auto 1.75rem;
+  padding:0 16px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:1rem;
+}
+
+/* Texto central do título */
+.section-title .label{
+  font-size:1.25rem;
+  font-weight:600;
+  letter-spacing:.02em;
+  text-align:center;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Barras laterais (linhas) – herdam a cor do título */
+.section-title .rule{
+  flex:1;
+  max-width:120px;
+  height:3px;
+  border-radius:999px;
+  background-color:currentColor; /* herda a cor do título/accent */
+}
+
+/* Variações de cor aplicadas à cor de texto (rule herda via currentColor) */
+.accent-red   .section-title{ color: var(--jc-red); }
+.accent-blue  .section-title{ color: var(--jc-blue); }
+.accent-green .section-title{ color: var(--jc-green); }
+
+.accent-yellow.section .section-title,
+.accent-yellow .section-title{
+  color: var(--jc-yellow);
+}
+
+.accent-purple.section .section-title,
+.accent-purple .section-title{
+  color: var(--jc-purple);
+}
+
+
+/* ---------- HOME: cards genéricos ---------- */
+.card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+
+.card-media{
+  aspect-ratio:16/9;
+  background:var(--card);
+  display:grid;
+  place-items:center;
+}
+
+.card-body{
+  padding:12px;
+}
+
+.tag{
+  color:var(--jc-blue);
+  font-weight:700;
+  font-size:var(--fs-sm);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.bookmark{
+  margin-left:auto;
+  border:none;
+  background:none;
+  cursor:pointer;
+}
+
+.title{
+  font-size:var(--fs-xl);
+  font-weight:800;
+  letter-spacing:-.2px;
+  margin:8px 0 6px;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.lead{
+  border-left:3px solid var(--jc-red);
+  padding-left:12px;
+  color:var(--jc-red);
+  font-weight:600;
+  font-size:var(--fs-md);
+  margin:10px 0;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.meta{
+  display:flex;
+  gap:8px;
+  color:var(--muted);
+  font-size:var(--fs-xs);
+}
+
+/* Grid utilitário 2 colunas (home) */
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+@media(min-width:540px){
+  .grid-2{
+    gap:20px;
+  }
+}
+
+/* ---------- HOME: carrossel genérico 3 slides ---------- */
+.carousel{
+  position:relative;
+}
+
+.carousel-inner{
+  overflow:hidden;
+  border-radius:var(--radius);
+}
+
+.carousel-track{
+  display:flex;
+  transition:transform .45s ease;
+}
+
+.carousel-slide{
+  flex:0 0 100%;
+  padding:2px;
+}
+
+.carousel .dots{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  align-items:center;
+  margin-top:10px;
+}
+
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#b6b2c3;
+  display:inline-block;
+  opacity:.6;
+  transition:transform .25s ease, opacity .25s ease;
+  cursor:pointer;
+}
+
+.dot.is-active{
+  opacity:1;
+  transform:scale(1.2);
+  background:#3E3A53;
+}
+
+.carousel input[type=radio]{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+
+.carousel[data-count="3"] #r1:checked ~ .carousel-inner .carousel-track{ transform:translateX(0%); }
+.carousel[data-count="3"] #r2:checked ~ .carousel-inner .carousel-track{ transform:translateX(-100%); }
+.carousel[data-count="3"] #r3:checked ~ .carousel-inner .carousel-track{ transform:translateX(-200%); }
+
+.carousel[data-count="3"] #r1:checked ~ .dots .d1,
+.carousel[data-count="3"] #r2:checked ~ .dots .d2,
+.carousel[data-count="3"] #r3:checked ~ .dots .d3{
+  opacity:1;
+  transform:scale(1.2);
+  background:#3E3A53;
+}
+
+/* Cards clicáveis */
+.card.is-clickable{
+  cursor:pointer;
+}
+
+/* =========================================================
+   HOME: utilidades extras (lead, CTA, listas, carrosséis)
+   ========================================================= */
+
+/* Lead com borda (variação) */
+.lead-border{
+  border-left:3px solid var(--jc-red);
+  padding-left:12px;
+  color:var(--jc-red);
+  font-weight:600;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* CTA WHATSAPP (fundo cinza grande envolvendo tudo) – MOBILE FIRST */
+.cta-zap{
+  display:flex !important;
+  flex-direction:column !important;      /* MOBILE: tudo em coluna */
+  align-items:flex-start !important;
+  gap:12px !important;
+
+  width:calc(100% - 24px) !important;    /* encosta mais nas bordas no mobile */
+  max-width:480px !important;            /* largura confortável em celulares */
+  margin:18px auto 8px !important;
+  padding:16px 18px !important;
+
+  background:#DEDFE1 !important;
+  border:1px solid #CFCFD2 !important;
+  border-radius:18px !important;
+  box-shadow:0 3px 0 #C8CDD6 inset !important;
+}
+
+.cta-zap .zap-icon{
+  width:72px !important;                 /* ícone um pouco menor no mobile */
+  height:72px !important;
+  border-radius:50% !important;
+  display:grid !important;
+  place-items:center !important;
+  flex:0 0 auto !important;
+  background:transparent !important;
+  margin-bottom:4px !important;
+}
+
+.cta-zap .zap-text{
+  flex:1 1 auto !important;
+  width:100% !important;
+}
+
+.cta-zap .zap-text strong{
+  display:block !important;
+  font-size:1.4rem !important;           /* levemente menor que no desktop */
+  font-weight:900 !important;
+  line-height:1.1 !important;
+  color:#111 !important;
+  margin-bottom:4px !important;
+}
+
+.cta-zap .zap-text p{
+  margin:0 !important;
+  color:#1F2937 !important;
+  font-size:1.0rem !important;
+  max-width:100% !important;             /* no mobile pode ocupar toda a largura */
+}
+
+.cta-zap .zap-action{
+  margin-left:0 !important;              /* MOBILE: fica abaixo do texto */
+  align-self:stretch !important;         /* ocupa quase toda a largura */
+  text-align:center !important;
+
+  border:1.5px solid #C4C7CE !important;
+  border-radius:999px !important;
+  padding:8px 16px !important;
+  background:#F3F4F6 !important;
+  color:#111 !important;
+  font-weight:800 !important;
+  text-decoration:none !important;
+}
+
+/* Versão DESKTOP / TABLET: volta a ficar em linha como no wireframe */
+@media (min-width:640px){
+  .cta-zap{
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:16px !important;
+    width:calc(100% - 32px) !important;
+    max-width:680px !important;
+  }
+
+  .cta-zap .zap-icon{
+    width:92px !important;
+    height:92px !important;
+    margin-bottom:0 !important;
+  }
+
+  .cta-zap .zap-text strong{
+    font-size:1.6rem !important;
+  }
+
+  .cta-zap .zap-text p{
+    font-size:1.0625rem !important;
+    max-width:42ch !important;           /* limite de largura só no desktop */
+  }
+
+  .cta-zap .zap-action{
+    margin-left:auto !important;
+    align-self:center !important;
+    width:auto !important;
+  }
+}
+
+/* "Ver mais" em pílula centralizada */
+.see-more{
+  display:flex;
+  justify-content:center;
+  margin-top:12px;
+}
+
+.btn-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 16px;
+  border-radius:999px;
+  border:1.5px solid currentColor;
+  font-weight:700;
+}
+
+/* Charge – caixa quadrada grande */
+.charge-box{
+  aspect-ratio:1/1;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+}
+
+/* Carrosseis adicionais: "Para você" (pv1–pv3) e "TV" (tv1–tv3) */
+#pv1:checked ~ .carousel-inner .carousel-track{ transform:translateX(0%); }
+#pv2:checked ~ .carousel-inner .carousel-track{ transform:translateX(-100%); }
+#pv3:checked ~ .carousel-inner .carousel-track{ transform:translateX(-200%); }
+
+#pv1:checked ~ .dots .d1,
+#pv2:checked ~ .dots .d2,
+#pv3:checked ~ .dots .d3{
+  opacity:1;
+  transform:scale(1.2);
+  background:#3E3A53;
+}
+
+#tv1:checked ~ .carousel-inner .carousel-track{ transform:translateX(0%); }
+#tv2:checked ~ .carousel-inner .carousel-track{ transform:translateX(-100%); }
+#tv3:checked ~ .carousel-inner .carousel-track{ transform:translateX(-200%); }
+
+#tv1:checked ~ .dots .d1,
+#tv2:checked ~ .dots .d2,
+#tv3:checked ~ .dots .d3{
+  opacity:1;
+  transform:scale(1.2);
+  background:#3E3A53;
+}
+
+/* Ajustes responsivos leves */
+@media (min-width:540px){
+  .card-list .card-media{
+    width:128px;
+    flex-basis:128px;
+  }
+}
+
+/* =========================================================
+   HOME: overrides finais (edição do dia, CTA, etc.)
+   ========================================================= */
+
+/* EDIÇÃO DO DIA – pílula centralizada */
+.daily-edition{
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  width:calc(100% - 32px) !important;
+  max-width:680px !important;
+  margin:8px auto 12px !important;
+  padding:10px 12px 12px !important;
+  background:#E6E8EB !important;
+  border:1px solid #D2D6DE !important;
+  border-radius:12px !important;
+  box-shadow:0 3px 0 #C8CDD6 inset !important;
+}
+
+.daily-edition .daily-strip,
+.daily-edition .daily-icon{
+  width:88px !important;
+  height:36px !important;
+  border-radius:10px !important;
+  background:#C9CFD8 !important;
+  display:grid !important;
+  place-items:center !important;
+  flex:0 0 auto !important;
+}
+
+.daily-edition .daily-text{
+  font-weight:900 !important;
+  font-size:1.25rem !important;
+  letter-spacing:.01em !important;
+}
+
+/* CTA WHATSAPP (fundo cinza grande envolvendo tudo) – override */
+.cta-zap{
+  display:flex !important;
+  align-items:center !important;
+  gap:16px !important;
+  width:calc(100% - 32px) !important;
+  max-width:680px !important;
+  margin:18px auto 8px !important;
+  padding:16px 18px !important;
+  background:#DEDFE1 !important;
+  border:1px solid #CFCFD2 !important;
+  border-radius:18px !important;
+  box-shadow:0 3px 0 #C8CDD6 inset !important;
+}
+
+.cta-zap .zap-icon{
+  width:92px !important;
+  height:92px !important;
+  border-radius:50% !important;
+  display:grid !important;
+  place-items:center !important;
+  flex:0 0 auto !important;
+  background:transparent !important;
+}
+
+.cta-zap .zap-text strong{
+  display:block !important;
+  font-size:1.6rem !important;
+  font-weight:900 !important;
+  line-height:1.1 !important;
+  color:#111 !important;
+  margin-bottom:4px !important;
+}
+
+.cta-zap .zap-text p{
+  margin:0 !important;
+  color:#1F2937 !important;
+  font-size:1.0625rem !important;
+  max-width:42ch !important;
+}
+
+.cta-zap .zap-action{
+  margin-left:auto !important;
+  flex:0 0 auto !important;
+  border:1.5px solid #C4C7CE !important;
+  border-radius:999px !important;
+  padding:8px 16px !important;
+  background:#F3F4F6 !important;
+  color:#111 !important;
+  font-weight:800 !important;
+  text-decoration:none !important;
+}
+
+.cta-zap .zap-action:hover{
+  filter:brightness(.98);
+}
+
+/* =========================================================
+   HOME: Recortes (vídeos curtos)
+   ========================================================= */
+.recortes{
+  --accent:#2faa4a;
+  padding-top:2.5rem;
+  padding-bottom:2.5rem;
+}
+
+/* título "RECORTES" centralizado com linhas verdes, modelo Receita */
+.recortes .section-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:1rem;
+  margin-bottom:1.75rem;
+  color:var(--accent,#2faa4a);
+}
+
+.recortes .section-title .label{
+  font-size:1.25rem;
+  font-weight:600;
+  color:#111;
+}
+
+/* linhas verdes */
+.recortes .section-title .rule{
+  flex:1;
+  max-width:120px;
+  height:3px;
+  border-radius:999px;
+  background-color:var(--accent,#2faa4a);
+}
+
+/* bloco principal de vídeo (mantido) */
+.recortes-hero{
+  position:relative;
+  width:100%;
+  aspect-ratio:9/16;
+  background:#e3e8ee;
+  border-radius:12px;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+}
+
+.recortes-hero .play{
+  width:84px;
+  height:84px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:rgba(0,0,0,.06);
+  border:4px solid rgba(0,0,0,.08);
+}
+
+/* dots abaixo do recorte (mantidos) */
+.recortes-dots{
+  display:grid;
+  place-items:center;
+  margin-top:10px;
+  gap:6px;
+  grid-auto-flow:column;
+}
+
+.recortes-dots .dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#6b6d80;
+  opacity:.35;
+}
+
+.recortes-dots .dot.is-active{
+  opacity:1;
+}
+
+/* =========================================================
+   HOME: Colunistas
+   ========================================================= */
+.colunistas{
+  --accent:#d51e27;
+}
+
+.colunistas-list{
+  display:grid;
+  gap:18px;
+}
+
+.colunista{
+  display:grid;
+  grid-template-columns:64px 1fr;
+  gap:14px;
+  align-items:start;
+}
+
+.colunista-avatar{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  background:#e3e8ee;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+
+.colunista h4{
+  margin:0;
+  font-size:clamp(16px,2.8vw,18px);
+}
+
+.colunista small{
+  color:#6b6d80;
+}
+
+.colunista p{
+  margin:6px 0 0;
+  color:#222;
+  line-height:1.35;
+}
+
+.colunistas .see-more{
+  margin-top:10px;
+}
+
+.colunistas .btn-outline{
+  display:inline-block;
+  padding:8px 16px;
+  border:1.5px solid #d51e27;
+  color:#d51e27;
+  border-radius:22px;
+}
+
+.colunistas .btn-outline:hover{
+  background:#ffecee;
+}
+
+/* =========================================================
+   HOME: Escute agora (Rádio/TV)
+   ========================================================= */
+.escute{
+  --accent:#d51e27;
+}
+
+.audio-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+.audio-card{
+  background:#e3e8ee;
+  border-radius:16px;
+  padding:14px;
+  text-align:center;
+  display:grid;
+  place-items:center;
+  gap:8px;
+  min-height:120px;
+  position:relative;
+}
+
+.audio-card .wave{
+  width:72px;
+  height:72px;
+  border-radius:50%;
+  background:#fff;
+  display:grid;
+  place-items:center;
+}
+
+.audio-card .place{
+  color:#d51e27;
+  font-weight:600;
+}
+
+.escute .dots{
+  display:grid;
+  place-items:center;
+  grid-auto-flow:column;
+  gap:6px;
+  margin:12px 0;
+}
+
+.escute .dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#6b6d80;
+  opacity:.35;
+}
+
+.escute .dot.is-active{
+  opacity:1;
+}
+
+/* =========================================================
+   HOME: Social 1 + Enquete (cards laterais)
+   ========================================================= */
+.social1{
+  --accent:#a051b6;
+  padding-top:2.5rem;
+  padding-bottom:2.5rem;
+}
+
+/* título da seção Social 1 – modelo Receita (linhas roxas) */
+.social1 .section-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:1rem;
+  margin-bottom:1.75rem;
+  color:var(--accent,#a051b6);
+}
+
+.social1 .section-title .label{
+  font-size:1.15rem;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#111;
+  text-align:center;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.social1 .section-title .rule{
+  flex:1;
+  max-width:120px;
+  height:3px;
+  border-radius:999px;
+  background-color:var(--accent,#a051b6);
+}
+
+/* grid dos cards sociais */
+.social-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+.social-card{
+  background:#e3e8ee;
+  border-radius:12px;
+  padding:10px;
+}
+
+.social-card h5{
+  color:#a051b6;
+  margin:0 0 8px;
+  font-size:16px;
+}
+
+/* bloco enquete lateral dentro da coluna Social */
+.enquete{
+  margin-top:14px;
+  background:#f4f5f8;
+  border-radius:12px;
+  padding:12px;
+}
+
+.enquete .thumb{
+  width:100%;
+  aspect-ratio:16/9;
+  background:#dde2ea;
+  border-radius:8px;
+  display:grid;
+  place-items:center;
+  margin-bottom:8px;
+}
+
+.enquete .pergunta{
+  text-align:center;
+  line-height:1.3;
+  margin:6px 0 10px;
+}
+
+.enquete .actions{
+  display:grid;
+  grid-auto-flow:column;
+  gap:12px;
+  justify-content:center;
+}
+
+.enquete .btn-yn{
+  min-width:112px;
+  padding:8px 14px;
+  border-radius:22px;
+  border:1px solid #111;
+  background:#fff;
+  font-weight:600;
+}
+
+.enquete .btn-yn[data-variant="yes"]{ border-color:#111; }
+.enquete .btn-yn[data-variant="no"]{ border-color:#111; }
+
+/* responsividade colunistas/social */
+@media (min-width:768px){
+  .colunistas-list{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .social-grid{
+    grid-template-columns:repeat(4,1fr);
+  }
+}
+
+/* =========================================================
+   HOME: Hero da Home (destaque principal + 2 secundários)
+   ========================================================= */
+.home-hero{
+  padding-top:8px;
+  padding-bottom:32px;
+}
+
+.home-hero .container{
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+
+/* Card principal grandão */
+.card-hero{
+  background:#ffffff;
+  border-radius:12px;
+  padding:16px 16px 20px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.06);
+}
+
+.card-hero-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+
+/* "Assunto" em vermelho */
+.card-hero-assunto{
+  font-size:.95rem;         /* menor */
+  font-weight:600;
+  color:#e31e32;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Estrela de salvar */
+.card-hero-fav{
+  border:none;
+  background:transparent;
+  padding:0;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.6rem;
+  color:#e31e32;
+}
+
+.card-hero-fav .bm-icon{
+  line-height:1;
+  transition:transform .15s ease, opacity .15s ease;
+}
+
+/* padrão: só estrela vazia */
+.card-hero-fav .bm-icon.bm-solid{
+  display:none;
+}
+
+/* estado salvo */
+.card-hero-fav.is-saved .bm-icon.bm-outline{
+  display:none;
+}
+
+.card-hero-fav.is-saved .bm-icon.bm-solid{
+  display:inline;
+}
+
+/* fallback pela aria */
+.card-hero-fav[aria-pressed="true"] .bm-icon.bm-outline{
+  display:none;
+}
+
+.card-hero-fav[aria-pressed="true"] .bm-icon.bm-solid{
+  display:inline;
+}
+
+/* Imagem principal */
+.card-hero-media{
+  display:block;
+  margin-bottom:16px;
+}
+
+.card-hero-media img{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:8px;
+  object-fit:cover;
+}
+
+/* placeholder quando não tem imagem */
+.card-hero-placeholder{
+  width:100%;
+  border-radius:8px;
+  background:#dde1e7;
+  aspect-ratio:16/9;
+}
+
+/* textos abaixo da imagem */
+.card-hero-body{
+  padding-inline:0;
+}
+
+.card-hero-title{
+  font-size:1.3rem;   /* um pouco menor */
+  line-height:1.3;
+  margin-bottom:8px;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.card-hero-title a{
+  color:#000;
+  text-decoration:none;
+}
+
+.card-hero-title a:hover,
+.card-hero-title a:focus-visible{
+  text-decoration:underline;
+}
+
+.card-hero-resumo{
+  font-size:.95rem;
+  line-height:1.5;
+  margin-bottom:12px;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* highlight em vermelho no final do card */
+.card-hero-highlight{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  background:#fff5f5;
+  border-radius:4px;
+  padding:8px 10px;
+}
+
+.card-hero-highlight-strip{
+  width:2px;
+  border-radius:999px;
+  background:#e31e32;
+  flex-shrink:0;
+}
+
+.card-hero-highlight-text{
+  font-size:.9rem;
+  line-height:1.4;
+  color:#e31e32;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Cards secundários (2 colunas SEMPRE, como no wireframe mobile) */
+.home-hero-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  column-gap:12px;
+  row-gap:16px;
+}
+
+.card-hero-secondary{
+  background:#ffffff;
+  border-radius:12px;
+  padding:12px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.04);
+  display:flex;
+  flex-direction:column;
+}
+
+.card-hero-secondary-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+
+/* imagem dos secundários */
+.card-hero-secondary-media{
+  display:block;
+  margin-bottom:8px;
+}
+
+.card-hero-secondary-media img{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:8px;
+  object-fit:cover;
+}
+
+.card-hero-secondary-placeholder{
+  width:100%;
+  border-radius:8px;
+  background:#dde1e7;
+  aspect-ratio:1/1;
+}
+
+.card-hero-secondary-body{
+  padding-inline:0;
+}
+
+.card-hero-secondary-title{
+  font-size:.95rem;
+  line-height:1.3;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.card-hero-secondary-title a{
+  color:#000;
+  text-decoration:none;
+}
+
+.card-hero-secondary-title a:hover,
+.card-hero-secondary-title a:focus-visible{
+  text-decoration:underline;
+}
+
+/* =========================================================
+   HOME: JC360 – grid 2x2
+   ========================================================= */
+.jc360-section{
+  padding-top:2.5rem;
+  padding-bottom:2.5rem;
+}
+
+/* título "JC360" central com linhas vermelhas */
+.jc360-section .section-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:1rem;
+  margin-bottom:2.4rem;
+  color:var(--jc-red,#e30613);
+}
+
+.jc360-section .section-title .label{
+  font-size:1.3rem;
+  font-weight:600;
+  color:#111111;
+}
+
+.jc360-section .section-title .rule{
+  flex:1;
+  max-width:120px;
+  height:3px;
+  border-radius:999px;
+  background-color:var(--jc-red,#e30613);
+}
+
+/* grid 2x2 compacto */
+.jc360-grid{
+  max-width:480px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:2.4rem;
+}
+
+/* card inteiro clicável */
+.jc360-card{
+  display:block;
+}
+
+.jc360-link{
+  display:block;
+  text-decoration:none;
+  color:inherit;
+}
+
+/* título "Assunto" em vermelho */
+.jc360-header{
+  margin-bottom:.8rem;
+  max-width:100%;
+}
+
+.jc360-assunto{
+  display:block;
+  max-width:100%;
+  font-size:1.6rem;
+  font-weight:500;
+  color:var(--jc-red,#e30613);
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* quadrado cinza */
+.jc360-thumb-wrapper{
+  margin-bottom:1.2rem;
+}
+
+.jc360-thumb{
+  width:100%;
+  aspect-ratio:1/1;
+  background-color:#e5e7eb;
+  border-radius:1.2rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.jc360-thumb img{
+  display:block;
+  width:70%;
+  height:auto;
+  object-fit:contain;
+}
+
+/* placeholder */
+.jc360-thumb-placeholder{
+  width:60%;
+  height:60%;
+  border-radius:.8rem;
+  background-color:rgba(255,255,255,0.4);
+}
+
+/* texto do card */
+.jc360-body{
+  margin-top:.4rem;
+  max-width:100%;
+}
+
+.jc360-text{
+  margin:0;
+  font-size:1.2rem;
+  line-height:1.4;
+  color:#111827;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* botão "Ver mais" */
+.jc360-see-more{
+  margin-top: 1.3rem;
+  text-align: center;
+}
+
+.jc360-btn{
+  min-width:150px;
+  padding:.8rem 1.2rem;
+  border-radius:999px;
+  border:2px solid var(--jc-red,#e30613);
+  background-color:#ffffff;
+  color:var(--jc-red,#e30613);
+  font-size:1.3rem;
+  font-weight:500;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.jc360-btn:hover,
+.jc360-btn:focus-visible{
+  background-color:var(--jc-red,#e30613);
+  color:#ffffff;
+}
+
+@media (min-width:768px){
+  .jc360-grid{
+    max-width:640px;
+    gap:3.2rem;
+  }
+}
+
+/* =========================================================
+   HOME: TV JC — carrossel 2x2
+   ========================================================= */
+.tvjc-section{
+  padding-top:2.5rem;
+  padding-bottom:2.5rem;
+}
+
+/* título "TV JC" central com linhas azuis (modelo Receita) */
+.tvjc-section .section-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:1rem;
+  margin-bottom:1.75rem;
+  color:#173f96;
+}
+
+.tvjc-section .section-title .label{
+  font-size:1.25rem;
+  font-weight:600;
+  letter-spacing:.02em;
+  color:#111;
+}
+
+.tvjc-section .section-title .rule{
+  flex:1;
+  max-width:120px;
+  height:3px;
+  border-radius:999px;
+  background-color:currentColor;
+}
+
+.tv-carousel{
+  max-width:100%;
+  overflow:hidden;
+}
+
+/* Cada slide mostra 2 cards */
+.tv-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:1.6rem;
+}
+
+/* Card de vídeo */
+.tv-card{
+  text-align:left;
+}
+
+.tv-card-link{
+  display:block;
+  text-decoration:none;
+  color:inherit;
+}
+
+/* Cabeçalho com assunto + estrela salvar */
+.tv-card-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.4rem;
+  margin-bottom:.4rem;
+}
+
+.tv-card-assunto{
+  font-weight:500;
+  font-size:1.6rem;  /* ↓ um pouco */
+  line-height:1.2;
+  color:#173f96;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Botão de salvar integrado ao salvar.js */
+.tv-salvar{
+  border:none;
+  background:transparent;
+  padding:0;
+  margin:0;
+  flex-shrink:0;
+  cursor:pointer;
+}
+
+.tv-salvar .bm-icon{
+  font-size:1.8rem;
+  color:#173f96;
+}
+
+/* Thumb cinza grande */
+.tv-thumb-wrapper{
+  margin-bottom:.8rem;
+}
+
+.tv-thumb{
+  width:100%;
+  border-radius:12px;
+  background-color:#e4e7ee;
+  aspect-ratio:4/3;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.tv-thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* Placeholder quando não houver imagem */
+.tv-thumb-placeholder{
+  width:70%;
+  height:70%;
+  border-radius:8px;
+  border:4px solid #d0d4df;
+  box-sizing:border-box;
+  position:relative;
+}
+
+.tv-thumb-placeholder::before,
+.tv-thumb-placeholder::after{
+  content:"";
+  position:absolute;
+  inset:16%;
+  border-radius:4px;
+  border:3px solid #d0d4df;
+  box-sizing:border-box;
+}
+
+.tv-thumb-placeholder::after{
+  transform:rotate(90deg);
+}
+
+/* Texto do vídeo */
+.tv-card-body{
+  font-size:1.2rem;   /* menor */
+  line-height:1.4;
+}
+
+.tv-card-text{
+  margin:0;
+  color:#111111;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Dots do carrossel */
+.tv-dots{
+  margin-top:1.6rem;
+  text-align:center;
+}
+
+.tv-dots .dot{
+  width:7px;
+  height:7px;
+  margin:0 3px;
+  border-radius:50%;
+  background-color:#7b7f8a;
+}
+
+/* =========================================================
+   HOME: Social 1 – grid 2x2 (wireframe)
+   ========================================================= */
+.social1-section{
+  padding-top:2.5rem;
+  padding-bottom:2.5rem;
+}
+
+/* Título com linhas laterais em roxo */
+.social1-section .section-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.75rem;
+  margin-bottom:1.75rem;
+}
+
+.social1-section .section-title .label{
+  font-size:1.05rem;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#000;
+  text-align:center;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.social1-section .section-title .rule{
+  flex:1;
+  height:2px;
+  background:#b243c5;
+  border-radius:999px;
+}
+
+/* Grid 2x2 de cards */
+.social1-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  column-gap:1.25rem;
+  row-gap:2rem;
+}
+
+/* Card individual */
+.social1-card{
+  cursor:pointer;
+}
+
+.social1-header{
+  margin-bottom:.5rem;
+}
+
+.social1-assunto{
+  display:block;
+  font-size:.9rem;  /* um pouco menor */
+  font-weight:500;
+  color:#b243c5;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Thumb quadrada */
+.social1-link{
+  display:block;
+}
+
+.social1-thumb{
+  width:100%;
+  border-radius:8px;
+  background:#e1e4ea;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.social1-thumb img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.social1-thumb-placeholder{
+  width:100%;
+  height:120px;
+  background:#e1e4ea;
+}
+
+/* Texto do card */
+.social1-text{
+  margin-top:.75rem;
+  font-size:.95rem;
+  line-height:1.4;
+  color:#111;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Botão "Ver mais" */
+.social1-more{
+  margin-top:2rem;
+  text-align:center;
+}
+
+.social1-btn{
+  border-color:#b243c5;
+  color:#b243c5;
+  padding:.6rem 1.8rem;
+  min-width:8.5rem;
+  font-size:.95rem;
+}
+
+/* =========================================================
+   HOME: Enquete principal
+   ========================================================= */
+.enquete-section{
+  padding-top:2.5rem;
+  padding-bottom:2.5rem;
+}
+
+.enquete-title{
+  font-size:1.5rem;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--jc-purple,#c53aff);
+  margin-bottom:1.25rem;
+}
+
+/* card principal */
+.enquete-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+/* área da imagem */
+.enquete-media{
+  width:100%;
+  border-radius:8px;
+  background:#e1e4ea;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:220px;
+}
+
+.enquete-media img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* placeholder cinza */
+.enquete-placeholder{
+  width:60%;
+  max-width:260px;
+  aspect-ratio:1;
+  border-radius:4px;
+  border:4px solid #f4f5f7;
+  background:#d8dde5;
+}
+
+/* texto da pergunta */
+.enquete-question{
+  margin-top:1.5rem;
+  margin-bottom:2rem;
+  font-size:1rem;
+  line-height:1.5;
+  color:#111;
+  max-width:32rem;
+}
+
+/* botões "Sim" e "Não" */
+.enquete-actions{
+  margin-top:2rem;
+  display:flex;
+  justify-content:center;
+  gap:1.5rem;
+  flex-wrap:wrap;
+}
+
+.enquete-btn{
+  min-width:130px;
+  padding:.75rem 2.2rem;
+  border-radius:999px;
+  border:2px solid var(--jc-purple,#b341c9);
+  background-color:#ffffff;
+  font-size:1rem;
+  font-weight:500;
+  line-height:1;
+  color:#111111;
+  cursor:pointer;
+  box-shadow:0 0 0 1px rgba(0,0,0,0.02);
+  transition:
+    background-color .15s ease,
+    color .15s ease,
+    box-shadow .15s ease,
+    transform .1s ease;
+}
+
+.enquete-btn:hover,
+.enquete-btn:active{
+  background-color:var(--jc-purple,#b341c9);
+  color:#ffffff;
+  box-shadow:0 6px 14px rgba(0,0,0,0.12);
+  transform:translateY(-1px);
+}
+
+.enquete-btn:focus-visible{
+  outline:2px solid #000000;
+  outline-offset:2px;
+}
+
+/* =========================================================
+   HOME: Enquete (poll-section) – variação
+   ========================================================= */
+.poll-section{
+  padding-top:2.5rem;
+  padding-bottom:2.5rem;
+}
+
+.poll-section .section-title .label{
+  font-size:1.5rem;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--jc-purple,#c53aff);
+}
+
+/* card principal */
+.poll-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+/* área da imagem */
+.poll-media{
+  width:100%;
+  border-radius:8px;
+  background:#e1e4ea;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:220px;
+}
+
+.poll-thumb img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* placeholder */
+.poll-thumb-placeholder{
+  width:60%;
+  max-width:260px;
+  aspect-ratio:1;
+  border-radius:4px;
+  border:4px solid #f4f5f7;
+  background:#d8dde5;
+}
+
+/* texto da pergunta */
+.poll-question{
+  margin-top:1.5rem;
+  margin-bottom:2rem;
+  font-size:1rem;
+  line-height:1.5;
+  color:#111;
+  max-width:32rem;
+}
+
+/* botões SIM / NÃO */
+.poll-actions{
+  margin-top:2rem;
+  display:flex;
+  justify-content:center;
+  gap:1.5rem;
+  flex-wrap:wrap;
+}
+
+.poll-btn{
+  min-width:130px;
+  padding:.75rem 2.2rem;
+  border-radius:999px;
+  border:2px solid var(--jc-purple,#b341c9);
+  background-color:#ffffff;
+  font-size:1rem;
+  font-weight:500;
+  line-height:1;
+  color:#111111;
+  cursor:pointer;
+  box-shadow:0 0 0 1px rgba(0,0,0,0.02);
+  transition:
+    background-color .15s ease,
+    color .15s ease,
+    box-shadow .15s ease,
+    transform .1s ease;
+}
+
+.poll-btn:hover,
+.poll-btn:active{
+  background-color:var(--jc-purple,#b341c9);
+  color:#ffffff;
+  box-shadow:0 6px 14px rgba(0,0,0,0.12);
+  transform:translateY(-1px);
+}
+
+.poll-btn:focus-visible{
+  outline:2px solid #000000;
+  outline-offset:2px;
+}
+
+/* =========================================================
+   HOME: Receita da Boa
+   ========================================================= */
+.receita-section{
+  padding-top:2.5rem;
+  padding-bottom:2.5rem;
+}
+
+/* título central com linhas laranjas */
+.receita-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:1rem;
+  margin-bottom:1.75rem;
+}
+
+.receita-title .label{
+  font-size:1.25rem;
+  font-weight:600;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.receita-title .rule{
+  flex:1;
+  max-width:120px;
+  height:3px;
+  border-radius:999px;
+  background-color:var(--jc-orange,#ff8a00);
+}
+
+/* grid 2x2 (em mobile cai pra 1 col.) */
+.receita-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:1.75rem 1.25rem;
+}
+
+@media (max-width:768px){
+  .receita-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+.receita-card{
+  display:flex;
+  flex-direction:column;
+}
+
+/* "Assunto" em laranja */
+.receita-header{
+  margin-bottom:.75rem;
+}
+
+.receita-assunto{
+  font-size:1.1rem;   /* menor */
+  font-weight:600;
+  color:var(--jc-orange,#ff8a00);
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* bloco de imagem */
+.receita-link{
+  display:block;
+}
+
+.receita-thumb{
+  width:100%;
+  min-height:140px;
+  border-radius:12px;
+  background-color:#e1e4ea;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.receita-thumb img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+}
+
+/* placeholder cinza */
+.receita-thumb-placeholder{
+  width:60%;
+  max-width:220px;
+  aspect-ratio:1;
+  border-radius:6px;
+  border:4px solid #f4f5f7;
+  background-color:#d8dde5;
+}
+
+/* texto da receita */
+.receita-text{
+  margin-top:.85rem;
+  font-size:.95rem;
+  line-height:1.45;
+  color:#111111;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* =========================
+   MAIS LIDAS — abaixo de "Para você"
+   ========================== */
+
+.most-read-section {
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+/* Título centralizado, em caixa alta, com sublinhado vermelho */
+.most-read-section .section-title--simple {
+  text-align: center;
+  margin: 0 auto 24px;
+}
+
+.most-read-section .section-title--simple .label {
+  display: inline-block;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 1.3rem;
+  color: #111827;
+  padding-bottom: 8px;
+  position: relative;
+}
+
+.most-read-section .section-title--simple .label::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 100%;       /* linha ocupa toda a palavra */
+  max-width: none;
+  height: 3px;
+  background-color: #e30613; /* vermelho JC */
+}
+
+/* Coluna mais estreita para as listas de "mais lidas" */
+.most-read-section .container {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* Lista / itens */
+
+.most-read-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.most-read-item + .most-read-item {
+  margin-top: 20px;
+}
+
+.most-read-card {
+  display: block;
+}
+
+.most-read-link {
+  display: flex;
+  align-items: flex-start;   /* texto alinhado ao topo da imagem */
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Thumbnail + faixa vermelha + número */
+
+.most-read-thumb-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding-left: 12px; /* espaço para a faixa */
+  margin-right: 20px;
+}
+
+.most-read-strip {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  border-radius: 999px;
+  background-color: #e30613;
+}
+
+.most-read-thumb {
+  width: 140px;
+  height: 88px;
+  border-radius: 8px;
+  background-color: #e5e7eb; /* cinza do placeholder */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Imagem dentro da thumbnail */
+.most-read-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Número no canto inferior direito da foto */
+
+.most-read-rank {
+  position: absolute;
+  bottom: -6px;
+  right: 10px;
+  min-width: 32px;
+  padding: 4px 10px;
+  border-radius: 2px;
+  background-color: #e30613;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+/* Texto da notícia */
+
+/* Título da notícia em "Mais lidas" */
+.most-read-title{
+  font-size: 1.15rem;   /* menor que o padrão */
+  line-height: 1.3;
+  font-weight: 600;
+  margin: 0;
+
+  /* deixa quebrar normalmente e limita a altura
+     a ~3 linhas para não passar da altura da imagem */
+  max-height: 4.1em;        /* aprox. 3 linhas */
+  overflow: hidden;
+  overflow-wrap: break-word; /* garante quebra de palavras grandes */
+  word-break: break-word;
+}
+
+/* garante que o texto use só o espaço disponível ao lado da imagem */
+.most-read-content{
+  flex: 1;
+  min-width: 0;
+}
+
+/* Pequeno ajuste quando a lista é a de baixo da página (abaixo de Recortes) */
+.most-read-section--bottom {
+  padding-top: 40px;
+}
+
+/* =========================
+   PUBLICIDADE LEGAL — logo abaixo de "Mais lidas"
+   ========================== */
+
+.section-publicidade {
+  padding-top: 32px;
+  padding-bottom: 40px;
+}
+
+/* Título com linhas laterais em vermelho */
+.section-publicidade .section-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:28px;
+}
+
+/* linhas laterais */
+.section-publicidade .section-title .rule{
+  flex:1 1 auto;        /* linha cresce/encolhe */
+  min-width:40px;       /* não some completamente */
+  max-width:260px !important;  /* tamanho “bonito” em telas maiores */
+  height:2px;
+  background-color:#e30613;
+  border-radius:999px;
+}
+
+/* texto "Publicidade legal" em uma linha só */
+.section-publicidade .section-title .label{
+  flex:0 0 auto;        /* não encolher */
+  white-space:nowrap;   /* não quebrar linha */
+  font-size:1.3rem;
+  font-weight:600;
+  color:#e30613;
+}
+
+/* Ajuste específico para telas bem estreitas */
+@media (max-width:480px){
+  .section-publicidade .section-title{
+    gap:8px;
+  }
+
+  .section-publicidade .section-title .label{
+    font-size:1.15rem;   /* um pouco menor para caber */
+  }
+
+  .section-publicidade .section-title .rule{
+    max-width:140px;     /* linhas ainda longas, mas cabem na tela */
+  }
+}
+
+/* Grid 2 colunas (ou 1 em telas bem estreitas) */
+.publicidade-grid {
+  max-width: 720px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 28px;
+}
+
+/* Card */
+
+.publicidade-card {
+  display: block;
+}
+
+.publicidade-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Título "Assunto" em vermelho maior */
+
+.publicidade-assunto {
+  display: block;
+  font-size: 1.2rem;   /* menor */
+  font-weight: 600;
+  color: #e30613;
+  margin-bottom: 10px;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Box da imagem */
+
+.publicidade-thumb-wrapper {
+  margin-bottom: 14px;
+}
+
+.publicidade-thumb {
+  width: 100%;
+  border-radius: 10px;
+  background-color: #e5e7eb;
+  overflow: hidden;
+  position: relative;
+  padding-top: 75%; /* 4:3 aproximado */
+}
+
+.publicidade-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Texto do anúncio */
+
+.publicidade-body {
+  margin-top: 4px;
+}
+
+.publicidade-text {
+  font-size: 1.2rem;    /* menor */
+  line-height: 1.35;
+  color: #4b5563;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Botão "Ver mais" como pill com borda vermelha */
+
+.publicidade-see-more {
+  text-align: center;
+  margin-top: 28px;
+}
+
+.publicidade-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 26px;
+  border-radius: 999px;
+  border: 1.5px solid #e30613;
+  background-color: #ffffff;
+  color: #e30613;
+  font-size: 1.3rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.publicidade-btn:hover,
+.publicidade-btn:focus-visible {
+  background-color: #ffe5ea;
+}
+
+/* =========================================================
+   Títulos com linhas longas – Publicidade, Pernambuco, Últimas
+   (mesma lógica em todas as seções)
+   ========================================================= */
+
+/* container do título */
+.section.accent-red.pernambuco-section .section-title,
+.section.accent-red.ultimas-section .section-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:28px;
+}
+
+/* texto central: não quebra de linha */
+.section.accent-red.pernambuco-section .section-title .label,
+.section.accent-red.ultimas-section .section-title .label{
+  flex:0 0 auto;
+  white-space:nowrap;
+  font-size:1.2rem;
+  font-weight:600;
+  color:#e30613;
+}
+
+/* linhas laterais: flexíveis, mas sem estourar a tela */
+.section.accent-red.pernambuco-section .section-title .rule,
+.section.accent-red.ultimas-section .section-title .rule{
+  flex:1 1 auto;
+  min-width:40px;
+  max-width:220px;
+  height:2px;
+  background-color:#e30613;
+  border-radius:999px;
+}
+
+@media (max-width:480px){
+  .section.accent-red.pernambuco-section .section-title .rule,
+  .section.accent-red.ultimas-section .section-title .rule{
+    max-width:160px;
+  }
+}
+
+/* ===== RECORTES (vídeos curtos) – override rápido ===== */
+.recortes {
+  --accent: #2faa4a;
+}
+.recortes .section-title .label { color: #111; }
+.recortes-hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9/16;
+  background: #e3e8ee;
+  border-radius: 12px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.recortes-hero .play {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.06);
+  border: 4px solid rgba(0,0,0,.08);
+}
+.recortes-dots { display: grid; place-items: center; margin-top: 10px; gap: 6px; grid-auto-flow: column; }
+.recortes-dots .dot { width: 8px; height: 8px; border-radius: 50%; background:#6b6d80; opacity:.35; }
+.recortes-dots .dot.is-active { opacity: 1; }
+
+/* =========================================================
+   HOME: Pernambuco – destaque + links extras
+   ========================================================= */
+.pernambuco-section{
+  padding-top:2.5rem;
+  padding-bottom:2.5rem;
+  --accent:var(--jc-red,#e30613);
+}
+
+/* título acima da imagem */
+.pernambuco-header{
+  margin-bottom:.75rem;
+}
+
+.pernambuco-assunto{
+  display:block;
+  font-size:1.4rem;  /* levemente menor */
+  font-weight:500;
+  color:var(--accent);
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* card principal com imagem */
+.pernambuco-main{
+  margin-top:.5rem;
+}
+
+.pernambuco-image-link{
+  display:block;
+}
+
+.pernambuco-thumb{
+  width:100%;
+  border-radius:8px;
+  background:#e1e4ea;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.pernambuco-thumb img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.pernambuco-thumb-placeholder{
+  width:100%;
+  height:180px;
+  background:#e1e4ea;
+}
+
+/* texto principal abaixo da imagem */
+.pernambuco-main-body{
+  margin-top:1rem;
+}
+
+.pernambuco-main-text{
+  font-size:.98rem;
+  line-height:1.4;
+  color:#111;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* bloco das notícias extras + botão "Ver mais" */
+.pernambuco-extra-wrapper{
+  margin-top:1.75rem;
+}
+
+/* checkbox de controle (não usado, mas neutro) */
+.pernambuco-toggle{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+
+/* lista de extras (controlada via JS) */
+.pernambuco-list{
+  display:block;
+  margin-top:1rem;
+}
+
+/* cada linha com barrinha vermelha à esquerda */
+.pernambuco-list-item + .pernambuco-list-item{
+  margin-top:1rem;
+}
+
+.pernambuco-list-link{
+  display:flex;
+  align-items:flex-start;
+  text-decoration:none;
+}
+
+.pernambuco-list-bar{
+  flex:0 0 2px;
+  height:100%;
+  background:var(--accent);
+  margin-right:.75rem;
+}
+
+.pernambuco-list-text{
+  flex:1;
+  font-size:.95rem;
+  line-height:1.4;
+  color:#111;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* botão "Ver mais" */
+.pernambuco-see-more{
+  margin-top:1.75rem;
+  text-align:center;
+}
+
+.pernambuco-btn{
+  border-color:var(--accent);
+  color:var(--accent);
+  padding:.6rem 1.8rem;
+  min-width:8.5rem;
+  font-size:.95rem;
+}
+
+/* miniatura das notícias extras */
+.pernambuco-list-thumb{
+  flex:0 0 72px;
+  height:72px;
+  margin-right:.75rem;
+  border-radius:6px;
+  background:#e1e4ea;
+  overflow:hidden;
+}
+
+.pernambuco-list-thumb img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
