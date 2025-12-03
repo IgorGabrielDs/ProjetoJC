@@ -25,7 +25,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-# Imports dos Modelos (Incluindo o novo Video)
+# Imports dos Modelos (incluindo Vídeo)
 from .models import (
     Noticia,
     Voto,
@@ -34,7 +34,7 @@ from .models import (
     Enquete,
     OpcaoEnquete,
     VotoEnquete,
-    Video,  
+    Video,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,6 +42,8 @@ logger = logging.getLogger(__name__)
 # =======================
 # FUNÇÕES AUXILIARES
 # =======================
+
+
 def _annotate_is_saved(qs, user):
     """Anota se o usuário salvou a notícia."""
     if user.is_authenticated:
@@ -85,7 +87,9 @@ def _persistir_preferencias_no_perfil(user, identificacao, assuntos_ids):
     """
     Perfil = _perfil_model_or_none()
     if not Perfil:
-        logger.info("Onboarding: Perfil não encontrado; preferências não persistidas em model.")
+        logger.info(
+            "Onboarding: Perfil não encontrado; preferências não persistidas em model."
+        )
         return
 
     perfil, _ = Perfil.objects.get_or_create(user=user)
@@ -136,8 +140,10 @@ def _persistir_preferencias_no_perfil(user, identificacao, assuntos_ids):
 
 
 # =======================
-# HOME (A VIEW PRINCIPAL)
+# HOME (VIEW PRINCIPAL)
 # =======================
+
+
 def index(request):
     noticias = Noticia.objects.all()
     assuntos = Assunto.objects.all()
@@ -167,7 +173,7 @@ def index(request):
     # seções independentes da lista
     all_qs = Noticia.objects.all().select_related().prefetch_related("assuntos")
 
-    # 1) Destaques (com fallback caso não haja imagem)
+    # 1) Destaques
     destaques_qs = (
         all_qs.filter(imagem__isnull=False)
         .annotate(
@@ -180,13 +186,11 @@ def index(request):
     if not destaques.exists():
         destaques = _annotate_is_saved(
             all_qs.order_by("-criado_em"),
-            request.user
+            request.user,
         )[:3]
     destaques_ids = list(destaques.values_list("id", flat=True))
 
-    # ===================================================================
-    # 2) Para você (LÓGICA DE RECOMENDAÇÃO ATUALIZADA)
-    # ===================================================================
+    # 2) Para você (recomendações)
     ids_para_excluir = set(destaques_ids)
     titulo_para_voce = "Populares do momento"
 
@@ -202,90 +206,216 @@ def index(request):
         ids_para_excluir.update(noticias_votadas_ids)
         ids_para_excluir.update(noticias_salvas_ids)
 
-        assuntos_interesse = Assunto.objects.filter(
-            noticias__votos__usuario=request.user,
-            noticias__votos__valor=1
-        ).values_list("pk", flat=True).distinct()
+        assuntos_interesse = (
+            Assunto.objects.filter(
+                noticias__votos__usuario=request.user,
+                noticias__votos__valor=1,
+            )
+            .values_list("pk", flat=True)
+            .distinct()
+        )
 
-        assuntos_salvos = Assunto.objects.filter(
-            noticias__salvo__usuario=request.user
-        ).values_list("pk", flat=True).distinct()
+        assuntos_salvos = (
+            Assunto.objects.filter(
+                noticias__salvo__usuario=request.user,
+            )
+            .values_list("pk", flat=True)
+            .distinct()
+        )
 
         assuntos_ids = set(list(assuntos_interesse) + list(assuntos_salvos))
 
         if assuntos_ids:
             titulo_para_voce = "Recomendações para você"
-            pv_qs = all_qs.filter(
-                assuntos__id__in=assuntos_ids
-            ).exclude(
-                id__in=ids_para_excluir
-            ).annotate(
-                matches_assunto=Count("assuntos", filter=Q(assuntos__id__in=assuntos_ids)),
-                score=Coalesce(Sum("votos__valor"), Value(0))
-            ).distinct().order_by(
-                "-matches_assunto",
-                "-score",
-                "-criado_em",
+            pv_qs = (
+                all_qs.filter(assuntos__id__in=assuntos_ids)
+                .exclude(id__in=ids_para_excluir)
+                .annotate(
+                    matches_assunto=Count(
+                        "assuntos",
+                        filter=Q(assuntos__id__in=assuntos_ids),
+                    ),
+                    score=Coalesce(Sum("votos__valor"), Value(0)),
+                )
+                .distinct()
+                .order_by(
+                    "-matches_assunto",
+                    "-score",
+                    "-criado_em",
+                )
             )
         else:
             titulo_para_voce = "Populares do momento"
-            pv_qs = all_qs.exclude(
-                id__in=ids_para_excluir
-            ).annotate(
-                score=Coalesce(Sum("votos__valor"), Value(0))
-            ).order_by("-score", "-criado_em")
+            pv_qs = (
+                all_qs.exclude(id__in=ids_para_excluir)
+                .annotate(score=Coalesce(Sum("votos__valor"), Value(0)))
+                .order_by("-score", "-criado_em")
+            )
     else:
         titulo_para_voce = "Populares do momento"
-        pv_qs = all_qs.exclude(
-            id__in=ids_para_excluir
-        ).annotate(
-            score=Coalesce(Sum("votos__valor"), Value(0))
-        ).order_by("-score", "-criado_em")
+        pv_qs = (
+            all_qs.exclude(id__in=ids_para_excluir)
+            .annotate(score=Coalesce(Sum("votos__valor"), Value(0)))
+            .order_by("-score", "-criado_em")
+        )
 
     para_voce = _annotate_is_saved(pv_qs, request.user)[:6]
     if not para_voce.exists():
         para_voce = _annotate_is_saved(
             all_qs.exclude(id__in=ids_para_excluir).order_by("-criado_em"),
-            request.user
+            request.user,
         )[:6]
         titulo_para_voce = "Destaques recentes"
 
-    # 3) Mais lidas (7 dias, com fallback)
+    # 3) Mais lidas (7 dias, com fallback) – usando 3 itens
     since_7 = timezone.now() - timedelta(days=7)
-    ml_qs = all_qs.filter(criado_em__gte=since_7).order_by("-visualizacoes", "-criado_em")
-    mais_lidas = _annotate_is_saved(ml_qs, request.user)[:2]
+    ml_qs = all_qs.filter(criado_em__gte=since_7).order_by(
+        "-visualizacoes", "-criado_em"
+    )
+    mais_lidas = _annotate_is_saved(ml_qs, request.user)[:3]
     if not mais_lidas.exists():
-        mais_lidas = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:2]
+        mais_lidas = _annotate_is_saved(
+            all_qs.order_by("-criado_em"),
+            request.user,
+        )[:3]
 
-    # 4) JC360 (com fallbacks encadeados)
+    # 4) JC360
     try:
         jc360_assunto = Assunto.objects.get(slug="jc360")
         jc360_qs = all_qs.filter(assuntos=jc360_assunto)
     except Assunto.DoesNotExist:
         jc360_qs = all_qs.filter(assuntos__nome__iexact="jc360")
 
-    jc360 = _annotate_is_saved(jc360_qs.order_by("-criado_em"), request.user)[:4]
+    jc360 = _annotate_is_saved(
+        jc360_qs.order_by("-criado_em"),
+        request.user,
+    )[:4]
     if not jc360.exists():
-        jc360 = _annotate_is_saved(all_qs.exclude(id__in=destaques_ids).order_by("-criado_em"), request.user)[:4]
+        jc360 = _annotate_is_saved(
+            all_qs.exclude(id__in=destaques_ids).order_by("-criado_em"),
+            request.user,
+        )[:4]
     if not jc360.exists():
-        jc360 = _annotate_is_saved(all_qs.order_by("-criado_em"), request.user)[:4]
+        jc360 = _annotate_is_saved(
+            all_qs.order_by("-criado_em"),
+            request.user,
+        )[:4]
 
-    # =========================================================
-    # 5) VÍDEOS - AQUI ESTÁ A CORREÇÃO PARA O CARROSSEL FUNCIONAR
-    # =========================================================
-    # Buscamos direto do Model Video, ordenado por data
-    videos_tv = Video.objects.filter(ativo=True).order_by("-criado_em")[:4]
+    # 5) Vídeos (TV JC)
+    # 5a) Compatibilidade antiga: notícias com assunto "videos"
+    try:
+        videos_assunto = Assunto.objects.get(slug="videos")
+        videos_qs = all_qs.filter(assuntos=videos_assunto)
+    except Assunto.DoesNotExist:
+        videos_qs = all_qs.filter(assuntos__nome__iexact="videos")
 
-    # 6) Pernambuco (destaque único com fallback)
+    videos_noticias = _annotate_is_saved(
+        videos_qs.order_by("-criado_em"),
+        request.user,
+    )[:4]
+    if not videos_noticias.exists():
+        videos_noticias = _annotate_is_saved(
+            all_qs.order_by("-criado_em"),
+            request.user,
+        )[:4]
+
+    # 5b) NOVO: vídeos independentes do model Video (preferencial)
+    videos_tv = list(Video.objects.filter(ativo=True).order_by("-criado_em")[:4])
+    if not videos_tv:
+        # fallback para as notícias "videos" se não houver Video cadastrado
+        videos_tv = list(videos_noticias)
+
+    # 6) PUBLICIDADE LEGAL
+    try:
+        pub_assunto = Assunto.objects.get(slug="publicidade-legal")
+        publicidade_qs = all_qs.filter(assuntos=pub_assunto)
+    except Assunto.DoesNotExist:
+        publicidade_qs = all_qs.filter(
+            assuntos__nome__iexact="publicidade legal",
+        )
+
+    publicidade_legal = _annotate_is_saved(
+        publicidade_qs.order_by("-criado_em"),
+        request.user,
+    )[:2]
+    if not publicidade_legal.exists():
+        publicidade_legal = _annotate_is_saved(
+            all_qs.order_by("-criado_em"),
+            request.user,
+        )[:2]
+
+    # 7) Pernambuco (principal + lista)
     try:
         pe_assunto = Assunto.objects.get(slug="pernambuco")
-        pernambuco = all_qs.filter(assuntos=pe_assunto).order_by("-criado_em").first()
+        pernambuco_qs = all_qs.filter(
+            assuntos=pe_assunto,
+        ).order_by("-criado_em")
     except Assunto.DoesNotExist:
-        pernambuco = all_qs.filter(assuntos__nome__iexact="pernambuco").order_by("-criado_em").first()
-    if not pernambuco:
-        pernambuco = all_qs.order_by("-criado_em").first()
+        pernambuco_qs = all_qs.filter(
+            assuntos__nome__iexact="pernambuco",
+        ).order_by("-criado_em")
 
-    # 7) Top 3 da semana (cache)
+    if not pernambuco_qs.exists():
+        pernambuco_qs = all_qs.order_by("-criado_em")
+
+    pernambuco_qs = _annotate_is_saved(pernambuco_qs, request.user)
+    pernambuco = pernambuco_qs.first()
+    pernambuco_mais = pernambuco_qs[1:]
+
+    # 8) Últimas notícias
+    ultimas = _annotate_is_saved(
+        all_qs.order_by("-criado_em"),
+        request.user,
+    )[:8]
+
+    # 9) Blog do Torcedor
+    try:
+        blog_assunto = Assunto.objects.get(slug="blog-do-torcedor")
+        blog_qs = all_qs.filter(assuntos=blog_assunto)
+    except Assunto.DoesNotExist:
+        blog_qs = all_qs.filter(
+            assuntos__nome__iexact="blog do torcedor",
+        )
+
+    blog_torcedor = _annotate_is_saved(
+        blog_qs.order_by("-criado_em"),
+        request.user,
+    )[:5]
+
+    # 10) Recortes
+    try:
+        recortes_assunto = Assunto.objects.get(slug="recortes")
+        recortes_qs = all_qs.filter(assuntos=recortes_assunto)
+    except Assunto.DoesNotExist:
+        recortes_qs = all_qs.filter(
+            assuntos__nome__iexact="recortes",
+        )
+
+    recortes = _annotate_is_saved(
+        recortes_qs.order_by("-criado_em"),
+        request.user,
+    )[:3]
+
+    # 11) Receita da boa
+    try:
+        receita_assunto = Assunto.objects.get(slug="receita-da-boa")
+        receita_qs = all_qs.filter(assuntos=receita_assunto)
+    except Assunto.DoesNotExist:
+        receita_qs = all_qs.filter(
+            assuntos__nome__iexact="receita da boa",
+        )
+
+    receita_da_boa = _annotate_is_saved(
+        receita_qs.order_by("-criado_em"),
+        request.user,
+    )[:4]
+    if not receita_da_boa.exists():
+        receita_da_boa = _annotate_is_saved(
+            all_qs.order_by("-criado_em"),
+            request.user,
+        )[:4]
+
+    # 12) Top 3 da semana (cache)
     top3 = cache.get("top3_semana_final")
     if top3 is None:
         hoje = timezone.now().date()
@@ -294,14 +424,14 @@ def index(request):
             Noticia.objects.filter(criado_em__date__gte=inicio)
             .annotate(
                 score_calculado=Coalesce(Sum("votos__valor"), Value(0))
-                + (F("visualizacoes") * Value(0.01))
+                + (F("visualizacoes") * Value(0.01)),
             )
             .order_by("-score_calculado", "-criado_em")[:3]
         )
         top3 = list(top3_qs)
         cache.set("top3_semana_final", top3, 300)
 
-    # ===== Modal de boas-vindas (pós-cadastro) =====
+    # Modal de boas-vindas
     show_welcome = bool(request.session.pop("show_welcome", False))
     welcome_name = request.session.pop("welcome_name", None)
     welcome_next = request.session.pop("welcome_next", reverse("login"))
@@ -317,8 +447,15 @@ def index(request):
         "titulo_para_voce": titulo_para_voce,
         "mais_lidas": mais_lidas,
         "jc360": jc360,
-        "videos_tv": videos_tv,
+        "videos": videos_noticias,      # compat antigo (Noticia)
+        "videos_tv": videos_tv,         # novo carrossel (Video ou fallback)
+        "publicidade_legal": publicidade_legal,
         "pernambuco": pernambuco,
+        "pernambuco_mais": pernambuco_mais,
+        "ultimas": ultimas,
+        "blog_torcedor": blog_torcedor,
+        "recortes": recortes,
+        "receita_da_boa": receita_da_boa,
         "top3": top3,
         "show_welcome": show_welcome,
         "welcome_name": welcome_name,
@@ -330,6 +467,8 @@ def index(request):
 # =======================
 # DETALHE
 # =======================
+
+
 def noticia_detalhe(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
 
@@ -339,17 +478,14 @@ def noticia_detalhe(request, pk):
     assuntos_ids = list(noticia.assuntos.values_list("id", flat=True))
     if assuntos_ids:
         relacionadas = (
-            Noticia.objects
-            .filter(assuntos__in=assuntos_ids)
+            Noticia.objects.filter(assuntos__in=assuntos_ids)
             .exclude(pk=noticia.pk)
             .distinct()
             .order_by("-criado_em")[:2]
         )
     else:
         relacionadas = (
-            Noticia.objects
-            .exclude(pk=noticia.pk)
-            .order_by("-criado_em")[:2]
+            Noticia.objects.exclude(pk=noticia.pk).order_by("-criado_em")[:2]
         )
 
     votos_agregados = noticia.votos.aggregate(
@@ -359,59 +495,70 @@ def noticia_detalhe(request, pk):
     )
 
     voto_usuario = None
-    is_saved = False # Definido como False por padrão
+    is_saved = False  # padrão
     if request.user.is_authenticated:
-        voto_usuario = Voto.objects.filter(noticia=noticia, usuario=request.user).first()
+        voto_usuario = Voto.objects.filter(
+            noticia=noticia,
+            usuario=request.user,
+        ).first()
+        # usando o ManyToMany "salvos"
         is_saved = noticia.salvos.filter(pk=request.user.pk).exists()
 
     # --- LÓGICA DA ENQUETE (INÍCIO) ---
     enquete_data = None
     try:
-        # noticia.enquete usa o 'related_name' que definimos no models.py
-        enquete = noticia.enquete #type: ignore
-        
-        # Só processa se a enquete tiver sido configurada (tiver um título)
+        enquete = noticia.enquete  # type: ignore
+
         if enquete and enquete.titulo:
             opcoes = enquete.opcoes.all()
-            total_votos_enquete = VotoEnquete.objects.filter(enquete=enquete).count()
-            
+            total_votos_enquete = VotoEnquete.objects.filter(
+                enquete=enquete,
+            ).count()
+
             usuario_ja_votou_enquete = False
             voto_usuario_enquete_id = None
 
-            # Verifica se o usuário logado já votou
             if request.user.is_authenticated:
-                # Usamos o método que criamos no models.py
                 usuario_ja_votou_enquete = enquete.ja_votou(request.user)
                 if usuario_ja_votou_enquete:
-                    voto_obj = VotoEnquete.objects.filter(enquete=enquete, usuario=request.user).first()
-                    voto_usuario_enquete_id = voto_obj.opcao_selecionada.id if voto_obj else None
+                    voto_obj = VotoEnquete.objects.filter(
+                        enquete=enquete,
+                        usuario=request.user,
+                    ).first()
+                    voto_usuario_enquete_id = (
+                        voto_obj.opcao_selecionada.id if voto_obj else None
+                    )
 
-            # Prepara os dados das opções com percentuais
             opcoes_com_percentual = []
             for op in opcoes:
-                votos_da_opcao = op.total_votos # Usa a @property do models
-                percentual = (votos_da_opcao / total_votos_enquete * 100) if total_votos_enquete > 0 else 0
-                opcoes_com_percentual.append({
-                    "id": op.id,
-                    "texto": op.texto,
-                    "votos": votos_da_opcao,
-                    "percentual": round(percentual, 1) # Arredonda para 1 casa decimal
-                })
+                votos_da_opcao = op.total_votos
+                percentual = (
+                    votos_da_opcao / total_votos_enquete * 100
+                    if total_votos_enquete > 0
+                    else 0
+                )
+                opcoes_com_percentual.append(
+                    {
+                        "id": op.id,
+                        "texto": op.texto,
+                        "votos": votos_da_opcao,
+                        "percentual": round(percentual, 1),
+                    }
+                )
 
-            # Monta o dicionário final para o template
             enquete_data = {
-                "obj": enquete, # O objeto Enquete (para o form action)
+                "obj": enquete,
                 "opcoes": opcoes_com_percentual,
                 "total_votos": total_votos_enquete,
                 "usuario_ja_votou": usuario_ja_votou_enquete,
-                "voto_usuario_id": voto_usuario_enquete_id, # Para destacar a opção votada
+                "voto_usuario_id": voto_usuario_enquete_id,
             }
-            
+
     except Enquete.DoesNotExist:
-        enquete_data = None # Não há enquete para esta notícia
+        enquete_data = None
     except Exception as e:
         logger.error(f"Erro ao processar enquete para notícia {pk}: {e}")
-        enquete_data = None # Falha segura, não quebra a página
+        enquete_data = None
     # --- LÓGICA DA ENQUETE (FIM) ---
 
     ctx = {
@@ -422,14 +569,16 @@ def noticia_detalhe(request, pk):
         "voto_usuario": voto_usuario.valor if voto_usuario else 0,
         "relacionadas": relacionadas,
         "is_saved": is_saved,
-        "enquete_data": enquete_data, # <- NOVO DADO ADICIONADO AO CONTEXTO
+        "enquete_data": enquete_data,
     }
     return render(request, "noticias/detalhe.html", ctx)
 
 
 # =======================
-# VOTO (AJAX) - (Voto da Notícia, Up/Down)
+# VOTO (AJAX) - UP/DOWN
 # =======================
+
+
 @login_required
 @require_http_methods(["POST"])
 def votar(request, pk):
@@ -459,7 +608,9 @@ def votar(request, pk):
         return redirect("noticias:noticia_detalhe", pk=pk)
 
     voto, created = Voto.objects.get_or_create(
-        noticia=noticia, usuario=request.user, defaults={"valor": valor}
+        noticia=noticia,
+        usuario=request.user,
+        defaults={"valor": valor},
     )
 
     if created:
@@ -494,6 +645,8 @@ def votar(request, pk):
 # =======================
 # SALVOS
 # =======================
+
+
 @login_required
 def minhas_salvas(request):
     noticias = (
@@ -531,6 +684,8 @@ def toggle_salvo(request, pk):
 # =======================
 # SIGNUP (custom)
 # =======================
+
+
 @require_http_methods(["GET", "POST"])
 def signup(request):
     """
@@ -543,7 +698,9 @@ def signup(request):
 
     if request.method == "POST":
         post_dict = request.POST.dict()
-        post_log = {k: ("***" if "password" in k else v) for k, v in post_dict.items()}
+        post_log = {
+            k: ("***" if "password" in k else v) for k, v in post_dict.items()
+        }
         logger.info("POST /signup payload: %s", post_log)
 
         nome = (request.POST.get("nome") or "").strip()
@@ -553,7 +710,7 @@ def signup(request):
         password2 = request.POST.get("password2") or ""
 
         terms_vals = request.POST.getlist("terms")
-        terms_ok = ("on" in terms_vals)
+        terms_ok = "on" in terms_vals
 
         errors = {}
 
@@ -601,7 +758,8 @@ def signup(request):
         if Perfil is not None:
             try:
                 Perfil.objects.update_or_create(
-                    user=user, defaults={"data_nascimento": data_nascimento or None}
+                    user=user,
+                    defaults={"data_nascimento": data_nascimento or None},
                 )
             except Exception as e:
                 logger.warning("Falha ao atualizar/criar Perfil: %s", e)
@@ -622,8 +780,10 @@ def signup(request):
 
 
 # =======================
-# ONBOARDING / PERSONALIZAÇÃO (pós-cadastro)
+# ONBOARDING / PERSONALIZAÇÃO
 # =======================
+
+
 @login_required
 @require_http_methods(["GET", "POST"])
 def onboarding_personalizacao(request):
@@ -633,9 +793,9 @@ def onboarding_personalizacao(request):
     POST: valida, persiste preferências no Perfil (quando possível) e volta para a Home.
     """
     if request.method == "POST":
-        identificacao = (request.POST.get("identificacao") or "").strip()  # 'anonimo' | 'nome'
-        assuntos_ids = request.POST.getlist("assuntos")  # lista de ids (str)
-        terms_ok = (request.POST.get("terms") == "on")
+        identificacao = (request.POST.get("identificacao") or "").strip()
+        assuntos_ids = request.POST.getlist("assuntos")
+        terms_ok = request.POST.get("terms") == "on"
 
         errors = {}
         if identificacao not in {"anonimo", "nome"}:
@@ -646,21 +806,26 @@ def onboarding_personalizacao(request):
             errors["terms"] = "É necessário concordar com os Termos de Uso."
 
         if errors:
-            # Recarrega a tela com erros (mantendo seleção)
             assuntos = Assunto.objects.all().order_by("nome")[:30]
             return render(
                 request,
                 "noticias/onboarding_personalizacao.html",
-                {"assuntos": assuntos, "errors": errors, "selecionados": set(map(int, assuntos_ids))},
+                {
+                    "assuntos": assuntos,
+                    "errors": errors,
+                    "selecionados": set(map(int, assuntos_ids)),
+                },
             )
 
-        # Persistência resiliente no Perfil (se existir)
-        _persistir_preferencias_no_perfil(request.user, identificacao, [int(x) for x in assuntos_ids])
+        _persistir_preferencias_no_perfil(
+            request.user,
+            identificacao,
+            [int(x) for x in assuntos_ids],
+        )
 
         messages.success(request, "Preferências salvas! Personalização concluída.")
         return redirect("noticias:index")
 
-    # GET
     assuntos = Assunto.objects.all().order_by("nome")[:30]
     return render(
         request,
@@ -672,18 +837,28 @@ def onboarding_personalizacao(request):
 # =======================
 # RESUMO (Gemini)
 # =======================
+
+
 @login_required
 def resumir_noticia(request, pk):
     api_key = getattr(settings, "GEMINI_API_KEY", "")
     if not api_key:
-        return JsonResponse({"error": "Chave da API GEMINI_API_KEY não configurada no ambiente."}, status=500)
+        return JsonResponse(
+            {
+                "error": "Chave da API GEMINI_API_KEY não configurada no ambiente.",
+            },
+            status=500,
+        )
 
     noticia = get_object_or_404(Noticia, pk=pk)
 
     try:
         import google.generativeai as genai
     except Exception:
-        return JsonResponse({"error": "Biblioteca google-generativeai não está instalada."}, status=500)
+        return JsonResponse(
+            {"error": "Biblioteca google-generativeai não está instalada."},
+            status=500,
+        )
 
     try:
         genai.configure(api_key=api_key)  # type: ignore
@@ -705,75 +880,80 @@ def resumir_noticia(request, pk):
         return JsonResponse({"resumo": resumo})
     except Exception as e:
         logger.exception("Erro ao resumir notícia %s: %s", pk, e)
-        return JsonResponse({"error": f"Erro ao conectar com a API: {e}"}, status=500)
+        return JsonResponse(
+            {"error": f"Erro ao conectar com a API: {e}"},
+            status=500,
+        )
 
 
 # ==================================================
 # VOTAÇÃO DA ENQUETE
 # ==================================================
-@login_required # REQUER LOGIN: Garante que só usuários logados votem
-@require_http_methods(["POST"]) # Só aceita requisições POST
+
+
+@login_required
+@require_http_methods(["POST"])
 def votar_enquete(request, enquete_pk):
     """
     Registra o voto de um usuário em uma opção de enquete.
     """
-    # Garante que a enquete existe
     enquete = get_object_or_404(Enquete, pk=enquete_pk)
-    noticia = enquete.noticia # Precisamos da notícia para redirecionar de volta
-    
+    noticia = enquete.noticia
+
     try:
-        # Pega o ID da opção enviada pelo formulário
-        # O 'name' do input no HTML deverá ser "opcao_enquete"
         opcao_id = request.POST.get("opcao_enquete")
         if not opcao_id:
-            # Se 'opcao_enquete' não veio no POST
             raise Exception("Nenhuma opção selecionada.")
-            
-        # Garante que a opção selecionada existe E pertence a esta enquete
-        opcao_selecionada = get_object_or_404(OpcaoEnquete, pk=opcao_id, enquete=enquete)
-    
+
+        opcao_selecionada = get_object_or_404(
+            OpcaoEnquete,
+            pk=opcao_id,
+            enquete=enquete,
+        )
+
     except Exception as e:
-        logger.warning(f"Tentativa de voto inválida na enquete {enquete_pk} pelo usuário {request.user.username}: {e}")
+        logger.warning(
+            f"Tentativa de voto inválida na enquete {enquete_pk} "
+            f"pelo usuário {request.user.username}: {e}"
+        )
         messages.error(request, "Seleção inválida. Tente novamente.")
         return redirect(noticia.get_absolute_url())
 
-    # Verificação 1 (View): O usuário já votou?
-    # Usamos o método 'ja_votou' que criamos no models.py
     if enquete.ja_votou(request.user):
         messages.warning(request, "Você já votou nesta enquete.")
         return redirect(noticia.get_absolute_url())
-        
-    # Se passou em tudo, cria o voto
+
     try:
         VotoEnquete.objects.create(
             usuario=request.user,
             enquete=enquete,
-            opcao_selecionada=opcao_selecionada
+            opcao_selecionada=opcao_selecionada,
         )
         messages.success(request, "Seu voto foi registrado com sucesso!")
-        
     except Exception as e:
-        # Verificação 2 (Database): Captura a falha do UniqueConstraint
-        # Isso pode acontecer em uma 'condição de corrida' (race condition)
         logger.error(f"Erro ao salvar VotoEnquete (possível duplicata): {e}")
-        messages.warning(request, "Não foi possível registrar seu voto. Você já pode ter votado.")
+        messages.warning(
+            request,
+            "Não foi possível registrar seu voto. Você já pode ter votado.",
+        )
 
-    # Redireciona o usuário de volta para a notícia
     return redirect(noticia.get_absolute_url())
 
 
 # ==================================================
-# (NOVA) GALERIA DE VÍDEOS INDEPENDENTES
+# GALERIA DE VÍDEOS INDEPENDENTES
 # ==================================================
+
+
 def galeria_videos(request):
     """
     Exibe a lista de vídeos independentes (YouTube ou Upload),
     sem necessidade de estarem vinculados a notícias.
     """
-    videos = Video.objects.filter(ativo=True).order_by('-criado_em')
-    return render(request, 'noticias/galeria_videos.html', {'videos_tv': videos})
+    videos = Video.objects.filter(ativo=True).order_by("-criado_em")
+    return render(request, "noticias/galeria_videos.html", {"videos_tv": videos})
+
 
 def video_detail(request, pk):
-    # Pega o vídeo pelo ID ou retorna erro 404 se não achar
     video = get_object_or_404(Video, pk=pk)
-    return render(request, 'noticias/video_detail.html', {'video': video})
+    return render(request, "noticias/video_detail.html", {"video": video})
