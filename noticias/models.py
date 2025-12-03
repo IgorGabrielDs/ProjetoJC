@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+
 # --- PERFIL E USUÁRIO ---
 
 class Perfil(models.Model):
@@ -62,8 +63,8 @@ class Noticia(models.Model):
     # salvos (through)
     salvos = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        through='Salvo',
-        related_name='noticias_salvas',
+        through="Salvo",
+        related_name="noticias_salvas",
         blank=True,
     )
 
@@ -101,19 +102,29 @@ class Noticia(models.Model):
 class Video(models.Model):
     titulo = models.CharField("Título do Vídeo", max_length=200)
     descricao = models.TextField("Descrição", blank=True, null=True)
-    
-    # IMPORTANTE: Adicionei este campo pois seu HTML exige uma capa para o carrossel
-    imagem = models.ImageField("Capa do Vídeo", upload_to='videos/capas/', blank=True, null=True)
-    
+
+    # IMPORTANTE: campo de capa para o carrossel
+    imagem = models.ImageField(
+        "Capa do Vídeo",
+        upload_to="videos/capas/",
+        blank=True,
+        null=True,
+    )
+
     # Opção para Link Externo (YouTube/Vimeo)
     link = models.URLField("Link do YouTube/Vimeo", blank=True, null=True)
-    
+
     # Opção para Upload de Arquivo
-    arquivo = models.FileField("Arquivo de Vídeo", upload_to='videos/', blank=True, null=True)
-    
-    # Se você tiver um model de "Assunto" ou "Categoria", descomente a linha abaixo:
-    # assuntos = models.ManyToManyField('Assunto', blank=True)
-    
+    arquivo = models.FileField(
+        "Arquivo de Vídeo",
+        upload_to="videos/",
+        blank=True,
+        null=True,
+    )
+
+    # Se você tiver um model de "Assunto" ou "Categoria", pode adicionar aqui:
+    # assuntos = models.ManyToManyField(Assunto, blank=True)
+
     criado_em = models.DateTimeField(auto_now_add=True)
     ativo = models.BooleanField(default=True)
 
@@ -126,7 +137,7 @@ class Video(models.Model):
         return self.titulo
 
     def get_absolute_url(self):
-        return reverse('noticias:detalhe_video', args=[self.pk])
+        return reverse("noticias:detalhe_video", args=[self.pk])
 
 
 # --- SISTEMA DE ENQUETES ---
@@ -140,7 +151,14 @@ class Enquete(models.Model):
         null=True,
     )
     # O 'titulo' agora é a PERGUNTA da enquete
-    titulo = models.CharField("Pergunta da enquete", max_length=200, blank=True, null=True)
+    titulo = models.CharField(
+        "Pergunta da enquete",
+        max_length=200,
+        blank=True,
+        null=True,
+    )
+
+    # As opções (opcao_a / opcao_b) foram movidas para o modelo OpcaoEnquete
 
     def __str__(self):
         return self.titulo or f"Enquete da notícia: {self.noticia.titulo}"
@@ -154,10 +172,11 @@ class Enquete(models.Model):
 
 class OpcaoEnquete(models.Model):
     """Uma opção de escolha para uma enquete."""
+
     enquete = models.ForeignKey(
         Enquete,
         on_delete=models.CASCADE,
-        related_name="opcoes"
+        related_name="opcoes",
     )
     texto = models.CharField("Texto da opção", max_length=100)
 
@@ -167,24 +186,26 @@ class OpcaoEnquete(models.Model):
     @property
     def total_votos(self):
         """Calcula o total de votos para esta opção."""
+        # Contamos quantos VotoEnquete estão ligados a esta OpcaoEnquete
         return self.votoenquete_set.count()
 
 
 class VotoEnquete(models.Model):
     """Registra o voto de um usuário em uma enquete/opção."""
+
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="votos_enquete"
+        related_name="votos_enquete",
     )
     enquete = models.ForeignKey(
         Enquete,
         on_delete=models.CASCADE,
-        related_name="votos_registrados"
+        related_name="votos_registrados",
     )
     opcao_selecionada = models.ForeignKey(
         OpcaoEnquete,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     criado_em = models.DateTimeField(auto_now_add=True)
 
@@ -192,7 +213,8 @@ class VotoEnquete(models.Model):
         constraints = [
             # Garante que um usuário só pode votar UMA VEZ por enquete
             models.UniqueConstraint(
-                fields=["usuario", "enquete"], name="unique_user_poll_vote"
+                fields=["usuario", "enquete"],
+                name="unique_user_poll_vote",
             )
         ]
 
@@ -203,34 +225,50 @@ class VotoEnquete(models.Model):
 # --- INTERAÇÕES (SCORE E SALVOS) ---
 
 class Voto(models.Model):
-    """Este é o Voto de UPVOTE/DOWNVOTE da Notícia (Score)"""
+    """Este é o Voto de UPVOTE/DOWNVOTE da Notícia (Score)."""
+
     noticia = models.ForeignKey(
-        Noticia, on_delete=models.CASCADE, related_name="votos"
+        Noticia,
+        on_delete=models.CASCADE,
+        related_name="votos",
     )
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    valor = models.IntegerField() # -1 para downvote, 1 para upvote
+    # Usamos AUTH_USER_MODEL para ficar consistente com o projeto
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    # -1 para downvote, 1 para upvote
+    valor = models.IntegerField()
 
     criado_em = models.DateTimeField(auto_now_add=True)
+    # Corrigindo um erro de digitação de antes: auto_now=True
     atualizado_em = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["noticia", "usuario"], name="unique_user_vote_per_news"
+                fields=["noticia", "usuario"],
+                name="unique_user_vote_per_news",
             )
         ]
 
     def __str__(self):
-        return f'{self.usuario} -> {self.valor} em {self.noticia}'
+        return f"{self.usuario} -> {self.valor} em {self.noticia}"
 
 
 class Salvo(models.Model):
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    noticia = models.ForeignKey(Noticia, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    noticia = models.ForeignKey(
+        Noticia,
+        on_delete=models.CASCADE,
+    )
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('usuario', 'noticia')
+        unique_together = ("usuario", "noticia")
 
     def __str__(self):
         return f"{self.usuario} salvou {self.noticia}"
