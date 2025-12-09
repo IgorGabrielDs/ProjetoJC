@@ -24,26 +24,22 @@
 
       <div class="art-actions">
         {% if noticia.pk %}
-        <form method="post"
-              action="{% url 'noticias:toggle_salvo' noticia.pk %}"
-              class="act"
-              aria-label="Salvar matéria">
+        <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}" class="act">
           {% csrf_token %}
-          <!-- ESTRELA DE SALVAR (estado vem do backend + salvar.js) -->
           <button
-            class="btn-icon btn-save salvar-btn{% if is_saved %} is-saved{% endif %}"
-            type="submit"
+            class="btn-icon btn-save salvar-btn salvar-outline{% if is_saved %} is-saved{% endif %}"
+            type="button"
             title="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
             aria-label="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
             aria-pressed="{{ is_saved|yesno:'true,false' }}"
+            data-saved="{{ is_saved|yesno:'1,0' }}"
             data-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
             data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
-            data-login-url="{% url 'login' %}?next={{ request.path }}">
+            data-login-url="{% url 'login' %}?next={{ request.path }}"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true" class="ico ico-star">
-              <!-- contorno -->
               <path class="star-outline"
                     d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-              <!-- preenchimento -->
               <path class="star-fill"
                     d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
             </svg>
@@ -51,16 +47,14 @@
         </form>
         {% endif %}
 
-        <!-- COMPARTILHAR (novo ícone) -->
+        <!-- COMPARTILHAR -->
         <button class="btn-icon btn-share"
                 type="button"
                 title="Compartilhar"
                 id="shareBtn"
                 aria-label="Compartilhar">
           <svg viewBox="0 0 24 24" aria-hidden="true" class="ico ico-share">
-            <!-- caixinha -->
             <path d="M8 5h6a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3z"/>
-            <!-- seta saindo -->
             <path d="M14 5V3h7v7h-2V7.83l-6.3 6.3-1.4-1.41L17.6 6H14z"/>
           </svg>
         </button>
@@ -90,7 +84,7 @@
   </figure>
   {% endif %}
 
-  <!-- Linha de data/atualização/autor (logo abaixo da imagem) -->
+  <!-- Linha de data/atualização/autor -->
   <div class="art-times">
     <time itemprop="datePublished" datetime="{{ noticia.criado_em|date:'c' }}">
       Publicado em {{ noticia.criado_em|date:"d/m/Y" }} às {{ noticia.criado_em|date:"H:i" }}
@@ -109,76 +103,34 @@
     </span>
   </div>
 
-  <!-- Corpo da matéria com “Continuar Lendo” progressivo -->
-  <div class="art-body-wrapper" id="artBodyWrapper">
-    <div class="art-body" id="artBody" itemprop="articleBody">
-      {{ noticia.conteudo|linebreaks }}
-    </div>
-  </div>
-
-  <button type="button" class="read-more-btn" id="readMoreBtn">
-    <span class="read-more-label">Continuar Lendo</span>
-    <span class="read-more-chevron"></span>
-  </button>
+  {# ============================= #}
+  {# BLOCO DE RESUMO (texto azul antes da matéria) #}
+  {% if resumo_text %}
+    <meta itemprop="description" content="{{ resumo_text|striptags|truncatechars:280 }}">
+    <section class="art-lead-box" aria-label="Resumo da notícia">
+      <p class="art-lead-text">
+        {{ resumo_text|linebreaksbr }}
+      </p>
+    </section>
+  {% endif %}
 
   {# ============================= #}
-  {# ===== RESUMO DA NOTÍCIA ===== #}
-  {# ============================= #}
-  {% with noticia.conteudo|default_if_none:""|wordcount as total_palavras %}
-  <section class="art-resumo" aria-labelledby="resumo-titulo">
-    <h2 id="resumo-titulo" class="resumo-title">Resumo da notícia</h2>
-
-    <div id="resumo-action" data-url="{% url 'noticias:resumir_noticia' noticia.pk %}">
-      {% if total_palavras < 300 %}
-        <button
-          type="button"
-          id="btn-resumo"
-          class="resumo-btn"
-          disabled
-          title="Texto curto demais para resumir"
-        >
-          Resumir
-        </button>
-        <p id="resumo-status" class="resumo-status">
-          Texto curto demais para resumir.
-        </p>
-      {% else %}
-        <button
-          type="button"
-          id="btn-resumo"
-          class="resumo-btn"
-        >
-          Resumir
-        </button>
-        <p id="resumo-status" class="resumo-status" aria-live="polite"></p>
-      {% endif %}
+  {# TEXTO DA NOTÍCIA + CONTINUAR LENDO #}
+  <section class="art-content-block">
+    <div class="art-body-wrapper" id="artBodyWrapper">
+      <div class="art-body" id="artBody" itemprop="articleBody">
+        {{ noticia.conteudo|linebreaks }}
+      </div>
     </div>
 
-    <aside
-      id="resumo-panel"
-      class="resumo-panel"
-      hidden
-      aria-hidden="true"
-      aria-label="Resumo gerado automaticamente"
-    >
-      <header class="resumo-header">
-        <strong>Resumo gerado automaticamente</strong>
-        <button type="button" id="btn-fechar" class="resumo-close">
-          Fechar
-        </button>
-      </header>
-      <p id="resumo-text" class="resumo-text"></p>
-      <p id="resumo-meta" class="resumo-meta"></p>
-      <button type="button" id="btn-copiar" class="resumo-copy">
-        Copiar resumo
-      </button>
-    </aside>
+    <button type="button" class="read-more-btn" id="readMoreBtn">
+      <span class="read-more-label">Continuar Lendo</span>
+      <span class="read-more-chevron" aria-hidden="true"></span>
+    </button>
   </section>
-  {% endwith %}
 
   <!-- ============================= -->
   <!-- ===== BLOCO DA ENQUETE ===== -->
-  <!-- ============================= -->
   {% if enquete_data %}
   <section class="enquete-box" aria-labelledby="enquete-titulo-{{ enquete_data.obj.pk }}">
     <h2 class="enquete-titulo" id="enquete-titulo-{{ enquete_data.obj.pk }}">
@@ -275,52 +227,68 @@
   </section>
   {% endif %}
 
-  <!-- ===== COMPARTILHE + SALVAR ===== -->
-  <section class="art-share">
-    <h2 class="share-title">Compartilhe</h2>
-    <div class="share-icons">
-      <a href="https://api.whatsapp.com/send?text={{ noticia.titulo|urlencode }}%20{{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" aria-label="WhatsApp">
-        <img src="{% static 'noticias/img/whatsapp.svg' %}" alt="WhatsApp">
+  <!-- ===== COMPARTILHE ===== -->
+  <section class="art-share" aria-labelledby="share-heading">
+    <h2 class="share-title" id="share-heading">
+      <span class="share-title-text">Compartilhe</span>
+      <span class="share-title-colon">:</span>
+    </h2>
+
+    <div class="share-icons" role="list">
+      <a href="https://api.whatsapp.com/send?text={{ noticia.titulo|urlencode }}%20{{ request.build_absolute_uri }}"
+         target="_blank"
+         rel="noopener"
+         class="share-btn share-btn-square"
+         aria-label="WhatsApp"
+         role="listitem">
+        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/whatsapp.svg" alt="WhatsApp">
       </a>
-      <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" aria-label="Facebook">
-        <img src="{% static 'noticias/img/facebook.svg' %}" alt="Facebook">
+
+      <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
+         target="_blank"
+         rel="noopener"
+         class="share-btn share-btn-square"
+         aria-label="Facebook"
+         role="listitem">
+        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/facebook.svg" alt="Facebook">
       </a>
-      <a href="https://www.instagram.com/" target="_blank" rel="noopener" class="share-btn" aria-label="Instagram">
-        <img src="{% static 'noticias/img/instagram.svg' %}" alt="Instagram">
+
+      <a href="https://www.instagram.com/"
+         target="_blank"
+         rel="noopener"
+         class="share-btn share-btn-square"
+         aria-label="Instagram"
+         role="listitem">
+        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/instagram.svg" alt="Instagram">
       </a>
-      <button type="button" class="share-btn" id="copyLink" title="Copiar link" aria-label="Copiar link">
-        <img src="{% static 'noticias/img/share.svg' %}" alt="Copiar link">
+
+      <button type="button"
+              class="share-btn share-btn-square"
+              id="copyLink"
+              title="Copiar link"
+              aria-label="Copiar link"
+              role="listitem">
+        <img src="https://cdn-icons-png.flaticon.com/512/1828/1828919.png" alt="Copiar link">
       </button>
     </div>
-
-    {% if noticia.pk %}
-    <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}">
-      {% csrf_token %}
-      <button
-        class="save-main salvar-btn{% if is_saved %} is-saved{% endif %}"
-        type="submit"
-        aria-pressed="{{ is_saved|yesno:'true,false' }}"
-        aria-label="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
-        data-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
-        data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
-        data-login-url="{% url 'login' %}?next={{ request.path }}">
-        <svg viewBox="0 0 24 24" class="save-ico">
-          <path d="M6 2h12a 2 2 0 0 1 2 2v18l-8-4-8 4V4a 2 2 0 0 1 2-2z"/>
-        </svg>
-        <span>{% if is_saved %}Salvo{% else %}Salvar{% endif %}</span>
-      </button>
-    </form>
-    {% endif %}
   </section>
 
   <!-- ===== TAGS / ASSUNTOS ===== -->
   {% with noticia.assuntos.all as tags %}
   {% if tags %}
-  <section class="art-tags">
-    <h3 class="tags-title">Tags</h3>
-    <div class="tags-wrap">
+  <section class="art-tags" aria-labelledby="tags-heading">
+    <div class="tags-header">
+      <h2 class="tags-title" id="tags-heading">
+        <span class="tags-title-text">Tags</span>
+        <span class="tags-title-colon">:</span>
+      </h2>
+    </div>
+
+    <div class="tags-wrap tags-chips" role="list">
       {% for tag in tags %}
-        <span class="tag-chip">{{ tag.nome|upper }}</span>
+        <span class="tag-chip" role="listitem">
+          {{ tag.nome|upper }}
+        </span>
       {% endfor %}
     </div>
   </section>
@@ -333,7 +301,6 @@
 {% block extra_js %}
 {{ block.super }}
 <script src="{% static 'noticias/js/salvar.js' %}"></script>
-<script src="{% static 'noticias/js/resumo.js' %}"></script>
 <script>
   // SHARE NATIVO / COPIAR LINK
   (function () {
@@ -379,9 +346,7 @@
     });
   })();
 
-  // ==============================
-  //  CONTINUAR LENDO (DETALHE)
-  // ==============================
+  // CONTINUAR LENDO
   (function () {
     const wrapper = document.getElementById('artBodyWrapper');
     const body    = document.getElementById('artBody');
