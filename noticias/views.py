@@ -1089,7 +1089,7 @@ def editar_perfil(request):
             perfil.save()
 
         messages.success(request, "Seu perfil foi atualizado com sucesso!")
-        return redirect("noticias:editarperfil")
+        return redirect("noticias:index")
 
     ctx = {"perfil": perfil}
     return render(request, "noticias/editarperfil.html", ctx)
