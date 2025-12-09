@@ -510,27 +510,28 @@
 }
 
 /* ---------------------------------------------------------
-   Dots de navegação (3 bolinhas roxas centralizadas)
+   Dots de navegação (mesmo padrão da TV Jornal)
    --------------------------------------------------------- */
 .recortes-dots{
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:6px;
-  margin-top:12px;
+  gap:8px;           /* igual ao .tv-dots */
+  margin-top:16px;   /* mesmo respiro vertical da TV */
 }
 
 .recortes-dots .dot{
-  width:8px;
-  height:8px;
+  width:10px;
+  height:10px;
   border-radius:50%;
-  background:#6b6d80;
-  opacity:.35;
+  background:#9ca3af;   /* cinza claro, como na TV */
+  opacity:.45;
 }
 
 .recortes-dots .dot.is-active{
   opacity:1;
-  background:#5b4cc7;
+  background:#3E3A53;
+  transform:scale(1.2);
 }
 
 /* =========================================================
