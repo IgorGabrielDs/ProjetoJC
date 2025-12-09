@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Perfil</title>
+    <link rel="stylesheet" href="{% static 'noticias/css/editar_perfil.css' %}">
+</head>
+<body>
+
+<div class="perfil-container">
+
+    <!-- Topo -->
+    <header class="perfil-header">
+        <img src="{% static 'noticias/img/logo-jornalcommercio.png' %}" class="perfil-logo" alt="JC">
+        
+        <a href="{% url 'noticias:index' %}" class="close-btn">✕</a>
+    </header>
+
+    <form method="POST" enctype="multipart/form-data" class="perfil-form">
+        {% csrf_token %}
+
+        <!-- FOTO -->
+        <div class="photo-area">
+            {% if user.perfil.foto %}
+                <img src="{{ user.perfil.foto.url }}" class="foto-preview" id="photoPreview">
+            {% else %}
+                <img src="{% static 'noticias/img/perfil_uol.png' %}" class="foto-preview" id="photoPreview">
+            {% endif %}
+
+            <label class="photo-btn">
+                <img src="{% static 'noticias/img/camera.png' %}" alt="Upload">
+                <input type="file" name="foto" id="fotoInput" hidden>
+            </label>
+        </div>
+
+        <!-- Nome -->
+        <label>Nome completo</label>
+        <input type="text" name="nome" class="input-box"
+               value="{{ user.first_name }} {{ user.last_name }}">
+
+        <!-- Anônimo -->
+        <div class="checkbox-row">
+            <input type="checkbox" name="anonimo"
+                   {% if user.perfil.anonimo %}checked{% endif %}>
+            Gostaria de me manter anônimo.
+            <img src="{% static 'noticias/img/info.png' %}" class="info-icon" id="openInfo">
+        </div>
+
+        <!-- Email -->
+        <label>E-mail</label>
+        <input type="email" name="email" class="input-box" value="{{ user.email }}">
+
+        <!-- Data -->
+        <label>Data de nascimento</label>
+        <input type="date" name="data_nascimento" class="input-box"
+               value="{{ user.perfil.data_nascimento|date:'Y-m-d' }}">
+
+        <!-- Senha -->
+        <label>Senha (deixe em branco se não quiser trocar)</label>
+        <input type="password" name="senha" class="input-box">
+
+        <!-- Preferencias futuro -->
+        <label>Mude suas preferências</label>
+        <div class="pref-placeholder"></div>
+
+        <button type="submit" class="btn-confirm">Confirmar</button>
+
+    </form>
+</div>
+
+<!-- ============================
+          MODAL CORRIGIDO
+============================ -->
+<div id="infoModal" class="modal-overlay">
+    <div class="modal-box">
+
+        <!-- botão X -->
+        <button id="closeInfo" class="modal-close-btn">✕</button>
+
+        <h3>Como você deseja ser identificado?</h3>
+
+        <p>Se você escolher <strong>permanecer anônimo</strong>, um apelido aleatório será criado automaticamente
+            para o seu perfil e aparecerá nos comentários.</p>
+
+        <p><strong>Esse apelido aparecerá quando você fizer comentários nas notícias do site.</strong></p>
+
+        <p>Se preferir usar o seu nome cadastrado, ele ficará visível publicamente sempre que comentar.</p>
+
+        <p>Lembre-se: você pode alterar essa escolha quando quiser nas configurações da conta.</p>
+
+    </div>
+</div>
+
+<script src="{% static 'noticias/js/editar_perfil.js' %}"></script>
+
+</body>
+</html>
