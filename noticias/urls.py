@@ -19,4 +19,5 @@ urlpatterns = [
         "enquete/<int:enquete_pk>/votar/", views.votar_enquete, name="votar_enquete"),
     path('video/<int:pk>/', views.video_detail, name='detalhe_video'),
     path('videos/', views.galeria_videos, name='galeria_videos'),
+    path("editar-perfil/", views.editar_perfil, name="editarperfil"),
 ]
