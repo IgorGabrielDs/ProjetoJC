@@ -1033,3 +1033,63 @@ def galeria_videos(request):
 def video_detail(request, pk):
     video = get_object_or_404(Video, pk=pk)
     return render(request, "noticias/video_detail.html", {"video": video})
+@login_required
+def editar_perfil(request):
+    user = request.user
+    Perfil = _perfil_model_or_none()  # usa helper já existente no seu projeto
+    perfil = None
+
+    if Perfil:
+        perfil, _ = Perfil.objects.get_or_create(user=user)
+
+    if request.method == "POST":
+        nome = request.POST.get("nome", "").strip()
+        email = request.POST.get("email", "").strip()
+        senha = request.POST.get("senha", "").strip()
+        data_nascimento = request.POST.get("data_nascimento", "").strip()
+        anonimo = request.POST.get("anonimo") == "on"
+
+        # --- Atualiza nome ---
+        if nome:
+            partes = nome.split(" ", 1)
+            user.first_name = partes[0]
+            user.last_name = partes[1] if len(partes) > 1 else ""
+            user.save()
+
+        # --- Atualiza email (se não existir outro igual) ---
+        if email and email != user.email:
+            if not get_user_model().objects.filter(email=email).exclude(pk=user.pk).exists():
+                user.email = email
+                user.username = email  # se seu login usa email como username
+                user.save()
+            else:
+                messages.error(request, "Este e-mail já está em uso.")
+                return redirect("noticias:editar_perfil")
+
+        # --- Atualiza senha ---
+        if senha:
+            if len(senha) < 8:
+                messages.error(request, "A senha deve ter ao menos 8 caracteres.")
+                return redirect("noticias:editar_perfil")
+
+            user.set_password(senha)
+            user.save()
+            update_session_auth_hash(request, user)  # evita logout
+
+        # --- Atualiza Perfil ---
+        if perfil:
+            perfil.anonimo = anonimo
+
+            if data_nascimento:
+                perfil.data_nascimento = data_nascimento
+
+            if "foto" in request.FILES:
+                perfil.foto = request.FILES["foto"]
+
+            perfil.save()
+
+        messages.success(request, "Seu perfil foi atualizado com sucesso!")
+        return redirect("noticias:editar_perfil")
+
+    ctx = {"perfil": perfil}
+    return render(request, "noticias/editarperfil.html", ctx)
