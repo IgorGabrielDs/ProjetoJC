@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 import json
 import logging
@@ -139,6 +140,27 @@ def _persistir_preferencias_no_perfil(user, identificacao, assuntos_ids):
         logger.warning("Falha ao salvar Perfil no onboarding: %s", e)
 
 
+def _build_resumo_text(noticia: Noticia) -> str:
+    """
+    Retorna APENAS o resumo gerado pela IA (Gemini).
+
+    - Sempre delega para `gerar_resumo_automatico`, que:
+      * usa o campo `noticia.resumo` como cache do resumo da IA;
+      * chama a API apenas se ainda não houver resumo salvo.
+    - Se não for possível gerar (erro de API, quota, etc.), retorna string vazia.
+    """
+    try:
+        resumo = gerar_resumo_automatico(noticia)
+    except Exception:
+        logger.exception(
+            "Erro ao tentar gerar resumo automático via Gemini para notícia %s",
+            noticia.pk,
+        )
+        resumo = None
+
+    return (resumo or "").strip()
+
+
 # =======================
 # HOME (VIEW PRINCIPAL)
 # =======================
@@ -261,8 +283,9 @@ def index(request):
 
     para_voce = _annotate_is_saved(pv_qs, request.user)[:6]
     if not para_voce.exists():
+        # fallback mais permissivo: não exclui destaques/votadas/salvas
         para_voce = _annotate_is_saved(
-            all_qs.exclude(id__in=ids_para_excluir).order_by("-criado_em"),
+            all_qs.order_by("-criado_em"),
             request.user,
         )[:6]
         titulo_para_voce = "Destaques recentes"
@@ -415,7 +438,19 @@ def index(request):
             request.user,
         )[:4]
 
-    # 12) Top 3 da semana (cache)
+    # 12) Novela (somente notícias com assunto "Novela")
+    try:
+        novela_assunto = Assunto.objects.get(slug="novela")
+        novela_qs = all_qs.filter(assuntos=novela_assunto)
+    except Assunto.DoesNotExist:
+        novela_qs = all_qs.filter(assuntos__nome__iexact="novela")
+
+    novela = _annotate_is_saved(
+        novela_qs.order_by("-criado_em"),
+        request.user,
+    )[:4]
+
+    # 13) Top 3 da semana (cache)
     top3 = cache.get("top3_semana_final")
     if top3 is None:
         hoje = timezone.now().date()
@@ -456,13 +491,13 @@ def index(request):
         "blog_torcedor": blog_torcedor,
         "recortes": recortes,
         "receita_da_boa": receita_da_boa,
+        "novela": novela,
         "top3": top3,
         "show_welcome": show_welcome,
         "welcome_name": welcome_name,
         "welcome_next": welcome_next,
     }
     return render(request, "noticias/index.html", ctx)
-
 
 # =======================
 # DETALHE
@@ -472,9 +507,14 @@ def index(request):
 def noticia_detalhe(request, pk):
     noticia = get_object_or_404(Noticia, pk=pk)
 
+    # contabiliza visualizações
     noticia.visualizacoes = (noticia.visualizacoes or 0) + 1
     noticia.save(update_fields=["visualizacoes"])
 
+    # resumo automático para o bloco roxo (sempre IA)
+    resumo_text = _build_resumo_text(noticia)
+
+    # relacionadas
     assuntos_ids = list(noticia.assuntos.values_list("id", flat=True))
     if assuntos_ids:
         relacionadas = (
@@ -488,6 +528,7 @@ def noticia_detalhe(request, pk):
             Noticia.objects.exclude(pk=noticia.pk).order_by("-criado_em")[:2]
         )
 
+    # votos
     votos_agregados = noticia.votos.aggregate(
         score_total=Coalesce(Sum("valor"), Value(0)),
         up_total=Count("id", filter=Q(valor=1)),
@@ -570,6 +611,7 @@ def noticia_detalhe(request, pk):
         "relacionadas": relacionadas,
         "is_saved": is_saved,
         "enquete_data": enquete_data,
+        "resumo_text": resumo_text,
     }
     return render(request, "noticias/detalhe.html", ctx)
 
@@ -839,33 +881,46 @@ def onboarding_personalizacao(request):
 # =======================
 
 
-@login_required
-def resumir_noticia(request, pk):
-    api_key = getattr(settings, "GEMINI_API_KEY", "")
-    if not api_key:
-        return JsonResponse(
-            {
-                "error": "Chave da API GEMINI_API_KEY não configurada no ambiente.",
-            },
-            status=500,
-        )
+def gerar_resumo_automatico(noticia: Noticia) -> str | None:
+    """
+    Gera um resumo automático para a notícia usando o Gemini.
 
-    noticia = get_object_or_404(Noticia, pk=pk)
+    - Usa o campo `noticia.resumo` como **cache** do resumo da IA:
+      * Se já houver texto, só devolve (não chama a API de novo).
+      * Se estiver vazio, chama o Gemini, salva em `noticia.resumo` e retorna.
+    - Em caso de erro ou falta de configuração, retorna None.
+    """
+    # Cache local: se já existir algum resumo salvo, apenas reutiliza.
+    existente = (getattr(noticia, "resumo", "") or "").strip()
+    if existente:
+        return existente
+
+    api_key = getattr(settings, "GEMINI_API_KEY", "") or os.getenv(
+        "GEMINI_API_KEY", ""
+    )
+    if not api_key:
+        logger.warning(
+            "GEMINI_API_KEY não configurada; resumo automático não será gerado."
+        )
+        return None
 
     try:
         import google.generativeai as genai
     except Exception:
-        return JsonResponse(
-            {"error": "Biblioteca google-generativeai não está instalada."},
-            status=500,
+        logger.warning(
+            "Biblioteca google-generativeai não instalada; resumo automático desativado."
         )
+        return None
 
     try:
         genai.configure(api_key=api_key)  # type: ignore
         model = genai.GenerativeModel("gemini-flash-latest")  # type: ignore
 
         prompt = f"""
-        Você é um assistente de jornalismo. Resuma a notícia abaixo de forma clara, objetiva e em português:
+        Você é um assistente de jornalismo do Jornal do Commercio.
+        Resuma a notícia abaixo de forma clara, objetiva e em português,
+        em até 2 frases curtas, sem opinião.
+
         <noticia>
         Título: {noticia.titulo}
         Conteúdo: {noticia.conteudo}
@@ -874,16 +929,37 @@ def resumir_noticia(request, pk):
 
         response = model.generate_content(prompt)
         resumo = (getattr(response, "text", "") or "").strip()
-        if resumo:
-            noticia.resumo = resumo
-            noticia.save(update_fields=["resumo"])
-        return JsonResponse({"resumo": resumo})
-    except Exception as e:
-        logger.exception("Erro ao resumir notícia %s: %s", pk, e)
+        if not resumo:
+            return None
+
+        noticia.resumo = resumo
+        noticia.save(update_fields=["resumo"])
+        return resumo
+    except Exception as e:  # pragma: no cover
+        logger.exception(
+            "Erro ao gerar resumo automático para notícia %s: %s", noticia.pk, e
+        )
+        return None
+
+
+@login_required
+def resumir_noticia(request, pk):
+    """
+    Mantida por compatibilidade com o endpoint antigo de resumo via AJAX.
+    Agora reutiliza o helper gerar_resumo_automatico.
+    """
+    noticia = get_object_or_404(Noticia, pk=pk)
+    resumo = gerar_resumo_automatico(noticia)
+
+    if not resumo:
         return JsonResponse(
-            {"error": f"Erro ao conectar com a API: {e}"},
+            {
+                "error": "Não foi possível gerar o resumo da notícia.",
+            },
             status=500,
         )
+
+    return JsonResponse({"resumo": resumo})
 
 
 # ==================================================
