@@ -9,7 +9,6 @@
 
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'noticias/img/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'noticias/img/favicon-16x16.png' %}">
-    {# ORDEM DE CSS MANTIDA CONFORME SUA VERSÃO #}
     <link rel="stylesheet" href="{% static 'noticias/css/base.css' %}">
     <link rel="stylesheet" href="{% static 'noticias/css/article.css' %}">
     <link rel="stylesheet" href="{% static 'noticias/css/auth.css' %}">
@@ -218,7 +217,7 @@
     </nav>
 
     {# ===== CONTEÚDO PRINCIPAL ===== #}
-    <main class="container">
+    <main class="site-main">
         {% block content %}{% endblock %}
     </main>
 
