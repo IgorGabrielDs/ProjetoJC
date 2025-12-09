@@ -13,7 +13,12 @@ class Perfil(models.Model):
         on_delete=models.CASCADE,
         related_name="perfil",
     )
+
+    foto = models.ImageField(upload_to="perfil/", blank=True, null=True)
+
     data_nascimento = models.DateField(null=True, blank=True)
+
+    anonimo = models.BooleanField(default=False)
 
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
