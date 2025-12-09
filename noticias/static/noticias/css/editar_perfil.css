@@ -1,0 +1,304 @@
+/* ============================================================
+   =======================  GERAL  =============================
+   ============================================================ */
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    font-family: "Inter", Arial, sans-serif;
+    color: #333;
+}
+
+.perfil-container {
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    padding: 40px 22px 80px;
+    text-align: center;
+}
+
+/* ============================================================
+   =======================  HEADER  ============================
+   ============================================================ */
+
+.perfil-header {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.perfil-logo {
+    width: 115px;
+}
+
+.perfil-title {
+    font-size: 1rem;
+}
+
+.close-btn {
+    position: absolute;
+    right: 15px;
+    top: 0;
+    font-size: 26px;
+    color: #444;
+    text-decoration: none;
+}
+
+/* ============================================================
+   ========================  FOTO  =============================
+   ============================================================ */
+
+.photo-area {
+    position: relative;     /* permite sobrepor elementos */
+    width: fit-content;
+    margin: 0 auto 25px;
+}
+
+.foto-preview {
+    width: 115px;
+    height: 115px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Ícone da câmera sobreposto igual ao da imagem */
+.photo-btn {
+    position: absolute;
+    bottom: -6px;   /* desce um pouco */
+    right: -6px;    /* encosta na borda */
+    background: #fff;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 6px rgba(0,0,0,0.25);
+    cursor: pointer;
+}
+
+.photo-btn img {
+    width: 22px;   /* tamanho ideal do ícone */
+}
+
+/* ============================================================
+   ======================  ÍCONE INFO  =========================
+   ============================================================ */
+
+.info-icon {
+    width: 26px;  /* aumentei o tamanho */
+}
+
+@media (max-width: 480px) {
+
+    .foto-preview {
+        width: 180px;
+        height: 180px;
+    }
+
+    .photo-btn {
+        width: 60px;
+        height: 60px;
+        bottom: -10px;
+        right: -10px;
+    }
+
+    .photo-btn img {
+        width: 32px;  /* maior para combinar com a foto maior */
+    }
+
+    .info-icon {
+        width: 32px; /* aumenta no mobile */
+    }
+}
+
+
+/* ============================================================
+   ========================  INPUTS  ===========================
+   ============================================================ */
+
+.perfil-form label {
+    display: block;
+    text-align: left;
+    margin-top: 18px;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.input-box {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #dcdcdc;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.checkbox-row {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .9rem;
+}
+
+.info-icon {
+    width: 18px;
+}
+
+/* ============================================================
+   ======================  BOTÃO CONFIRMAR ====================
+   ============================================================ */
+
+.btn-confirm {
+    width: 100%;
+    padding: 16px;
+    background: #ccc;
+    border: 0;
+    border-radius: 12px;
+    margin-top: 32px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* ============================================================
+   ===================  MOBILE = DESKTOP  ======================
+   ============================================================ */
+
+@media (max-width: 480px) {
+
+    .perfil-container {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .perfil-logo {
+        width: 160px;
+    }
+
+    .perfil-title {
+        font-size: 1.3rem;
+        margin-top: 5px;
+    }
+
+    .foto-preview {
+        width: 180px;
+        height: 180px;
+    }
+
+    .photo-btn img {
+        width: 50px;
+        margin-top: 10px;
+    }
+
+    .perfil-form label {
+        font-size: 1.2rem;
+        margin-top: 22px;
+    }
+
+    .input-box {
+        width: 100%;
+        padding: 18px;
+        font-size: 1.2rem;
+        border-radius: 14px;
+    }
+
+    .checkbox-row {
+        font-size: 1.15rem;
+        margin-top: 15px;
+    }
+
+    .info-icon {
+        width: 26px;
+    }
+
+    .btn-confirm {
+        width: 100%;
+        padding: 22px;
+        font-size: 1.35rem;
+        border-radius: 14px;
+        margin-top: 40px;
+    }
+}
+
+/* ============================================================
+   ========================  MODAL  =============================
+   ============================================================ */
+
+.modal-overlay {
+    display: none; /* oculto até clicar */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(2px);
+    justify-content: center;
+    align-items: center;
+    z-index: 4000;
+}
+
+/* Caixa branca do modal */
+.modal-box {
+    background: #fff;
+    width: 90%;
+    max-width: 420px;
+    padding: 28px 22px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    position: relative;
+    animation: modalShow .25s ease-out;
+}
+
+/* Animação suave */
+@keyframes modalShow {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Botão X */
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 26px;
+    color: #d00000;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Títulos do modal */
+.modal-box h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-top: 25px;
+    margin-bottom: 14px;
+    text-align: left;
+}
+
+/* Parágrafos */
+.modal-box p {
+    font-size: 1rem;
+    line-height: 1.45rem;
+    text-align: left;
+    margin: 8px 0;
+}
