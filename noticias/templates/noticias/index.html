@@ -176,24 +176,6 @@
     {% with pv_list=pv|default:para_voce %}
     {% if pv_list %}
 
-      {# NÃO MOSTRA MAIS ESTRELA/ASSUNTO NO TOPO, SÓ OS CARDS #}
-      {% if not user.is_authenticated %}
-        <div class="pv-cta">
-          <a href="{% url 'login' %}?next={{ request.path }}"
-             class="cta-whatsapp-link pv-cta-link"
-             aria-label="Venha para o JC e personalize seu conteúdo">
-            <span class="cta-whatsapp-icon pv-cta-icon" aria-hidden="true"></span>
-
-            <div class="cta-whatsapp-text pv-cta-text">
-              <p class="cta-whatsapp-title pv-cta-title">Venha para o JC</p>
-              <p class="cta-whatsapp-subtitle pv-cta-subtitle">
-                Crie sua conta grátis, salve notícias e receba recomendações só pra você.
-              </p>
-            </div>
-          </a>
-        </div>
-      {% endif %}
-
       <!-- Carrossel 2x2 -->
       <div class="carousel para-voce-carousel">
         <input type="radio" name="pv" id="pv1" checked>
@@ -348,15 +330,21 @@
     {% endwith %}
   </div>
 
-  <!-- CTA WhatsApp (mantida) -->
+  <!-- CTA WhatsApp -->
   <div class="container">
     <div class="cta-whatsapp">
       <a href="https://whatsapp.com"
-         class="cta-whatsapp-link"
-         target="_blank"
-         rel="noopener"
-         aria-label="Entrar no canal do JC no WhatsApp">
-        <span class="cta-whatsapp-icon" aria-hidden="true"></span>
+        class="cta-whatsapp-link"
+        target="_blank"
+        rel="noopener"
+        aria-label="Entrar no canal do JC no WhatsApp">
+
+        <div class="cta-whatsapp-icon" aria-hidden="true">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+            alt=""
+            class="cta-whatsapp-icon-img">
+        </div>
 
         <div class="cta-whatsapp-text">
           <p class="cta-whatsapp-title">Vamos conversar no zap?</p>
@@ -369,10 +357,19 @@
   </div>
 </section>
 
+<!-- ===== ANÚNCIO (após Para você) ===== -->
+<section class="section anuncio-section">
+  <div class="anuncio-wrapper" role="banner" aria-label="Espaço para anúncio">
+    <div class="anuncio-card">
+      <span class="anuncio-label">ANÚNCIO</span>
+    </div>
+  </div>
+</section>
+
 <!-- =========================
      MAIS LIDAS (primeira instância) — lista vertical
      ========================= -->
-<section class="section most-read-section most-read-section--green">
+<section class="section most-read-section">
   <div class="container">
     <header class="section-heading">
       <h2 class="section-heading__title">Mais Lidas</h2>
@@ -386,7 +383,7 @@
         <article class="most-read-card" data-href="{{ item.get_absolute_url }}">
           <a href="{{ item.get_absolute_url }}" class="most-read-link">
             <div class="most-read-thumb-wrapper">
-              <span class="most-read-strip most-read-strip--green" aria-hidden="true"></span>
+              <span class="most-read-strip" aria-hidden="true"></span>
 
               <div class="most-read-thumb">
                 {% if item.imagem %}
@@ -397,7 +394,7 @@
                 {% endif %}
               </div>
 
-              <span class="most-read-rank most-read-rank--green">
+              <span class="most-read-rank">
                 {{ forloop.counter }}
               </span>
             </div>
@@ -869,23 +866,54 @@
   {% endif %}
 </section>
 
+<!-- ===== ANÚNCIO (após Pernambuco) ===== -->
+<section class="section anuncio-section">
+  <div class="anuncio-wrapper" role="banner" aria-label="Espaço para anúncio">
+    <div class="anuncio-card">
+      <span class="anuncio-label">ANÚNCIO</span>
+    </div>
+  </div>
+</section>
+
 <!-- =========================
      CHARGE DO DIA
      ========================= -->
-<section class="section accent-red">
-  <div class="section-title">
-    <span class="rule"></span>
-    <span class="label">CHARGE / {{ charge.charge_autor|default:"Nome do artista" }}</span>
-    <span class="rule"></span>
-  </div>
+<section class="section charge-section">
+  <div class="container">
+    <header class="charge-header">
+      <h2 class="charge-title">
+        CHARGE / {{ charge.charge_autor|default:"Nome do artista" }}
+      </h2>
+      <span class="charge-underline" aria-hidden="true"></span>
+    </header>
 
-  {% if charge and charge.charge_imagem %}
-  <article class="card">
-    <div class="card-media charge-box">
-      <img src="{{ charge.charge_imagem.url }}" alt="Charge: {{ charge.charge_autor|default:'Artista' }}">
+    <article class="charge-card">
+      {% if charge and charge.charge_imagem %}
+        <figure class="charge-box">
+          <img
+            src="{{ charge.charge_imagem.url }}"
+            alt="Charge: {{ charge.charge_autor|default:'Nome do artista' }}"
+            loading="lazy"
+          >
+        </figure>
+      {% else %}
+        <figure class="charge-box">
+          <div class="charge-placeholder">
+            Exemplo de charge (imagem temporária)
+          </div>
+        </figure>
+      {% endif %}
+    </article>
+  </div>
+</section>
+
+<!-- ===== ANÚNCIO (após Charge) ===== -->
+<section class="section anuncio-section">
+  <div class="anuncio-wrapper" role="banner" aria-label="Espaço para anúncio">
+    <div class="anuncio-card">
+      <span class="anuncio-label">ANÚNCIO</span>
     </div>
-  </article>
-  {% endif %}
+  </div>
 </section>
 
 <!-- =========================
@@ -947,6 +975,73 @@
     </div>
     {% endif %}
 
+  </div>
+</section>
+
+<!-- =========================
+     COTAÇÃO + MEGA-SENA
+     ========================= -->
+<section class="section cotacao-mega-section">
+  <div class="container">
+
+    <!-- Card de cotação -->
+    <article class="cotacao-card" aria-label="Cotação do dia">
+      <header class="cotacao-header">
+        <span class="cotacao-icon" aria-hidden="true"></span>
+        <span class="cotacao-title">Cotação de 24/11/2025</span>
+      </header>
+
+      <div class="cotacao-body">
+        <div class="cotacao-row cotacao-row--first">
+          <div class="cotacao-side">
+            <span class="cotacao-currency">$</span>
+            <span class="cotacao-arrow cotacao-arrow--up" aria-hidden="true"></span>
+          </div>
+          <div class="cotacao-price">R$ 6,00</div>
+          <div class="cotacao-percent cotacao-percent--up">2%</div>
+        </div>
+
+        <div class="cotacao-row cotacao-row--last">
+          <div class="cotacao-side">
+            <span class="cotacao-currency">€</span>
+            <span class="cotacao-arrow cotacao-arrow--down" aria-hidden="true"></span>
+          </div>
+          <div class="cotacao-price">R$ 12,00</div>
+          <div class="cotacao-percent cotacao-percent--down">5%</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Faixa Mega-Sena -->
+    <article class="megasena-card" aria-label="Resultado Mega-Sena">
+      <div class="megasena-title">
+        <span>MEGA</span>
+        <span>SENA</span>
+      </div>
+
+      <div class="megasena-info">
+        <span class="megasena-concurso">N- 1356</span>
+      </div>
+
+      <ul class="megasena-balls" aria-label="Números sorteados">
+        <li class="megasena-ball">02</li>
+        <li class="megasena-ball">02</li>
+        <li class="megasena-ball">02</li>
+        <li class="megasena-ball">02</li>
+        <li class="megasena-ball">02</li>
+        <li class="megasena-ball">02</li>
+      </ul>
+    </article>
+
+  </div>
+</section>
+
+<!-- ===== ANÚNCIO (após Últimas Notícias) ===== -->
+<section class="section anuncio-section">
+  <div class="anuncio-wrapper" role="banner" aria-label="Espaço para anúncio">
+    <div class="anuncio-card">
+      <span class="anuncio-label">ANÚNCIO</span>
+    </div>
   </div>
 </section>
 
@@ -1113,54 +1208,66 @@
 <!-- =========================
      RECORTES — destaque com player
      ========================= -->
-<section class="section recortes-section">
+<section class="section recortes">
   <div class="container">
-    <header class="section-heading section-heading--green">
-      <h2 class="section-heading__title">Recortes</h2>
-      <span class="section-heading__bar"></span>
-    </header>
+
+    <!-- Título centralizado com linha verde embaixo -->
+    <div class="section-title">
+      <span class="rule" aria-hidden="true"></span>
+      <span class="label">Recortes</span>
+      <span class="rule" aria-hidden="true"></span>
+    </div>
 
     {% if recortes %}
       {% with item=recortes|first %}
-      <article class="recortes-card" data-href="{{ item.get_absolute_url }}">
+      <article class="recortes-hero" data-href="{{ item.get_absolute_url }}">
         <a href="{{ item.get_absolute_url }}" class="recortes-link">
-          <div class="recortes-media">
-            {% if item.imagem %}
-              <img src="{{ item.imagem.url }}"
-                   alt="{{ item.alt_imagem|default:item.titulo }}">
-            {% else %}
-              <div class="recortes-media-placeholder" aria-hidden="true"></div>
-            {% endif %}
+          {% if item.imagem %}
+            <img
+              src="{{ item.imagem.url }}"
+              alt="{{ item.alt_imagem|default:item.titulo }}"
+            >
+          {% else %}
+            <div class="recortes-hero-placeholder" aria-hidden="true"></div>
+          {% endif %}
 
-            <div class="recortes-player">
-              <div class="recortes-player__time">
-                0:20 / 0:58
-              </div>
-              <div class="recortes-player__bar">
-                <span class="recortes-player__bar-fill"></span>
-              </div>
-              <div class="recortes-player__controls">
-                <span class="recortes-player__sound" aria-hidden="true"></span>
-                <span class="recortes-player__fullscreen" aria-hidden="true"></span>
-              </div>
+          <!-- Player cinza estático (placeholder) -->
+          <div class="recortes-player" aria-hidden="true">
+            <div class="recortes-player-bar">
+              <span class="recortes-player-fill"></span>
+            </div>
+            <div class="recortes-player-meta">
+              <span class="recortes-player-time">0:20 / 0:58</span>
+              <span class="recortes-player-volume"></span>
             </div>
           </div>
         </a>
       </article>
       {% endwith %}
     {% else %}
-      <article class="recortes-card recortes-card--empty" aria-disabled="true">
-        <div class="recortes-media">
-          <div class="recortes-media-placeholder" aria-hidden="true"></div>
+      <!-- Estado vazio com placeholder cinza -->
+      <article class="recortes-hero recortes-hero--empty" aria-disabled="true">
+        <div class="recortes-hero-placeholder" aria-hidden="true"></div>
+
+        <div class="recortes-player" aria-hidden="true">
+          <div class="recortes-player-bar">
+            <span class="recortes-player-fill"></span>
+          </div>
+          <div class="recortes-player-meta">
+            <span class="recortes-player-time">0:00 / 0:00</span>
+            <span class="recortes-player-volume"></span>
+          </div>
         </div>
       </article>
     {% endif %}
 
+    <!-- Dots fixos abaixo do recorte -->
     <div class="recortes-dots" aria-label="Paginação dos recortes">
-      <button class="recortes-dot is-active" aria-label="Recorte 1"></button>
-      <button class="recortes-dot" aria-label="Recorte 2"></button>
-      <button class="recortes-dot" aria-label="Recorte 3"></button>
+      <button class="dot is-active" type="button" aria-label="Recorte 1"></button>
+      <button class="dot" type="button" aria-label="Recorte 2"></button>
+      <button class="dot" type="button" aria-label="Recorte 3"></button>
     </div>
+
   </div>
 </section>
 
@@ -1181,7 +1288,7 @@
         <article class="most-read-card" data-href="{{ item.get_absolute_url }}">
           <a href="{{ item.get_absolute_url }}" class="most-read-link">
             <div class="most-read-thumb-wrapper">
-              <span class="most-read-strip most-read-strip--green" aria-hidden="true"></span>
+              <span class="most-read-strip" aria-hidden="true"></span>
 
               <div class="most-read-thumb">
                 {% if item.imagem %}
@@ -1192,7 +1299,7 @@
                 {% endif %}
               </div>
 
-              <span class="most-read-rank most-read-rank--green">
+              <span class="most-read-rank">
                 {{ forloop.counter }}
               </span>
             </div>
@@ -1275,13 +1382,13 @@
 </section>
 
 <!-- =========================
-     NOVELA + MAIS LIDAS (entre Social1 e Enquete)
+     NOVELA (entre Social1 e Enquete)
      ========================= -->
 <section class="section novela-most-read-section">
   <div class="container">
 
-    {% if mais_lidas %}
-      {% with destaque=mais_lidas|first lista=mais_lidas|slice:"1:4" %}
+    {% if novela %}
+      {% with destaque=novela|first %}
 
       <!-- CARD PRINCIPAL (NOVELA) -->
       <article class="novela-hero" data-href="{{ destaque.get_absolute_url }}">
@@ -1327,53 +1434,56 @@
         </a>
       </article>
 
-      <!-- MAIS LIDAS (lista 1–3, sem repetir o destaque) -->
-      {% if lista %}
-      <section class="novela-most-read">
-        <header class="novela-most-read-header">
-          <h2 class="novela-most-read-title">Mais Lidas</h2>
-          <span class="novela-most-read-underline" aria-hidden="true"></span>
-        </header>
-
-        <ol class="novela-most-read-list" aria-label="Notícias mais lidas">
-          {% for item in lista %}
-          <li class="novela-most-read-item">
-            <article class="novela-most-read-card" data-href="{{ item.get_absolute_url }}">
-              <a href="{{ item.get_absolute_url }}" class="novela-most-read-link">
-                <div class="novela-thumb-wrapper">
-                  <span class="novela-thumb-strip" aria-hidden="true"></span>
-
-                  <div class="novela-thumb">
-                    {% if item.imagem %}
-                      <img src="{{ item.imagem.url }}"
-                           alt="{{ item.alt_imagem|default:item.titulo }}"
-                           loading="lazy">
-                    {% else %}
-                      <div class="novela-thumb-placeholder" aria-hidden="true"></div>
-                    {% endif %}
-                  </div>
-
-                  <span class="novela-rank">
-                    {{ forloop.counter }}
-                  </span>
-                </div>
-
-                <div class="novela-most-read-content">
-                  <h3 class="novela-most-read-text">
-                    {{ item.titulo }}
-                  </h3>
-                </div>
-              </a>
-            </article>
-          </li>
-          {% endfor %}
-        </ol>
-      </section>
-      {% endif %}
-
       {% endwith %}
     {% endif %}
 
+  </div>
+</section>
+
+<!-- =========================
+     MAIS LIDAS (segunda instância — roxa, antes da Enquete)
+     ========================= -->
+<section class="section most-read-section most-read-section--purple">
+  <div class="container">
+    <header class="section-heading">
+      <h2 class="section-heading__title">Mais Lidas</h2>
+      <span class="section-heading__bar"></span>
+    </header>
+
+    {% if mais_lidas %}
+    <ol class="most-read-list" aria-label="Lista de notícias mais lidas">
+      {% for item in mais_lidas|slice:":3" %}
+      <li class="most-read-item">
+        <article class="most-read-card" data-href="{{ item.get_absolute_url }}">
+          <a href="{{ item.get_absolute_url }}" class="most-read-link">
+            <div class="most-read-thumb-wrapper">
+              <span class="most-read-strip" aria-hidden="true"></span>
+
+              <div class="most-read-thumb">
+                {% if item.imagem %}
+                  <img src="{{ item.imagem.url }}"
+                       alt="{{ item.alt_imagem|default:item.titulo }}">
+                {% else %}
+                  <div class="most-read-thumb-placeholder" aria-hidden="true"></div>
+                {% endif %}
+              </div>
+
+              <span class="most-read-rank">
+                {{ forloop.counter }}
+              </span>
+            </div>
+
+            <div class="most-read-content">
+              <h3 class="most-read-title">
+                {{ item.titulo }}
+              </h3>
+            </div>
+          </a>
+        </article>
+      </li>
+      {% endfor %}
+    </ol>
+    {% endif %}
   </div>
 </section>
 
@@ -1475,6 +1585,176 @@
       </a>
     </div>
     {% endif %}
+  </div>
+</section>
+
+<!-- ===== ANÚNCIO (após Receita da boa) ===== -->
+<section class="section anuncio-section">
+  <div class="anuncio-wrapper" role="banner" aria-label="Espaço para anúncio">
+    <div class="anuncio-card">
+      <span class="anuncio-label">ANÚNCIO</span>
+    </div>
+  </div>
+</section>
+
+<!-- =========================
+     COLUNISTAS — lista vertical
+     ========================= -->
+<section class="section colunistas-section">
+  <div class="container">
+
+    <header class="colunistas-header">
+      <h2 class="colunistas-title">Colunistas</h2>
+      <span class="colunistas-underline" aria-hidden="true"></span>
+    </header>
+
+    <ul class="colunistas-list">
+      <li class="colunistas-item">
+        <a href="#" class="colunista-link">
+          <div class="colunista-avatar-wrapper">
+            <img
+              src="{% static 'noticias/img/colunista-mirella.jpg' %}"
+              alt="Foto da colunista Mirella Araujo"
+              class="colunista-avatar">
+          </div>
+
+          <div class="colunista-info">
+            <p class="colunista-name">
+              <strong>Mirella Araujo</strong>
+              <span class="colunista-separator"> | </span>
+              <span class="colunista-area">ENEM &amp; Educação</span>
+            </p>
+
+            <p class="colunista-headline">
+              UPE libera cartão informativo para o SSA 1 e 2; veja como acessar
+            </p>
+          </div>
+        </a>
+      </li>
+
+      <li class="colunistas-item">
+        <a href="#" class="colunista-link">
+          <div class="colunista-avatar-wrapper">
+            <img
+              src="{% static 'noticias/img/colunista-mirella.jpg' %}"
+              alt="Foto da colunista Mirella Araujo"
+              class="colunista-avatar">
+          </div>
+
+          <div class="colunista-info">
+            <p class="colunista-name">
+              <strong>Mirella Araujo</strong>
+              <span class="colunista-separator"> | </span>
+              <span class="colunista-area">ENEM &amp; Educação</span>
+            </p>
+
+            <p class="colunista-headline">
+              UPE libera cartão informativo para o SSA 1 e 2; veja como acessar
+            </p>
+          </div>
+        </a>
+      </li>
+
+      <li class="colunistas-item">
+        <a href="#" class="colunista-link">
+          <div class="colunista-avatar-wrapper">
+            <img
+              src="{% static 'noticias/img/colunista-mirella.jpg' %}"
+              alt="Foto da colunista Mirella Araujo"
+              class="colunista-avatar">
+          </div>
+
+          <div class="colunista-info">
+            <p class="colunista-name">
+              <strong>Mirella Araujo</strong>
+              <span class="colunista-separator"> | </span>
+              <span class="colunista-area">ENEM &amp; Educação</span>
+            </p>
+
+            <p class="colunista-headline">
+              UPE libera cartão informativo para o SSA 1 e 2; veja como acessar
+            </p>
+          </div>
+        </a>
+      </li>
+    </ul>
+
+    <div class="colunistas-more">
+      <a href="#" class="colunistas-more-btn">Ver mais</a>
+    </div>
+  </div>
+</section>
+
+<!-- =========================
+     ESCULTE AGORA — Rádio / TV
+     ========================= -->
+<section class="section escute-agora-section">
+  <div class="container">
+
+    <!-- Título com linhas vermelhas -->
+    <header class="escute-agora-header">
+      <span class="escute-agora-rule" aria-hidden="true"></span>
+      <h2 class="escute-agora-title">Esculte agora</h2>
+      <span class="escute-agora-rule" aria-hidden="true"></span>
+    </header>
+
+    <!-- BLOCO RÁDIO -->
+    <div class="escute-bloco escute-bloco--radio">
+      <h3 class="escute-pill">Radio Jornal</h3>
+
+      <ul class="escute-canais-lista">
+        <li class="escute-card">
+          <div class="escute-card-icone">
+            <span class="escute-wave" aria-hidden="true"></span>
+          </div>
+          <span class="escute-card-label">Recife</span>
+        </li>
+
+        <li class="escute-card">
+          <div class="escute-card-icone">
+            <span class="escute-wave" aria-hidden="true"></span>
+          </div>
+          <span class="escute-card-label">Interior</span>
+        </li>
+
+        <li class="escute-card">
+          <div class="escute-card-icone">
+            <span class="escute-wave" aria-hidden="true"></span>
+          </div>
+          <span class="escute-card-label">Interior</span>
+        </li>
+      </ul>
+
+      <div class="escute-dots">
+        <span class="escute-dot escute-dot--active"></span>
+        <span class="escute-dot"></span>
+        <span class="escute-dot"></span>
+      </div>
+    </div>
+
+    <!-- BLOCO TV -->
+    <div class="escute-bloco escute-bloco--tv">
+      <h3 class="escute-pill">TV Jornal</h3>
+
+      <!-- aqui está o ajuste: os 2 cards ficam centralizados -->
+      <ul class="escute-canais-lista"
+          style="justify-content: center; overflow: visible; margin: 0; padding: 0 16px;">
+        <li class="escute-card">
+          <div class="escute-card-icone">
+            <span class="escute-wave" aria-hidden="true"></span>
+          </div>
+          <span class="escute-card-label">Recife</span>
+        </li>
+
+        <li class="escute-card">
+          <div class="escute-card-icone">
+            <span class="escute-wave" aria-hidden="true"></span>
+          </div>
+          <span class="escute-card-label">Interior</span>
+        </li>
+      </ul>
+    </div>
+
   </div>
 </section>
 
