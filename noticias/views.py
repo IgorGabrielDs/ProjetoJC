@@ -1064,13 +1064,13 @@ def editar_perfil(request):
                 user.save()
             else:
                 messages.error(request, "Este e-mail já está em uso.")
-                return redirect("noticias:editar_perfil")
+                return redirect("noticias:editarperfil")
 
         # --- Atualiza senha ---
         if senha:
             if len(senha) < 8:
                 messages.error(request, "A senha deve ter ao menos 8 caracteres.")
-                return redirect("noticias:editar_perfil")
+                return redirect("noticias:editarperfil")
 
             user.set_password(senha)
             user.save()
@@ -1089,7 +1089,7 @@ def editar_perfil(request):
             perfil.save()
 
         messages.success(request, "Seu perfil foi atualizado com sucesso!")
-        return redirect("noticias:editar_perfil")
+        return redirect("noticias:editarperfil")
 
     ctx = {"perfil": perfil}
     return render(request, "noticias/editarperfil.html", ctx)
