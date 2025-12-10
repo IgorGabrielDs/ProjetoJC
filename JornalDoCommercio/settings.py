@@ -14,6 +14,8 @@ ALLOWED_HOSTS = ['jcproject.azurewebsites.net', '127.0.0.1', 'localhost']
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -40,6 +42,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'JornalDoCommercio.urls'
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://jcproject.azurewebsites.net",
+]
 
 TEMPLATES = [
     {
