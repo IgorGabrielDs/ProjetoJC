@@ -93,7 +93,7 @@ class LoginViewTests(TestCase):
         resp = self.client.get(self.url_login)
         # Verifica ícones (placeholders) usados no template
         self.assertContains(resp, "icon-google.svg")
-        self.assertContains(resp, "icon-apple.svg")
+        self.assertContains(resp, "apple-logo.svg")
         self.assertContains(resp, "icon-facebook.svg")
     def test_login_nao_cria_usuario_inexistente(self):
         from django.contrib.auth import get_user_model
