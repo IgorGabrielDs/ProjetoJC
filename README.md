@@ -84,9 +84,14 @@ pytest -q
 
 ---
 
-Acesse o nosso vídeo de testes automatizados [aqui](https://youtu.be/jgPmHwQA0cM)
+---
 
-Acesse o nosso vídeo de deploy [aqui](https://youtu.be/ylrIaAFVhO0)
+## 🎥 Demonstrações em Vídeo
+
+- ✅ Veja os **testes automatizados** em execução [neste vídeo](https://youtu.be/jgPmHwQA0cM).  
+- 🚀 Confira o **processo de deploy** do Projeto JC [neste vídeo](https://youtu.be/ylrIaAFVhO0).
+
+---
 
 ## 👥 Equipe Plumo — CESAR School
 
