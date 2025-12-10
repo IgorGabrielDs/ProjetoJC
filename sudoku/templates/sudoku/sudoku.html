@@ -27,11 +27,7 @@
     margin:20px auto;max-width:400px;padding:2px;
   }
 
-  .sudoku-row{
-    display:grid;
-    grid-template-columns:repeat(9,1fr);
-    gap:2px;
-  }
+  .sudoku-row{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;}
 
   .sudoku-cell{
     width:100%;aspect-ratio:1/1;background:#fff;box-sizing:border-box;
@@ -55,6 +51,28 @@
   #message-area{font-size:1.1em;font-weight:bold;margin-top:10px;}
   #message-area.success{color:green;}
   #message-area.error{color:red;}
+
+  #popup-success {
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.5);
+    display:none; justify-content:center; align-items:center;
+    z-index:9999;
+  }
+  #popup-success.show { display:flex; }
+
+  .popup-card {
+    width:300px; background:#6BB96B; padding:25px;
+    border-radius:12px; text-align:center; color:white;
+  }
+  .popup-card img { width:90px; margin-bottom:15px; }
+  .popup-card h2 { font-size:1.6rem; margin-bottom:10px; }
+  .popup-card p { font-size:.95rem; margin-bottom:20px; }
+
+  .popup-btn {
+    display:inline-block; background:white; color:#2d7a2d;
+    padding:8px 20px; border-radius:20px; font-weight:bold;
+    border:none; cursor:pointer; font-size:1rem;
+  }
 </style>
 {% endblock %}
 
@@ -107,6 +125,16 @@
     {{ puzzle.solution_board|json_script:"solution-board" }}
   {% endif %}
 </div>
+
+<div id="popup-success">
+  <div class="popup-card">
+    <img src="{% static 'noticias/img/trofeu.png' %}">
+    <h2>Parabéns!</h2>
+    <p>Você passou de nível!</p>
+    <button id="popup-play-btn" class="popup-btn">Jogar</button>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -117,23 +145,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const grid = document.getElementById("sudoku-grid");
 
-  // ---------------------------
-  // CARREGAR O PROBLEMA
-  // ---------------------------
   let rawProblem = JSON.parse(document.getElementById("problem-board").textContent);
   rawProblem = rawProblem.replace(/[^0-9.]/g, "");
   if (rawProblem.length !== 81) rawProblem = ".".repeat(81);
 
-  // ---------------------------
-  // GERAR GRID LINHA X COLUNA
-  // ---------------------------
   for (let r = 0; r < 9; r++) {
-
     const rowDiv = document.createElement("div");
     rowDiv.className = "sudoku-row";
 
     for (let c = 0; c < 9; c++) {
-
       const idx = r * 9 + c;
       const ch = rawProblem[idx];
 
@@ -144,7 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
       input.type = "text";
       input.maxLength = 1;
       input.inputMode = "numeric";
-
       input.dataset.row = r;
       input.dataset.col = c;
 
@@ -161,16 +180,11 @@ document.addEventListener("DOMContentLoaded", () => {
       cell.appendChild(input);
       rowDiv.appendChild(cell);
     }
-
     grid.appendChild(rowDiv);
   }
 
-  // ---------------------------
-  // TIMER
-  // ---------------------------
   const timerEl = document.getElementById("timer");
   const start = Date.now();
-
   setInterval(() => {
     const sec = Math.floor((Date.now() - start) / 1000);
     const mm = String(Math.floor(sec / 60)).padStart(2, "0");
@@ -178,11 +192,18 @@ document.addEventListener("DOMContentLoaded", () => {
     timerEl.textContent = `${mm}:${ss}`;
   }, 1000);
 
-  // ---------------------------
-  // ENVIO CORRETO PARA O BACKEND
-  // ---------------------------
   const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
   const puzzleId = JSON.parse(document.getElementById("puzzle-id").textContent);
+
+  const difficulty = "{{ difficulty }}";
+  const popup = document.getElementById("popup-success");
+  const popupBtn = document.getElementById("popup-play-btn");
+
+  popupBtn.onclick = () => {
+      if (difficulty === "easy") window.location.href = "{% url 'sudoku:play' 'medium' %}";
+      else if (difficulty === "medium") window.location.href = "{% url 'sudoku:play' 'hard' %}";
+      else window.location.href = "/";
+  };
 
   document.getElementById("check-button").addEventListener("click", () => {
 
@@ -204,17 +225,18 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch("{% url 'sudoku:check_solution' %}", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
-      body: JSON.stringify({
-        puzzle_id: puzzleId,
-        solution: solutionStr
-      })
+      body: JSON.stringify({ puzzle_id: puzzleId, solution: solutionStr })
     })
     .then(r => r.json())
     .then(d => {
-      msg.textContent = d.success ?
-        "Parabéns! Solução correta!" :
-        (d.message || "Solução incorreta.");
-      msg.className = d.success ? "success" : "error";
+
+      if (d.success) {
+        popup.classList.add("show");
+      } else {
+        msg.textContent = d.message || "Solução incorreta.";
+        msg.className = "error";
+      }
+
     });
   });
 
