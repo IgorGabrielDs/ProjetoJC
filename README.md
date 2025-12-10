@@ -42,6 +42,14 @@ As histórias de usuário implementadas no Projeto JC estão descritas em detalh
   
 ---
 
+## 🤝 Programação em Par (Pair Programming)
+
+Os registros e reflexões sobre as sessões de programação em par da equipe estão disponíveis neste documento:
+
+- [Documento de Programação em Par — Equipe Plumo](LINK_DO_DOCS_AQUI)
+
+---
+
 ## 🧪 Testes e Qualidade
 O projeto utiliza **pytest-django** para garantir estabilidade:
 - Testes de integração e unidade para views, templates e jogos (`noticias/tests`, `caca_links/tests`, `sudoku/tests`).  
