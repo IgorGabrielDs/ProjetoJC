@@ -6,6 +6,8 @@ whitenoise
 # Banco de Dados
 psycopg2-binary
 dj-database-url
+django-storages
+azure-storage-blob
 
 # Utilitários
 python-dotenv
