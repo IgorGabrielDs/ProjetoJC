@@ -161,3 +161,51 @@ def check_solution(request):
 
     except Exception as e:
         return JsonResponse({"success": False, "message": str(e)}, status=500)
+    
+# ----------------------------------------------------------------------
+#  FUNÇÃO AUXILIAR PARA OS TESTES: is_solution_valid
+# ----------------------------------------------------------------------
+def is_solution_valid(boardStr):
+    """
+    Valida um tabuleiro de Sudoku representado como string de 81 dígitos.
+    Zeros são ignorados (considerados casas vazias).
+    Retorna True se o tabuleiro é válido, False caso contrário.
+    """
+
+    if not isinstance(boardStr, str) or len(boardStr) != 81:
+        return False
+
+    # Converte para matriz 9x9
+    try:
+        board = [list(map(int, boardStr[i*9:(i+1)*9])) for i in range(9)]
+    except ValueError:
+        return False
+
+    # Helper: verifica se uma lista tem números 1-9 sem repetir (zeros ignorados)
+    def no_repeat(nums):
+        nums = [n for n in nums if n != 0]
+        return len(nums) == len(set(nums))
+
+    # Verifica linhas
+    for row in board:
+        if not no_repeat(row):
+            return False
+
+    # Verifica colunas
+    for c in range(9):
+        col = [board[r][c] for r in range(9)]
+        if not no_repeat(col):
+            return False
+
+    # Verifica blocos 3x3
+    for br in range(0, 9, 3):
+        for bc in range(0, 9, 3):
+            block = [
+                board[r][c]
+                for r in range(br, br+3)
+                for c in range(bc, bc+3)
+            ]
+            if not no_repeat(block):
+                return False
+
+    return True
