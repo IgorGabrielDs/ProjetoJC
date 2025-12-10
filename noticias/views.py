@@ -1067,12 +1067,7 @@ def resumir_noticia(request, pk):
     resumo = gerar_resumo_automatico(noticia)
 
     if not resumo:
-        return JsonResponse(
-            {
-                "error": "Não foi possível gerar o resumo da notícia.",
-            },
-            status=500,
-        )
+        return JsonResponse({"error": "Erro ao conectar ao provedor de resumo."}, status=500)
 
     return JsonResponse({"resumo": resumo})
 
