@@ -6,7 +6,12 @@ import logging
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from django.contrib.auth import (
+    authenticate,
+    login as auth_login,
+    get_user_model,
+    update_session_auth_hash,
+)
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.db.models import (
@@ -499,6 +504,7 @@ def index(request):
     }
     return render(request, "noticias/index.html", ctx)
 
+
 # =======================
 # DETALHE
 # =======================
@@ -528,7 +534,7 @@ def noticia_detalhe(request, pk):
             Noticia.objects.exclude(pk=noticia.pk).order_by("-criado_em")[:2]
         )
 
-    # votos
+    # votos agregados
     votos_agregados = noticia.votos.aggregate(
         score_total=Coalesce(Sum("valor"), Value(0)),
         up_total=Count("id", filter=Q(valor=1)),
@@ -602,6 +608,112 @@ def noticia_detalhe(request, pk):
         enquete_data = None
     # --- LÓGICA DA ENQUETE (FIM) ---
 
+    # =========
+    # BLOCO "PARA VOCÊ" E "PUBLICIDADE LEGAL" NO DETALHE
+    # =========
+    all_qs = Noticia.objects.all().select_related().prefetch_related("assuntos")
+
+    # Publicidade legal (excluindo a própria notícia)
+    try:
+        pub_assunto = Assunto.objects.get(slug="publicidade-legal")
+        publicidade_qs = all_qs.filter(assuntos=pub_assunto)
+    except Assunto.DoesNotExist:
+        publicidade_qs = all_qs.filter(
+            assuntos__nome__iexact="publicidade legal",
+        )
+
+    publicidade_qs = publicidade_qs.exclude(pk=noticia.pk)
+    publicidade_legal = _annotate_is_saved(
+        publicidade_qs.order_by("-criado_em"),
+        request.user,
+    )[:2]
+    if not publicidade_legal.exists():
+        publicidade_legal = _annotate_is_saved(
+            all_qs.exclude(pk=noticia.pk).order_by("-criado_em"),
+            request.user,
+        )[:2]
+
+    # Para você – lógica semelhante à da home, mas só excluindo esta notícia
+    ids_para_excluir = {noticia.pk}
+
+    if request.user.is_authenticated:
+        noticias_votadas_ids = Voto.objects.filter(
+            usuario=request.user
+        ).values_list("noticia__id", flat=True)
+
+        noticias_salvas_ids = Salvo.objects.filter(
+            usuario=request.user
+        ).values_list("noticia__id", flat=True)
+
+        ids_para_excluir.update(noticias_votadas_ids)
+        ids_para_excluir.update(noticias_salvas_ids)
+
+        assuntos_interesse = (
+            Assunto.objects.filter(
+                noticias__votos__usuario=request.user,
+                noticias__votos__valor=1,
+            )
+            .values_list("pk", flat=True)
+            .distinct()
+        )
+
+        assuntos_salvos = (
+            Assunto.objects.filter(
+                noticias__salvo__usuario=request.user,
+            )
+            .values_list("pk", flat=True)
+            .distinct()
+        )
+
+        assuntos_ids = set(list(assuntos_interesse) + list(assuntos_salvos))
+
+        if assuntos_ids:
+            pv_qs = (
+                all_qs.filter(assuntos__id__in=assuntos_ids)
+                .exclude(id__in=ids_para_excluir)
+                .annotate(
+                    matches_assunto=Count(
+                        "assuntos",
+                        filter=Q(assuntos__id__in=assuntos_ids),
+                    ),
+                    score=Coalesce(Sum("votos__valor"), Value(0)),
+                )
+                .distinct()
+                .order_by(
+                    "-matches_assunto",
+                    "-score",
+                    "-criado_em",
+                )
+            )
+        else:
+            pv_qs = (
+                all_qs.exclude(id__in=ids_para_excluir)
+                .annotate(score=Coalesce(Sum("votos__valor"), Value(0)))
+                .order_by("-score", "-criado_em")
+            )
+    else:
+        pv_qs = (
+            all_qs.exclude(id__in=ids_para_excluir)
+            .annotate(score=Coalesce(Sum("votos__valor"), Value(0)))
+            .order_by("-score", "-criado_em")
+        )
+
+    # Até 12 itens para o carrossel do detalhe
+    para_voce = _annotate_is_saved(pv_qs, request.user)[:12]
+    if not para_voce.exists():
+        para_voce = _annotate_is_saved(
+            all_qs.exclude(pk=noticia.pk).order_by("-criado_em"),
+            request.user,
+        )[:12]
+
+    # Conjunto de notícias salvas pelo usuário (para o template usar "item in salvos")
+    if request.user.is_authenticated:
+        salvos = list(
+            Noticia.objects.filter(salvo__usuario=request.user).distinct()
+        )
+    else:
+        salvos = []
+
     ctx = {
         "noticia": noticia,
         "score": votos_agregados["score_total"],
@@ -612,6 +724,9 @@ def noticia_detalhe(request, pk):
         "is_saved": is_saved,
         "enquete_data": enquete_data,
         "resumo_text": resumo_text,
+        "publicidade_legal": publicidade_legal,
+        "para_voce": para_voce,
+        "salvos": salvos,
     }
     return render(request, "noticias/detalhe.html", ctx)
 
@@ -788,7 +903,7 @@ def signup(request):
             return render(request, "registration/signup.html", ctx)
 
         first_name, last_name = _split_full_name(nome)
-        user = User.objects.create_user(  # type: ignore
+        user = User.objects.create_user( # type: ignore
             username=username,
             email=email,
             password=password1,
@@ -1033,6 +1148,13 @@ def galeria_videos(request):
 def video_detail(request, pk):
     video = get_object_or_404(Video, pk=pk)
     return render(request, "noticias/video_detail.html", {"video": video})
+
+
+# ==================================================
+# EDITAR PERFIL (do projeto)
+# ==================================================
+
+
 @login_required
 def editar_perfil(request):
     user = request.user
@@ -1058,7 +1180,9 @@ def editar_perfil(request):
 
         # --- Atualiza email (se não existir outro igual) ---
         if email and email != user.email:
-            if not get_user_model().objects.filter(email=email).exclude(pk=user.pk).exists():
+            if not get_user_model().objects.filter(email=email).exclude(
+                pk=user.pk
+            ).exists():
                 user.email = email
                 user.username = email  # se seu login usa email como username
                 user.save()
@@ -1078,12 +1202,14 @@ def editar_perfil(request):
 
         # --- Atualiza Perfil ---
         if perfil:
-            perfil.anonimo = anonimo
+            # campo "anonimo" pode variar conforme seu model
+            if hasattr(perfil, "anonimo"):
+                perfil.anonimo = anonimo
 
             if data_nascimento:
                 perfil.data_nascimento = data_nascimento
 
-            if "foto" in request.FILES:
+            if "foto" in request.FILES and hasattr(perfil, "foto"):
                 perfil.foto = request.FILES["foto"]
 
             perfil.save()
