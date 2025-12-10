@@ -42,6 +42,14 @@ As histórias de usuário implementadas no Projeto JC estão descritas em detalh
   
 ---
 
+## 🤝 Programação em Par (Pair Programming)
+
+Os registros e reflexões sobre as sessões de programação em par da equipe estão disponíveis neste documento:
+
+- [Documento de Programação em Par — Equipe Plumo](https://docs.google.com/document/d/1B6hCvBz55_UZEavwQYSpzYDeyrkoyPmU4EDjsSoRcbg/edit?usp=sharing)
+
+---
+
 ## 🧪 Testes e Qualidade
 O projeto utiliza **pytest-django** para garantir estabilidade:
 - Testes de integração e unidade para views, templates e jogos (`noticias/tests`, `caca_links/tests`, `sudoku/tests`).  
@@ -76,9 +84,14 @@ pytest -q
 
 ---
 
-Acesse o nosso vídeo de testes automatizados [aqui](https://youtu.be/jgPmHwQA0cM)
+---
 
-Acesse o nosso vídeo de deploy [aqui](https://youtu.be/ylrIaAFVhO0)
+## 🎥 Demonstrações em Vídeo
+
+- ✅ Veja os **testes automatizados** em execução [neste vídeo](https://youtu.be/jgPmHwQA0cM).  
+- 🚀 Confira o **processo de deploy** do Projeto JC [neste vídeo](https://youtu.be/ylrIaAFVhO0).
+
+---
 
 ## 👥 Equipe Plumo — CESAR School
 

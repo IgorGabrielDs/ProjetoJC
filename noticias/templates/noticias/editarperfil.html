@@ -22,16 +22,20 @@
 
         <!-- FOTO -->
         <div class="photo-area">
+
             {% if user.perfil.foto %}
                 <img src="{{ user.perfil.foto.url }}" class="foto-preview" id="photoPreview">
             {% else %}
                 <img src="{% static 'noticias/img/perfil_uol.png' %}" class="foto-preview" id="photoPreview">
             {% endif %}
 
+            <!-- BOTÃO DA CÂMERA COM CAMADAS -->
             <label class="photo-btn">
-                <img src="{% static 'noticias/img/camera.png' %}" alt="Upload">
+                <div class="photo-btn-bg"></div>  <!-- círculo cinza atrás -->
+                <img src="{% static 'noticias/img/camera.png' %}" class="photo-btn-icon" alt="Upload"> <!-- ícone na frente -->
                 <input type="file" name="foto" id="fotoInput" hidden>
             </label>
+
         </div>
 
         <!-- Nome -->
@@ -60,17 +64,14 @@
         <label>Senha (deixe em branco se não quiser trocar)</label>
         <input type="password" name="senha" class="input-box">
 
-        <!-- Preferencias futuro -->
-        <label>Mude suas preferências</label>
-        <div class="pref-placeholder"></div>
 
-        <button type="submit" class="btn-confirm">Confirmar</button>
+        <button type="submit" class="btn-confirm" id="btnConfirmar">Confirmar</button>
 
     </form>
 </div>
 
 <!-- ============================
-          MODAL CORRIGIDO
+          MODAL
 ============================ -->
 <div id="infoModal" class="modal-overlay">
     <div class="modal-box">
