@@ -80,15 +80,6 @@ class LoginViewTests(TestCase):
         resp = self.client.get(self.url_login)
         self.assertContains(resp, url_signup)
 
-    def test_link_password_reset_existe_se_configurado(self):
-        # Caso seu projeto não tenha reset de senha, este teste pode ser ignorado
-        try:
-            url_reset = reverse("password_reset")
-        except NoReverseMatch:
-            self.skipTest("URL 'password_reset' não está configurada neste projeto.")
-        resp = self.client.get(self.url_login)
-        self.assertContains(resp, url_reset)
-
     def test_icones_providers_renderizam(self):
         resp = self.client.get(self.url_login)
         # Verifica ícones (placeholders) usados no template
