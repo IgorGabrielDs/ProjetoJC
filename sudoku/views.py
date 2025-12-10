@@ -176,3 +176,4 @@ def check_solution(request):
     except Exception as e:
         # Nunca deixe retornar 500
         return JsonResponse({"success": False, "message": str(e)})
+    
