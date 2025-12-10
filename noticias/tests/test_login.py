@@ -25,7 +25,7 @@ class LoginViewTests(TestCase):
         self.assertContains(resp, 'name="username"')
         self.assertContains(resp, 'name="password"')
         # Verifica título
-        self.assertContains(resp, "Entrar — JC")
+        self.assertContains(resp, "JC - Login")
         # Template padrão do Django Auth (ajuste se você usa outro)
         self.assertTemplateUsed(resp, "registration/login.html")
 
