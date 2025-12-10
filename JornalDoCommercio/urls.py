@@ -2,14 +2,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 
-# Imports para arquivos estáticos e de mídia
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # 🔐 Login e Logout (templates customizados)
+    # Login e Logout
     path(
         "login/",
         auth_views.LoginView.as_view(template_name="registration/login.html"),
@@ -21,18 +20,12 @@ urlpatterns = [
         name="logout",
     ),
 
-    # 🔗 Rotas dos apps
+    # Apps
     path("", include(("noticias.urls", "noticias"), namespace="noticias")),
-    path(
-        "caca-links/",
-        include(("caca_links.urls", "caca_links"), namespace="caca_links"),
-    ),
-    path(
-        "sudoku/",
-        include(("sudoku.urls", "sudoku"), namespace="sudoku"),
-    ),
+    path("caca-links/", include(("caca_links.urls", "caca_links"), namespace="caca_links")),
+    path("sudoku/", include(("sudoku.urls", "sudoku"), namespace="sudoku")),
 
-    # 🔑 Password reset (da sua versão)
+    # Password Reset
     path(
         "password-reset/",
         auth_views.PasswordResetView.as_view(
@@ -42,7 +35,7 @@ urlpatterns = [
     ),
 ]
 
-# Adiciona as rotas para arquivos estáticos e de mídia (apenas em modo DEBUG)
+# ✔ APENAS static — porque Whitenoise cuida do resto.
+# ❗ NÃO ADICIONAR MEDIA AQUI QUANDO USANDO AZURE BLOB.
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
