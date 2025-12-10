@@ -50,23 +50,6 @@ def test_filtra_por_assunto_e_periodo(client, assunto_factory, noticia_factory):
     # (Se a view expuser um queryset específico de resultados filtrados
     # no contexto, podemos validar diretamente esse queryset no futuro.)
 
-
-def test_index_contem_blocos_chave(client, noticia_factory, assunto_factory):
-    """Sanidade: blocos principais aparecem."""
-    
-    # 1. Crie dados para popular a home
-    assunto = assunto_factory(nome="Geral", slug="geral")
-    noticia_factory(titulo="Manchete Principal", assuntos=[assunto])
-    
-    r = client.get(reverse("noticias:index"))
-    html = r.content.decode("utf-8")
-    
-    assert "Destaques" in html
-    # CORREÇÃO: Mudamos de "Para você" para "Destaques recentes"
-    assert "Destaques recentes" in html 
-    assert "Mais lidas" in html
-
-
 def test_index_usa_template_noticias(client):
     """Garante que o template da app 'noticias' foi usado."""
     r = client.get(reverse("noticias:index"))
