@@ -5,220 +5,80 @@
 
 {% block extra_head %}
 <style>
-body {
-    background-color: #f0f2f5;
-    font-family: "Arial", sans-serif;
-}
+body { background:#f0f2f5; font-family:Arial; }
 
 .tema-container {
-    max-width: 760px;
-    margin: 40px auto;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    padding: 20px;
+    max-width:760px; margin:40px auto; background:#fff;
+    border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.05);
 }
 
-/* HEADER */
-.carousel-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-bottom: 18px;
-}
+.carousel-header { display:flex; justify-content:center; gap:16px; margin-bottom:18px; }
+.carousel-header img { width:34px; height:34px; cursor:pointer; }
+.carousel-title { font-size:1.8rem; font-weight:bold; }
 
-.carousel-header img {
-    width: 34px;
-    height: 34px;
-    cursor: pointer;
-}
-
-.carousel-title {
-    font-size: 1.8rem;
-    font-weight: bold;
-}
-
-/* CARROSSEL */
-.carousel-wrapper {
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    padding: 10px 0;
-}
-
-.carousel {
-    display: flex;
-    gap: 20px;
-    transition: transform 260ms ease;
-}
+.carousel-wrapper { position:relative; overflow:hidden; width:100%; padding:10px 0; }
+.carousel { display:flex; gap:20px; transition:.26s; }
 
 .carousel-item {
-    min-width: 70%;
-    max-width: 70%;
-    background: #fff;
-    padding: 14px;
-    border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    text-align: center;
-    opacity: .55;
-    transform: scale(0.85);
-    transition: .28s;
-    user-select: none;
+    min-width:70%; max-width:70%;
+    text-align:center; padding:14px;
+    border-radius:12px; background:#fff;
+    box-shadow:0 2px 6px rgba(0,0,0,.08);
+    opacity:.55; transform:scale(.85); transition:.28s;
 }
-
-.carousel-item.active {
-    opacity: 1;
-    transform: scale(1);
-}
+.carousel-item.active { opacity:1; transform:scale(1); }
 
 .carousel-item img {
-    width: 180px;
-    height: 150px;
-    border-radius: 10px;
-    background: #e1e4eb;
-    object-fit: cover;
-    margin-bottom: 10px;
+    width:180px; height:150px; min-height:150px;
+    display:block; margin:0 auto 10px auto;
+    border-radius:10px; object-fit:cover;
 }
 
 .tema-nome {
-    font-weight: bold;
-    font-size: 1.1rem;
+    font-weight:bold; font-size:1.1rem;
+    color:#000; display:block; margin-top:8px;
 }
 
-/* DOTS */
-.carousel-dots {
-    margin-top: 10px;
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-}
+.carousel-dots { margin-top:10px; display:flex; justify-content:center; gap:8px; }
+.dot { width:10px; height:10px; border-radius:50%; background:#aaa; }
+.dot.active { background:#333; }
 
-.dot {
-    width: 10px;
-    height: 10px;
-    background: #aaa;
-    border-radius: 50%;
-    transition: .25s;
-}
-
-.dot.active {
-    background: #333;
-}
-
-/* SETAS */
-.carousel-arrows {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
-
+.carousel-arrows { display:flex; justify-content:space-between; margin-top:20px; }
 .arrow-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    border: none;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    cursor: pointer;
-    font-size: 22px;
+    width:42px; height:42px; border:none; border-radius:50%;
+    background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.2); font-size:22px;
+    cursor:pointer;
 }
 
-/* DRAWER ESTATÍSTICAS (NOVO, MODELO DA IMAGEM) */
 .drawer {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.55);
-    display: none;
-    justify-content: flex-end;
-    z-index: 5000;
+    position:fixed; inset:0; display:none;
+    justify-content:flex-end; background:rgba(0,0,0,.55);
+    z-index:5000;
 }
 .drawer.show { display:flex; }
 
 .drawer-panel {
-    background: #fff;
-    width: 340px;
-    height: 100%;
-    padding: 22px;
-    display: flex;
-    flex-direction: column;
-    animation: slideDrawer .25s ease forwards;
+    width:340px; height:100%; background:#fff; padding:22px;
+    animation:slideDrawer .25s ease forwards;
 }
+@keyframes slideDrawer { from{transform:translateX(100%);} to{transform:translateX(0);} }
 
-@keyframes slideDrawer {
-    from { transform: translateX(100%); opacity: 0 }
-    to { transform: translateX(0); opacity: 1 }
-}
+.drawer-header { display:flex; justify-content:space-between; }
+.drawer-close { background:none; border:none; font-size:26px; cursor:pointer; }
 
-.drawer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 18px;
-}
-
-.drawer-header h3 {
-    font-size: 22px;
-    font-weight: bold;
-}
-
-.drawer-close {
-    font-size: 26px;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.stats-avatar {
-    width: 85px;
-    height: 85px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin: 0 auto;
-}
-
-.stats-username {
-    text-align: center;
-    font-size: 20px;
-    margin-top: 12px;
-    margin-bottom: 8px;
-}
-
-.stats-section {
-    text-align: center;
-    margin-top: 12px;
-}
-
-.stats-section .value-red {
-    font-size: 32px;
-    color: #D90429;
-    font-weight: bold;
-}
-
-.stats-section .value-blue {
-    font-size: 32px;
-    color: #0033aa;
-    font-weight: bold;
-}
-
-.stats-section .value-normal {
-    font-size: 28px;
-    color: #333;
-}
-
+.stats-avatar { width:85px; height:85px; border-radius:50%; margin:auto; }
+.stats-username { text-align:center; font-size:20px; margin-top:10px; }
+.stats-section { margin-top:12px; text-align:center; }
+.value-red { font-size:32px; color:#D90429; font-weight:bold; }
+.value-blue { font-size:32px; color:#0033aa; font-weight:bold; }
+.value-normal { font-size:28px; color:#333; }
 .share-btn {
-    margin: 20px auto 0 auto;
-    border: 2px solid #555;
-    background: white;
-    padding: 10px 18px;
-    font-size: 16px;
-    border-radius: 8px;
-    cursor: pointer;
+    margin:20px auto 0 auto; padding:10px 18px;
+    background:#fff; border:2px solid #555; border-radius:8px;
+    cursor:pointer;
 }
 </style>
 {% endblock %}
-
 
 {% block content %}
 <div class="tema-container">
@@ -226,19 +86,46 @@ body {
     <h2 style="text-align:center; font-size:1.6rem; margin-bottom:10px;">Escolher Tema</h2>
 
     <div class="carousel-header">
-        <img id="btn-rules" src="{% static 'noticias/img/icon_rules.svg' %}" alt="Regras">
+        <img id="btn-rules" src="{% static 'noticias/img/icon_rules.svg' %}">
         <span class="carousel-title">Caça Links</span>
-        <img id="btn-stats" src="{% static 'noticias/img/icon_stats.svg' %}" alt="Estatísticas">
+        <img id="btn-stats" src="{% static 'noticias/img/icon_stats.svg' %}">
     </div>
 
     <div class="carousel-wrapper">
         <div class="carousel" id="carousel">
+
             {% for tema in temas %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}" data-id="{{ tema.id }}">
-                <img src="{% static 'caca_links/img/placeholder.png' %}" alt="tema">
+
+                {% if tema.slug == "politica" %}
+                    <img src="{% static 'noticias/img/politica.png' %}">
+                {% elif tema.slug == "blog-do-torcedor" %}
+                    <img src="{% static 'noticias/img/esportes.png' %}">
+                {% elif tema.slug == "social1" %}
+                    <img src="{% static 'noticias/img/social1.png' %}">
+                {% elif tema.slug == "cultura" %}
+                    <img src="{% static 'noticias/img/entretenimento.png' %}">
+                {% elif tema.slug == "receita-da-boa" %}
+                    <img src="{% static 'noticias/img/gastronomia.png' %}">
+                {% elif tema.slug == "economia" %}
+                    <img src="{% static 'noticias/img/economia.png' %}">
+                {% elif tema.slug == "brasil" %}
+                    <img src="{% static 'noticias/img/cidade.png' %}">
+                {% elif tema.slug == "internacional" %}
+                    <img src="{% static 'noticias/img/inter.png' %}">
+                {% else %}
+                    <img src="{% static 'noticias/img/default.png' %}">
+                {% endif %}
+
                 <p class="tema-nome">{{ tema.nome }}</p>
+
+                <p style="font-size:0.95rem; margin-top:4px; color:#444;">
+                    Jogue um caça-palavras com as notícias relacionadas a <strong>{{ tema.nome }}</strong>.
+                </p>
+
             </div>
             {% endfor %}
+
         </div>
     </div>
 
@@ -260,73 +147,46 @@ body {
     </button>
 </div>
 
-
-<!-- ==========================
-      DRAWER ESTATÍSTICAS
-============================= -->
 <div id="stats-modal" class="drawer">
     <div class="drawer-panel">
-
         <div class="drawer-header">
             <h3>Estatísticas</h3>
             <button class="drawer-close" data-close="stats-modal">×</button>
         </div>
 
         <img src="{{ stats.avatar|default:'/static/noticias/img/perfil_uol.png' }}" class="stats-avatar">
-
         <div class="stats-username">{{ user.first_name|default:user.username }}</div>
 
-        <!-- Último Tempo -->
-        <div class="stats-section">
-            <div>Último tempo</div>
-            <div class="value-red">{{ stats.ultimo_tempo|default:"--:--" }}</div>
-        </div>
-
-        <!-- Tempo Médio -->
-        <div class="stats-section">
-            <div>Tempo Médio</div>
-            <div class="value-blue">{{ stats.tempo_medio|default:"--:--" }}</div>
-        </div>
-
-        <!-- Sequência -->
-        <div class="stats-section">
-            <div>Jogos em sequência</div>
-            <div class="value-red">{{ stats.streak|default:"0" }}</div>
-        </div>
-
-        <!-- Total -->
-        <div class="stats-section">
-            <div>Jogos</div>
-            <div class="value-normal">{{ stats.total|default:"0" }}</div>
-        </div>
+        <div class="stats-section"><div>Último tempo</div><div class="value-red">{{ stats.ultimo_tempo|default:"--:--" }}</div></div>
+        <div class="stats-section"><div>Tempo Médio</div><div class="value-blue">{{ stats.tempo_medio|default:"--:--" }}</div></div>
+        <div class="stats-section"><div>Jogos em sequência</div><div class="value-red">{{ stats.streak|default:"0" }}</div></div>
+        <div class="stats-section"><div>Jogos</div><div class="value-normal">{{ stats.total|default:"0" }}</div></div>
 
         <button class="share-btn">Compartilhar 🔗</button>
-
     </div>
 </div>
 
-
-<!-- ========== DRAWER REGRAS (ORIGINAL) ========== -->
 <div id="rules-modal" class="drawer">
     <div class="drawer-panel">
         <div class="drawer-header">
             <h3>Regras</h3>
             <button class="drawer-close" data-close="rules-modal">×</button>
         </div>
-        <p style="padding:10px;">Encontre todas as palavras escondidas no caça-links!</p>
+
+        <p style="padding:10px;">
+            Encontre todas as palavras escondidas no caça-palavras.  
+            Clique nas palavras no texto para marcá-las.  
+            Complete todas para vencer o nível!
+        </p>
     </div>
 </div>
 
 {% endblock %}
 
-
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    /* ===========================
-          DRAWERS
-    ============================ */
     function openDrawer(id){ document.getElementById(id).classList.add("show"); }
     function closeDrawer(id){ document.getElementById(id).classList.remove("show"); }
 
@@ -341,14 +201,9 @@ document.addEventListener("DOMContentLoaded", () => {
         d.onclick = e => { if(e.target === d) d.classList.remove("show"); }
     });
 
-
-    /* ===========================
-            CARROSSEL
-    ============================ */
     const carousel = document.getElementById("carousel");
     const items = document.querySelectorAll(".carousel-item");
     const dots = document.querySelectorAll(".dot");
-
     let current = 0;
 
     function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
@@ -361,22 +216,17 @@ document.addEventListener("DOMContentLoaded", () => {
     function update(){
         const full = itemFullWidth();
         const viewport = carousel.parentElement.offsetWidth;
-        const offset = (viewport / 2) - (items[current].offsetWidth/2) - current * full;
-
+        const offset = (viewport/2) - (items[current].offsetWidth/2) - current*full;
         carousel.style.transform = `translateX(${offset}px)`;
-
         items.forEach((it,i)=> it.classList.toggle("active", i===current));
         dots.forEach((d,i)=> d.classList.toggle("active", i===current));
     }
 
-    document.getElementById("arrow-left").onclick = ()=>{
-        current = clamp(current - 1, 0, items.length-1);
-        update();
+    document.getElementById("arrow-left").onclick = () => {
+        current = clamp(current-1, 0, items.length-1); update();
     };
-
-    document.getElementById("arrow-right").onclick = ()=>{
-        current = clamp(current + 1, 0, items.length-1);
-        update();
+    document.getElementById("arrow-right").onclick = () => {
+        current = clamp(current+1, 0, items.length-1); update();
     };
 
     document.getElementById("btn-play").onclick = () => {
@@ -385,19 +235,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     update();
-
-    /* Swipe */
-    let startX = 0;
-
-    carousel.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-    carousel.addEventListener("touchend", e => {
-        const delta = e.changedTouches[0].clientX - startX;
-        if(Math.abs(delta) > 60){
-            current = clamp(current + (delta < 0 ? 1 : -1), 0, items.length-1);
-            update();
-        }
-    });
-
 });
 </script>
 {% endblock %}

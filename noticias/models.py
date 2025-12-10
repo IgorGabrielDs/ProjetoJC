@@ -30,11 +30,9 @@ class Perfil(models.Model):
 # --- TAXONOMIA (ASSUNTOS) ---
 
 class Assunto(models.Model):
-    nome = models.CharField(max_length=80, unique=True)
-    slug = models.SlugField(max_length=80, unique=True)
-
-    class Meta:
-        ordering = ["nome"]
+    nome = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=120, unique=True)
+    imgfile = models.CharField(max_length=100, default="default")
 
     def __str__(self):
         return self.nome
@@ -285,3 +283,5 @@ class Salvo(models.Model):
 def criar_perfil_ao_criar_usuario(sender, instance, created, **kwargs):
     if created:
         Perfil.objects.get_or_create(user=instance)
+
+

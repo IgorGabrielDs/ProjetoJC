@@ -46,3 +46,5 @@ class UserSudokuProgress(models.Model):
             self.hard_completion_time = None
         self.last_puzzle_date = today
         self.save()
+
+

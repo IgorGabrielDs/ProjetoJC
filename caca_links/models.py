@@ -37,3 +37,4 @@ class ProgressoJogador(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} - {self.tema.nome} (Nível {self.nivel_atual})"
+    

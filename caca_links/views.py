@@ -12,11 +12,27 @@ import re
 
 @login_required
 def escolher_tema(request):
-    temas = Assunto.objects.filter(slug__in=[
-        "politica", "blog-do-torcedor", "social1", "cultura",
-        "receita-da-boa", "brasil", "economia", "internacional"
-    ])
+    temas = Assunto.objects.filter(id__in=[1,2,3,4,5,6,7,8])
+
+    imgmap = {
+        'Blog do Torcedor': 'esportes',
+        'Brasil': 'politica',
+        'Cultura': 'entretenimento',
+        'Economia': 'economia',
+        'Internacional': 'internacional',
+        'Política': 'politica',
+        'Receita da Boa': 'gastronomia',
+        'Social1': 'social1',
+    }
+
+    for t in temas:
+        t.imgfile = imgmap.get(t.nome, "default")
+
     return render(request, "caca_links/escolher_tema.html", {"temas": temas})
+
+
+
+
 
 
 @login_required
@@ -25,7 +41,8 @@ def jogar_caca_palavras(request, tema_id):
     hoje = timezone.now().date()
 
     progresso, _ = ProgressoJogador.objects.get_or_create(
-        usuario=request.user, tema=tema
+        usuario=request.user,
+        tema=tema
     )
 
     dificuldade = ["facil", "medio", "dificil"][progresso.nivel_atual - 1]
@@ -35,7 +52,7 @@ def jogar_caca_palavras(request, tema_id):
         noticia = Noticia.objects.filter(assuntos=tema).order_by("-criado_em").first()
 
     if not noticia:
-        messages.error(request, "Nenhuma notícia disponível.")
+        messages.error(request, "Nenhuma notícia disponível para este tema.")
         return redirect("caca_links:escolher_tema")
 
     caca, created = CacaPalavras.objects.get_or_create(
@@ -52,8 +69,6 @@ def jogar_caca_palavras(request, tema_id):
     palavras = list(caca.palavras_chave)
 
     conteudo_norm = normalizar_palavra(noticia.conteudo)
-
-    # mantém apenas palavras realmente no texto
     palavras = [p for p in palavras if p in conteudo_norm]
 
     if len(palavras) > qtd:
@@ -76,36 +91,34 @@ def jogar_caca_palavras(request, tema_id):
         caca.grade = gerar_grade(caca.palavras_chave, dificuldade)
         caca.save()
 
-    palavras = caca.palavras_chave
-
-    # Remove links HTML
     texto = re.sub(r'<a[^>]*>|</a>', '', noticia.conteudo)
-
-    # TOKENIZAÇÃO CORRIGIDA (não quebra acentos)
     tokens = re.findall(r"[A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ]+", texto)
     texto_destacado = ""
 
     for tk in tokens:
         if tk.strip():
             normal = normalizar_palavra(tk)
-            if normal in palavras:
+            if normal in caca.palavras_chave:
                 tk = f'<span class="highlight-word" data-word="{normal}">{tk}</span>'
         texto_destacado += tk
-
-    texto = texto_destacado
 
     return render(request, "caca_links/jogo.html", {
         "tema": tema,
         "nivel": progresso.nivel_atual,
         "caca": caca,
-        "texto_da_noticia_formatado": texto
+        "texto_da_noticia_formatado": texto_destacado,
     })
 
 
 @login_required
 def concluir_nivel(request, tema_id):
     tema = get_object_or_404(Assunto, id=tema_id)
-    progresso = get_object_or_404(ProgressoJogador, usuario=request.user, tema=tema)
+
+    progresso, _ = ProgressoJogador.objects.get_or_create(
+        usuario=request.user,
+        tema=tema,
+        defaults={"nivel_atual": 1, "concluido": False},
+    )
 
     if progresso.nivel_atual < 3:
         progresso.nivel_atual += 1
@@ -113,4 +126,5 @@ def concluir_nivel(request, tema_id):
         progresso.concluido = True
 
     progresso.save()
+
     return redirect("caca_links:escolher_tema")
