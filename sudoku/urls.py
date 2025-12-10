@@ -6,5 +6,5 @@ app_name = 'sudoku'
 urlpatterns = [
     path('', views.play_sudoku, {'difficulty': 'easy'}, name='sudoku_start'),
     path('<str:difficulty>/', views.play_sudoku, name='play_sudoku'),
-    path('check/', views.check_solution, name='check_solution'),
+    path('api/check_solution/', views.check_solution, name='check_solution'),
 ]
