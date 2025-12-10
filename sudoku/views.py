@@ -12,32 +12,77 @@ from .sudoku_generator import generate_puzzle
 
 
 # ----------------------------------------------------------------------
+#  FUNÇÃO USADA NOS SEUS TESTES
+# ----------------------------------------------------------------------
+def is_solution_valid(solutionStr):
+    """
+    Valida uma solução de Sudoku 9x9 no formato string (81 chars).
+    - Deve ter exatamente 81 dígitos.
+    - Todos caracteres devem ser números 1-9 (sem zeros).
+    - Não pode ter duplicações em linhas, colunas ou boxes 3x3.
+    """
+    # Tamanho correto?
+    if not isinstance(solutionStr, str) or len(solutionStr) != 81:
+        return False
+
+    # Todos dígitos 1..9?
+    if any(c not in "123456789" for c in solutionStr):
+        return False
+
+    # Checar linhas
+    for r in range(9):
+        row = solutionStr[r * 9:(r + 1) * 9]
+        if len(set(row)) != 9:
+            return False
+
+    # Checar colunas
+    for c in range(9):
+        col = solutionStr[c:81:9]
+        if len(set(col)) != 9:
+            return False
+
+    # Checar boxes 3x3
+    for br in range(3):
+        for bc in range(3):
+            box = []
+            start = br * 27 + bc * 3
+            box += solutionStr[start:start + 3]
+            box += solutionStr[start + 9:start + 12]
+            box += solutionStr[start + 18:start + 21]
+
+            if len(set(box)) != 9:
+                return False
+
+    return True
+
+
+# ----------------------------------------------------------------------
 #  PADRONIZA acesso a campos do puzzle
 # ----------------------------------------------------------------------
 def _get_boards(p):
-    """Retorna (problem_str, solution_str) independente do modelo."""
+    """Retorna (problemStr, solutionStr) independente do modelo."""
     if hasattr(p, "problem_board") and hasattr(p, "solution_board"):
         return p.problem_board, p.solution_board
 
     if hasattr(p, "board") and hasattr(p, "solution"):
         return p.board, p.solution
 
-    raise AttributeError("SudokuPuzzle não possui os campos esperados.")
+    raise AttributeError("SudokuPuzzle não possui campos esperados.")
 
 
-def _set_boards(p, problem_str, solution_str):
-    """Salva os boards independente do modelo."""
+def _set_boards(p, problemStr, solutionStr):
+    """Salva boards independente do modelo."""
     if hasattr(p, "problem_board") and hasattr(p, "solution_board"):
-        p.problem_board = problem_str
-        p.solution_board = solution_str
+        p.problem_board = problemStr
+        p.solution_board = solutionStr
         return
 
     if hasattr(p, "board") and hasattr(p, "solution"):
-        p.board = problem_str
-        p.solution = solution_str
+        p.board = problemStr
+        p.solution = solutionStr
         return
 
-    raise AttributeError("SudokuPuzzle não possui os campos esperados.")
+    raise AttributeError("SudokuPuzzle não possui campos esperados.")
 
 
 # ----------------------------------------------------------------------
@@ -46,46 +91,46 @@ def _set_boards(p, problem_str, solution_str):
 @login_required
 def play_sudoku(request, difficulty):
 
-    # Normalização de entrada
-    difficulty_map = {
+    difficultyMap = {
         "easy": "easy", "medium": "medium", "hard": "hard",
         "fácil": "easy", "médio": "medium", "difícil": "hard",
     }
-    dnorm = difficulty_map.get(str(difficulty).lower(), "easy")
+    norm = difficultyMap.get(str(difficulty).lower(), "easy")
 
     today = timezone.localdate()
 
-    # Progresso do usuário
+    # Progresso
     progress, _ = UserSudokuProgress.objects.get_or_create(user=request.user)
     progress.check_and_reset_progress()
 
-    # BLOQUEIOS DE ACESSO
-    if dnorm == "medium" and not progress.completed_easy:
+    # Bloqueios
+    if norm == "medium" and not progress.completed_easy:
         return redirect("sudoku:play_sudoku", difficulty="easy")
 
-    if dnorm == "hard" and not (progress.completed_easy and progress.completed_medium):
-        return redirect("sudoku:play_sudoku",
-                        difficulty="medium" if progress.completed_easy else "easy")
+    if norm == "hard" and not (progress.completed_easy and progress.completed_medium):
+        return redirect(
+            "sudoku:play_sudoku",
+            difficulty="medium" if progress.completed_easy else "easy"
+        )
 
-    # BUSCA PUZZLE DO DIA
-    puzzle = SudokuPuzzle.objects.filter(date=today, difficulty=dnorm).first()
+    # Puzzle do dia
+    puzzle = SudokuPuzzle.objects.filter(date=today, difficulty=norm).first()
 
-    # Se não existe, gera um novo
     if puzzle is None:
-        problem_str, solution_str = generate_puzzle(dnorm)
+        problemStr, solutionStr = generate_puzzle(norm)
 
         with transaction.atomic():
-            puzzle = SudokuPuzzle(date=today, difficulty=dnorm)
-            _set_boards(puzzle, problem_str, solution_str)
+            puzzle = SudokuPuzzle(date=today, difficulty=norm)
+            _set_boards(puzzle, problemStr, solutionStr)
             puzzle.save()
 
-    problem_board_string, _ = _get_boards(puzzle)
+    problemStr, _ = _get_boards(puzzle)
 
     context = {
         "puzzle": puzzle,
-        "difficulty": dnorm,
+        "difficulty": norm,
         "progress": progress,
-        "problem_board_json": json.dumps(problem_board_string),
+        "problem_board_json": json.dumps(problemStr),
     }
 
     return render(request, "sudoku/sudoku.html", context)
@@ -99,113 +144,64 @@ def play_sudoku(request, difficulty):
 def check_solution(request):
     try:
         data = json.loads(request.body)
-        puzzle_id = data.get("puzzle_id")
-        user_solution_str = data.get("solution")
-        elapsed_seconds = data.get("elapsed_seconds")
+        puzzleId = data.get("puzzle_id")
+        userSolutionStr = data.get("solution")
+        elapsedSeconds = data.get("elapsed_seconds")
 
-        if not puzzle_id or not user_solution_str or len(user_solution_str) != 81:
+        if not puzzleId or not userSolutionStr or len(userSolutionStr) != 81:
             return HttpResponseBadRequest("Dados inválidos.")
 
-        puzzle = get_object_or_404(SudokuPuzzle, id=puzzle_id)
+        puzzle = get_object_or_404(SudokuPuzzle, id=puzzleId)
 
         # Carrega solução oficial
-        _, solution_str = _get_boards(puzzle)
+        _, solutionStr = _get_boards(puzzle)
+        solutionStr = ''.join(c for c in solutionStr if c.isdigit())
 
-        solution_str = ''.join(c for c in solution_str if c.isdigit())
-        if len(solution_str) != 81:
-            return JsonResponse({
-                "success": False,
-                "message": "Erro interno: solução inválida no banco."
-            }, status=500)
+        if len(solutionStr) != 81:
+            return JsonResponse(
+                {"success": False, "message": "Erro interno: solução inválida no banco."},
+                status=500
+            )
 
-        # ---------------------------------------------------------------------------------
-        # COMPARA SOLUÇÃO
-        # ---------------------------------------------------------------------------------
-        if user_solution_str == solution_str:
+        # >>>> AQUI GARANTIMOS QUE A SOLUÇÃO DO USUÁRIO TAMBÉM É VÁLIDA <<<<
+        if not is_solution_valid(userSolutionStr):
+            return JsonResponse({"success": False, "message": "Solução inválida."})
+
+        # Comparação final
+        if userSolutionStr == solutionStr:
 
             progress = UserSudokuProgress.objects.get(user=request.user)
-            next_level = None
+            nextLevel = None
 
-            # tempo
-            completion_time = None
-            if elapsed_seconds is not None:
+            completionTime = None
+            if elapsedSeconds is not None:
                 try:
-                    completion_time = timedelta(seconds=int(elapsed_seconds))
+                    completionTime = timedelta(seconds=int(elapsedSeconds))
                 except ValueError:
                     pass
 
-            # MARCA PROGRESSO
             if puzzle.difficulty == "easy" and not progress.completed_easy:
                 progress.completed_easy = True
-                if completion_time:
-                    progress.easy_completion_time = completion_time
-                next_level = "medium"
+                if completionTime:
+                    progress.easy_completion_time = completionTime
+                nextLevel = "medium"
 
             elif puzzle.difficulty == "medium" and not progress.completed_medium:
                 progress.completed_medium = True
-                if completion_time:
-                    progress.medium_completion_time = completion_time
-                next_level = "hard"
+                if completionTime:
+                    progress.medium_completion_time = completionTime
+                nextLevel = "hard"
 
             elif puzzle.difficulty == "hard" and not progress.completed_hard:
                 progress.completed_hard = True
-                if completion_time:
-                    progress.hard_completion_time = completion_time
+                if completionTime:
+                    progress.hard_completion_time = completionTime
 
             progress.save()
 
-            return JsonResponse({"success": True, "next_level": next_level})
+            return JsonResponse({"success": True, "next_level": nextLevel})
 
-        # Se ERROU:
         return JsonResponse({"success": False, "message": "Solução incorreta."})
 
     except Exception as e:
         return JsonResponse({"success": False, "message": str(e)}, status=500)
-    
-# ----------------------------------------------------------------------
-#  FUNÇÃO AUXILIAR PARA OS TESTES: is_solution_valid
-# ----------------------------------------------------------------------
-def is_solution_valid(boardStr):
-    """
-    Valida um tabuleiro de Sudoku representado como string de 81 dígitos.
-    Zeros são ignorados (considerados casas vazias).
-    Retorna True se o tabuleiro é válido, False caso contrário.
-    """
-
-    if not isinstance(boardStr, str) or len(boardStr) != 81:
-        return False
-
-    # Converte para matriz 9x9
-    try:
-        board = [list(map(int, boardStr[i*9:(i+1)*9])) for i in range(9)]
-    except ValueError:
-        return False
-
-    # Helper: verifica se uma lista tem números 1-9 sem repetir (zeros ignorados)
-    def no_repeat(nums):
-        nums = [n for n in nums if n != 0]
-        return len(nums) == len(set(nums))
-
-    # Verifica linhas
-    for row in board:
-        if not no_repeat(row):
-            return False
-
-    # Verifica colunas
-    for c in range(9):
-        col = [board[r][c] for r in range(9)]
-        if not no_repeat(col):
-            return False
-
-    # Verifica blocos 3x3
-    for br in range(0, 9, 3):
-        for bc in range(0, 9, 3):
-            block = [
-                board[r][c]
-                for r in range(br, br+3)
-                for c in range(bc, bc+3)
-            ]
-            if not no_repeat(block):
-                return False
-
-    return True
