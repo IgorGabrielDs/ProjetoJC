@@ -5,7 +5,20 @@
 .art-wrap {
   max-width: 640px;
   margin: 0 auto;
-  padding: 0 16px 24px;
+  padding: 0 0 24px;  /* sem padding lateral, só bottom */
+}
+
+/* utilidade para esconder texto apenas para leitores de tela */
+.sr-only{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------- topo (kicker + ações) ---------- */
@@ -22,6 +35,8 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .art-kicker {
@@ -73,36 +88,60 @@
   fill: none;
 }
 
-/* estrela de salvar */
+/* estrela de salvar – mesmo padrão da home (outline/solid) */
 
-.btn-save .star-outline {
-  fill: none;
-  stroke: #6b7280;
-  stroke-width: 1.4;
+.card-hero-fav {
+  border: 0;
+  background: transparent;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  line-height: 1;
+  color: #111111;
+  cursor: pointer;
 }
 
-.btn-save .star-fill {
-  fill: transparent;
+.card-hero-fav .bm-icon {
+  width: 25px;
+  height: 30px;
+  line-height: 1.1;
 }
 
-.btn-save.is-saved .star-outline {
-  stroke: #f97316;
+/* padrão: só a estrela vazia aparece */
+.card-hero-fav .bm-outline {
+  display: inline;
 }
 
-.btn-save.is-saved .star-fill {
-  fill: #f97316;
+.card-hero-fav .bm-solid {
+  display: none;
+}
+
+/* estado salvo – mostra só a cheia */
+.card-hero-fav.is-saved .bm-outline {
+  display: none;
+}
+
+.card-hero-fav.is-saved .bm-solid {
+  display: inline;
+}
+
+/* garante cor preta mesmo salvo / pressionado */
+.card-hero-fav.is-saved,
+.card-hero-fav[aria-pressed="true"] {
+  color: #111111;
 }
 
 /* ícone compartilhar (topo) */
 
-.btn-share path:first-child {
-  fill: none;
-  stroke: #6b7280;
-  stroke-width: 1.3;
-}
-
-.btn-share path:last-child {
-  fill: #6b7280;
+.share-top-icon{
+  width: 22px;
+  height: 22px;
+  display: block;
+  object-fit: contain;
+  /* garante que fique preto mesmo se o PNG tiver outra cor */
+  filter: brightness(0);
 }
 
 /* ---------- título ---------- */
@@ -111,14 +150,15 @@
   font-size: clamp(1.45rem, 4.6vw, 1.75rem);
   line-height: 1.2;
   font-weight: 800;
-  margin: 10px 0 12px;
+  margin: 10px 16px 12px;
   color: #111827;
 }
 
 /* ---------- imagem principal ---------- */
 
 .art-hero {
-  margin: 0 -16px 8px;
+  margin: 0 16px 8px;
+  padding: 0;
 }
 
 .hero-img {
@@ -128,6 +168,7 @@
   object-fit: cover;
 }
 
+/* legenda alinhada com o texto (mesmo 16px) */
 .hero-cap {
   padding: 6px 16px 0;
   font-size: 0.75rem;
@@ -145,8 +186,7 @@
 /* ---------- linha de datas e autor ---------- */
 
 .art-times {
-  margin-top: 8px;
-  margin-bottom: 16px;
+  margin: 8px 16px 16px;
   font-size: 0.75rem;
   color: #6b7280;
   display: flex;
@@ -164,13 +204,11 @@
 }
 
 /* ==========================
-   BLOCO ROXO — resumo em destaque
-   (texto azul antes da matéria)
+   BLOCO ROXO — resumo
    ========================== */
 
 .art-lead-box {
-  margin-top: 12px;
-  margin-bottom: 16px;
+  margin: 12px 16px 16px;
   padding-left: 14px;
   border-left: 3px solid #4f46e5;
   background: transparent;
@@ -198,6 +236,7 @@
 
 .art-content-block {
   margin-top: 4px;
+  padding: 0 16px;
 }
 
 /* wrapper usado pelo "Continuar Lendo" */
@@ -294,7 +333,6 @@
 
 /* ==========================
    BLOCO ANTIGO DE RESUMO
-   (LEGADO / NÃO USADO NO NOVO LAYOUT)
    ========================== */
 
 .art-resumo {
@@ -389,14 +427,13 @@
 
 .enquete-box {
   margin-top: 24px;
+  padding: 0 16px;
 }
 
 .art-related {
   margin-top: 24px;
+  padding: 0 16px;
 }
-
-/* aqui você mantém/reusa as regras antigas de enquete e relacionadas, se já existirem
-   (não alterei nada de layout nelas) */
 
 /* ==========================
    BLOCO "COMPARTILHE"
@@ -404,8 +441,8 @@
 
 .art-share {
   margin-top: 24px;
-  padding: 12px 0 4px;
-  background: transparent;    /* removido fundo preto */
+  padding: 12px 16px 4px;
+  background: transparent;
   border-radius: 0;
   text-align: center;
 }
@@ -444,7 +481,7 @@
   height: 52px;
   border-radius: 14px;
   background: #ffffff;
-  border: 2px solid #4f46e5;      /* roxo do ícone */
+  border: 2px solid #4f46e5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -463,8 +500,8 @@
 
 .art-tags {
   margin-top: 24px;
-  padding-top: 8px;
-  text-align: center;      /* centraliza o conjunto */
+  padding: 8px 16px 0;
+  text-align: center;
 }
 
 .tags-header {
@@ -492,7 +529,7 @@
 .tags-wrap {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;   /* centraliza as tags */
+  justify-content: center;
   gap: 8px;
 }
 
@@ -503,7 +540,7 @@
   justify-content: center;
   padding: 6px 18px;
   border-radius: 999px;
-  border: 2px solid #f97373;   /* vermelho claro do contorno */
+  border: 2px solid #f97373;
   background: #ffffff;
   font-size: 0.75rem;
   font-weight: 700;
@@ -512,20 +549,495 @@
   color: #111827;
 }
 
-/* ==========================
-   Ajustes simples para telas maiores
-   ========================== */
-@media (min-width: 640px) {
-  .art-wrap {
-    padding-top: 8px;
-  }
+/* =========================
+   ESCUTE AGORA — Rádio / TV
+   ========================= */
 
-  .art-hero {
-    margin-left: 0;
-    margin-right: 0;
-  }
+.escute-agora-section{
+  padding-top:24px;
+  padding-bottom:24px;
+  background:#ffffff;
+}
 
-  .hero-img {
-    border-radius: 12px;
+/* Título "Escute agora" com linhas vermelhas laterais */
+.escute-agora-header{
+  max-width:var(--container);
+  margin:0 auto 20px;
+  padding:0 16px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+}
+
+.escute-agora-title{
+  margin:0;
+  font-size:1.25rem;
+  font-weight:700;
+  text-align:center;
+  color:#111827;
+  white-space:nowrap;
+}
+
+.escute-agora-rule{
+  flex:1 1 auto;
+  max-width:120px;
+  height:3px;
+  border-radius:999px;
+  background-color:var(--jc-red,#e30613);
+}
+
+/* Blocos de conteúdo (Rádio / TV) */
+
+.escute-bloco{
+  max-width:430px;
+  margin:0 auto;
+  padding:0 16px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.escute-bloco + .escute-bloco{
+  margin-top:32px;
+}
+
+/* Pill "Rádio Jornal" / "TV Jornal" */
+
+.escute-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 22px;
+  margin:0 0 18px;
+
+  border-radius:10px;
+  background-color:#39279B;
+  color:#ffffff;
+  font-size:1.02rem;
+  font-weight:700;
+  text-align:center;
+}
+
+/* Lista de canais — carrossel horizontal no Rádio */
+
+.escute-canais-lista{
+  width:100%;
+  display:flex;
+  gap:16px;
+  padding-bottom:14px;
+
+  margin:0;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+}
+
+.escute-canais-lista::-webkit-scrollbar{
+  display:none;
+}
+
+/* Card cinza — tamanho fixo (125 x 163) */
+
+.escute-card{
+  box-sizing:border-box;
+  flex:0 0 125px;
+  width:125px;
+  height:163px;
+
+  background:#e5e5e5;
+  border-radius:24px;
+  padding:18px 12px 14px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+
+  scroll-snap-align:start;
+}
+
+/* Círculo branco com o ícone de áudio */
+
+.escute-card-icone{
+  width:72px;
+  height:72px;
+  border-radius:50%;
+  background:#ffffff;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:10px;
+}
+
+/* Ondas sonoras (mais espaçadas) */
+
+.escute-wave{
+  position:relative;
+  width:32px;
+  height:26px;
+}
+
+.escute-wave::before,
+.escute-wave::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  margin:auto;
+
+  width:4px;
+  height:26px;
+  background:#111827;
+  border-radius:999px;
+
+  box-shadow:
+    -14px 2px 0 #111827,
+    -7px -4px 0 #111827,
+     7px 4px 0 #111827,
+    14px -2px 0 #111827;
+}
+
+.escute-wave::after{
+  transform:scaleY(.6);
+  opacity:.7;
+}
+
+/* Nome da praça (Recife / Interior) em vermelho */
+
+.escute-card-label{
+  margin:4px 0 0;
+  font-size:.98rem;
+  font-weight:700;
+  color:var(--jc-red,#e30613);
+}
+
+/* Linha vermelha abaixo do carrossel do Rádio */
+
+.escute-carrossel-rule{
+  width:100%;
+  height:3px;
+  margin:8px 0 10px;
+  border-radius:999px;
+  background-color:var(--jc-red,#e30613);
+}
+
+/* Dots de paginação (Rádio) */
+
+.escute-dots{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  margin-bottom:24px;
+}
+
+.escute-dot{
+  width:6px;
+  height:6px;
+  border-radius:999px;
+  background:#9ca3af;
+}
+
+.escute-dot--active{
+  width:7px;
+  height:7px;
+  background:#39279B;
+}
+
+/* Bloco de TV: mesmos cards, mas centralizados em 2 colunas sem scroll */
+
+.escute-bloco--tv .escute-canais-lista{
+  justify-content:center;
+  overflow-x:visible;
+  scroll-snap-type:none;
+}
+
+.escute-bloco--tv .escute-card{
+  scroll-snap-align:none;
+}
+
+/* =========================================================
+   TÍTULO COM LINHAS LATERAIS (usado em "Para você")
+   ========================================================= */
+
+.section-title{
+  max-width: var(--container);
+  margin: 0 auto 1.75rem;
+  padding: 0 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.section-title .label{
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-align: center;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.section-title .rule{
+  flex: 1;
+  max-width: 73.08px;
+  height: 4px;
+  border-radius: 999px;
+  background-color: currentColor;
+}
+
+/* ajuste do grid de 16px nos títulos */
+.section-title{
+  padding-left: 16px;
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   CARROSSEL GENÉRICO (reutilizado em "Para você")
+   ========================================================= */
+
+.carousel{
+  position: relative;
+}
+
+.carousel-inner{
+  overflow: hidden;
+  border-radius: var(--radius, 12px);
+}
+
+.carousel-track{
+  display: flex;
+  transition: transform .45s ease;
+}
+
+.carousel-slide{
+  flex: 0 0 100%;
+  padding: 2px;
+}
+
+/* Dots genéricos */
+.carousel .dots{
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.dot{
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #b6b2c3;
+  display: inline-block;
+  opacity: .6;
+  transition: transform .25s ease, opacity .25s ease;
+  cursor: pointer;
+}
+
+.dot.is-active{
+  opacity: 1;
+  transform: scale(1.2);
+  background: #3E3A53;
+}
+
+/* radios que controlam slides ficam escondidos */
+.carousel input[type=radio]{
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* =========================================================
+   PUBLICIDADE LEGAL — grid 2 cards (copiado da HOME)
+   ========================================================= */
+
+.publicidade-legal{
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+/* título com linhas roxas */
+.publicidade-legal-header{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 0 16px;
+}
+
+.publicidade-legal-title{
+  margin: 0;
+  font-size: var(--fs-xl, 1.25rem);
+  font-weight: 700;
+  color: #000000;
+  white-space: nowrap;
+}
+
+.publicidade-legal-rule{
+  flex: 1;
+  max-width: 86px;
+  height: 4px;
+  border-radius: 999px;
+  background-color: #39279B;
+}
+
+/* grid 2xN */
+.publicidade-legal-grid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 12px;
+  row-gap: 12px;
+  align-items: flex-start;
+  padding: 0 16px;
+}
+
+/* card */
+.publicidade-legal-card{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* header do card: assunto + estrela */
+.publicidade-legal-card-header{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+/* assunto roxo em uma linha */
+.publicidade-legal-tag{
+  display: inline-block;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #39279B;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* estrela */
+.publicidade-legal-fav{
+  border: none;
+  background: transparent;
+  padding: 0;
+  min-width: auto;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #111111;
+}
+
+.publicidade-legal-fav .bm-icon{
+  font-size: 30px;
+  line-height: 1;
+}
+
+.publicidade-legal-fav .bm-outline{
+  display: inline-block;
+}
+
+.publicidade-legal-fav .bm-solid{
+  display: none;
+}
+
+.publicidade-legal-fav.is-saved .bm-outline{
+  display: none;
+}
+
+.publicidade-legal-fav.is-saved .bm-solid{
+  display: inline-block;
+}
+
+/* imagem / placeholder */
+.publicidade-legal-link{
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+}
+
+.publicidade-legal-media{
+  width: 100%;
+  aspect-ratio: 172 / 156;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e5e7eb;
+  margin: 0 0 6px;
+}
+
+.publicidade-legal-media img,
+.publicidade-thumb-placeholder{
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.publicidade-thumb-placeholder{
+  background: #e5e7eb;
+}
+
+/* texto abaixo da imagem */
+.publicidade-legal-text{
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: 1.3;
+  color: #111827;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* botão "Ver mais" */
+.publicidade-legal-more{
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.publicidade-legal-more-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 28px;
+  border-radius: 999px;
+  border: 1px solid var(--jc-blue, #2563eb);
+  background: #ffffff;
+  color: var(--jc-blue, #2563eb);
+  font-size: var(--fs-md, 0.95rem);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.publicidade-legal-more-btn:hover,
+.publicidade-legal-more-btn:focus-visible{
+  background: rgba(37, 99, 235, 0.06);
+}
+
+/* ajuste de gap em telas um pouco maiores */
+@media (min-width: 640px){
+  .publicidade-legal-grid{
+    column-gap: 16px;
   }
 }
