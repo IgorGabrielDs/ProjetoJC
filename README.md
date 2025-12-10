@@ -46,7 +46,7 @@ As histórias de usuário implementadas no Projeto JC estão descritas em detalh
 
 Os registros e reflexões sobre as sessões de programação em par da equipe estão disponíveis neste documento:
 
-- [Documento de Programação em Par — Equipe Plumo](LINK_DO_DOCS_AQUI)
+- [Documento de Programação em Par — Equipe Plumo](https://docs.google.com/document/d/1B6hCvBz55_UZEavwQYSpzYDeyrkoyPmU4EDjsSoRcbg/edit?usp=sharing)
 
 ---
 
