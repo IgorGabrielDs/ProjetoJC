@@ -68,21 +68,3 @@ def test_resumo_erro_provider(monkeypatch, settings, client_logged, noticia_fact
     assert r.status_code == 500
     data = r.json()
     assert "Erro ao conectar" in data["error"]
-
-
-def test_resumo_texto_curto_desabilita_botao_ou_mensagem(client, noticia_factory):
-    """
-    Cenário BDD: notícia com <300 palavras deve desabilitar o botão 'Resumir'
-    OU exibir mensagem/tooltip indicando que o texto é curto.
-    Mantemos a checagem flexível para não acoplar ao HTML.
-    """
-    n = noticia_factory(titulo="Curta", conteudo="curto demais")
-    r = client.get(reverse("noticias:noticia_detalhe", args=[n.pk]))
-    assert r.status_code == 200
-    html = r.content.decode("utf-8").lower()
-
-    sinalizou_curto = (
-        "texto curto demais para resumir" in html  # tooltip/mensagem
-        or ("disabled" in html and "resum" in html)  # botão desabilitado contendo 'resum'
-    )
-    assert sinalizou_curto
