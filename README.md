@@ -21,7 +21,6 @@ A plataforma combina **conteúdo jornalístico** com **elementos de jogos, recom
 
 ### 📰 Portal e Engajamento
 - 🔗 **Compartilhar notícias** (WhatsApp, X/Twitter, Facebook).  
-- 👍 **Votar em notícias** (sistema de avaliação positiva/negativa).  
 - 🏆 **Top 3 da Semana** — destaques mais lidos e votados.  
 - 📚 **Ler Mais Tarde** — salvar matérias para leitura posterior.  
 - 🧭 **Filtros de assunto** — navegação por temas.  
