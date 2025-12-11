@@ -1,5 +1,5 @@
 from django.contrib import admin
-# 1. Importamos TODOS os modelos (incluindo o novo Video)
+# Importamos os modelos
 from .models import (
     Noticia, 
     Voto, 
@@ -9,49 +9,49 @@ from .models import (
     Enquete, 
     OpcaoEnquete, 
     VotoEnquete,
-    Video  # <--- Adicionado aqui
+    Video
 )
 
-
-# 2. O seu EnqueteInline original (para a Notícia)
-class EnqueteInline(admin.StackedInline): 
-    model = Enquete
-    extra = 0 
-    can_delete = True 
-    fk_name = 'noticia' 
-    verbose_name_plural = "Enquete (opcional)"
-    fields = ('titulo',)
-
-
-# 3. O Inline para as OPÇÕES (que vai dentro da página da Enquete separada)
+# 1. Inline das OPÇÕES (Essencial: permite adicionar respostas na tela da Enquete)
 class OpcaoEnqueteInline(admin.TabularInline): 
     model = OpcaoEnquete
-    extra = 2 
+    extra = 2  # Mostra 2 linhas vazias por padrão
     verbose_name_plural = "Opções da Enquete"
 
 
-# 4. O seu NoticiaAdmin original
+# 2. Admin da ENQUETE (Fluxo Principal)
+@admin.register(Enquete)
+class EnqueteAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'get_noticia_titulo')
+    search_fields = ('titulo', 'noticia__titulo')
+    
+    # É aqui que a mágica acontece: Opções dentro da Enquete
+    inlines = [OpcaoEnqueteInline]
+
+    # Helper para mostrar o título da notícia na listagem de forma segura
+    @admin.display(description='Notícia Vinculada')
+    def get_noticia_titulo(self, obj):
+        return obj.noticia.titulo if obj.noticia else "-"
+
+
+# 3. Admin da NOTÍCIA
 @admin.register(Noticia)
 class NoticiaAdmin(admin.ModelAdmin):
-    list_display = ("id", "titulo", "criado_em")
+    list_display = ("id", "titulo", "criado_em", "tem_enquete")
     search_fields = ("titulo", "conteudo")
     ordering = ("-criado_em",)
     
-    # Mantendo sua configuração original
-    inlines = [EnqueteInline]
+    # REMOVI o 'inlines = [EnqueteInline]' propositalmente.
+    # Motivo: Criar enquete por aqui gerava enquetes sem opções de resposta.
+    # Agora o usuário deve ir em "Enquetes > Adicionar" para fazer do jeito certo.
+
+    @admin.display(boolean=True, description="Tem Enquete?")
+    def tem_enquete(self, obj):
+        # Verifica se existe uma enquete vinculada (reverso do OneToOne)
+        return hasattr(obj, 'enquete')
 
 
-# 5. O Admin para ENQUETE original
-@admin.register(Enquete)
-class EnqueteAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'noticia')
-    search_fields = ('titulo', 'noticia__titulo')
-    
-    # Aqui você edita as opções da enquete
-    inlines = [OpcaoEnqueteInline]
-
-
-# 6. (NOVO) Configuração para o modelo VÍDEO
+# 4. Admin de VÍDEO (Sua configuração estava ótima, mantive igual)
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
     list_display = ('titulo', 'tem_link', 'tem_arquivo', 'ativo', 'criado_em')
@@ -60,7 +60,6 @@ class VideoAdmin(admin.ModelAdmin):
     ordering = ('-criado_em',)
     list_editable = ('ativo',) 
 
-    # Helpers visuais para saber se tem link ou arquivo
     @admin.display(boolean=True, description="Link")
     def tem_link(self, obj):
         return bool(obj.link)
@@ -70,7 +69,7 @@ class VideoAdmin(admin.ModelAdmin):
         return bool(obj.arquivo)
 
 
-# 7. Outros registros originais
+# 5. Outros Registros
 @admin.register(Assunto)
 class AssuntoAdmin(admin.ModelAdmin):
     list_display = ("id", "nome", "slug")
@@ -81,7 +80,8 @@ class AssuntoAdmin(admin.ModelAdmin):
 class VotoEnqueteAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'enquete', 'opcao_selecionada', 'criado_em')
     list_filter = ('enquete',)
-    search_fields = ('usuario__username', 'enquete__titulo')
+    search_fields = ('usuario__username', 'enquete__titulo', 'enquete__noticia__titulo')
+
 
 admin.site.register(Voto)
 admin.site.register(Salvo)

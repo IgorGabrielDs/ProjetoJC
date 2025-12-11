@@ -153,7 +153,6 @@ class Enquete(models.Model):
         blank=True,
         null=True,
     )
-    # O 'titulo' agora é a PERGUNTA da enquete
     titulo = models.CharField(
         "Pergunta da enquete",
         max_length=200,
@@ -161,17 +160,19 @@ class Enquete(models.Model):
         null=True,
     )
 
-    # As opções (opcao_a / opcao_b) foram movidas para o modelo OpcaoEnquete
-
     def __str__(self):
+        # 1. Se tem título (pergunta) preenchido, usa ele
         if self.titulo:
             return self.titulo
+        
+        # 2. Se não tem pergunta, tenta pegar o título da notícia vinculada
         if self.noticia:
-            return f"Enquete da notícia: {self.noticia.titulo}"
+            return f"Enquete: {self.noticia.titulo}"
+                
+        # 3. Fallback de segurança (caso não tenha nem título nem notícia)
         return f"Enquete #{self.pk}"
 
     def ja_votou(self, user):
-        """Verifica se um usuário específico já votou nesta enquete."""
         if not user.is_authenticated:
             return False
         return VotoEnquete.objects.filter(enquete=self, usuario=user).exists()
@@ -188,12 +189,13 @@ class OpcaoEnquete(models.Model):
     texto = models.CharField("Texto da opção", max_length=100)
 
     def __str__(self):
-        return f"{self.enquete.titulo} -> {self.texto}"
+        # O ERRO 500 ACONTECIA AQUI ANTES:
+        # Você tentava acessar 'self.enquete.titulo', mas se o título fosse None, quebrava.
+        # Agora usamos 'str(self.enquete)', que usa a lógica inteligente criada acima.
+        return f"{self.enquete} -> {self.texto}"
 
     @property
     def total_votos(self):
-        """Calcula o total de votos para esta opção."""
-        # Contamos quantos VotoEnquete estão ligados a esta OpcaoEnquete
         return self.votoenquete_set.count()
 
 
