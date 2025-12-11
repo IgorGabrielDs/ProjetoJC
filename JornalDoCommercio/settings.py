@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ---------------------------------------------------------
+# VARIÁVEIS DE AMBIENTE
+# ---------------------------------------------------------
+# Carrega variáveis do arquivo .env localmente (em produção usa as variáveis do Azure)
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -79,9 +83,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "JornalDoCommercio.wsgi.application"
 
 # ---------------------------------------------------------
-# BANCO
-# Pode continuar usando SQLite, mas não é persistente.
+# BANCO DE DADOS (CORRIGIDO PARA SSL)
 # ---------------------------------------------------------
+# O Azure PostgreSQL exige SSL. O DBSSLMODE deve ser 'require' ou 'verify-ca'.
+
+# Pega o valor de DBSSLMODE. Se não estiver definido, usa 'require' por padrão.
+DB_SSL_MODE = os.getenv("DBSSLMODE", "require") 
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -91,7 +99,8 @@ DATABASES = {
         "HOST": os.getenv("DBHOST"),
         "PORT": os.getenv("DBPORT"),
         "OPTIONS": {
-            "sslmode": os.getenv("DBSSLMODE"),
+            # CORREÇÃO CRÍTICA: Força o uso de SSL/TLS para o Azure PostgreSQL
+            "sslmode": DB_SSL_MODE, 
         },
     }
 }
