@@ -15,14 +15,16 @@ from .sudoku_generator import generate_puzzle
 #  PADRONIZA acesso a campos do puzzle
 # ----------------------------------------------------------------------
 def _get_boards(p):
-    """Retorna (problem_str, solution_str) independente do modelo."""
-    if hasattr(p, "problem_board") and hasattr(p, "solution_board"):
-        return p.problem_board, p.solution_board
+    # Tenta pegar o problem
+    problem = getattr(p, "problem_board", getattr(p, "board", None))
+    # Tenta pegar a solution
+    solution = getattr(p, "solution_board", getattr(p, "solution", None))
 
-    if hasattr(p, "board") and hasattr(p, "solution"):
-        return p.board, p.solution
+    if problem and solution:
+        return problem, solution
 
-    raise AttributeError("SudokuPuzzle não possui os campos esperados.")
+    # Se falhar, aí sim lançamos o erro
+    raise AttributeError(f"O objeto SudokuPuzzle (ID: {p.id}) não tem campos de tabuleiro válidos. Campos encontrados: {dir(p)}")
 
 
 def _set_boards(p, problem_str, solution_str):
