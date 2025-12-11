@@ -21,11 +21,12 @@ A plataforma combina **conteúdo jornalístico** com **elementos de jogos, recom
 
 ### 📰 Portal e Engajamento
 - 🔗 **Compartilhar notícias** (WhatsApp, X/Twitter, Facebook).  
-- 👍 **Votar em notícias** (sistema de avaliação positiva/negativa).  
 - 🏆 **Top 3 da Semana** — destaques mais lidos e votados.  
 - 📚 **Ler Mais Tarde** — salvar matérias para leitura posterior.  
 - 🧭 **Filtros de assunto** — navegação por temas.  
-- 🧠 **Resumo Automático** — integração com IA para condensar textos.
+- 🧠 **Resumo Automático** — integração com IA para condensar textos.  
+- 📎 **Submenu rápido de seções** — acesso direto às editorias mais procuradas.  
+- 📊 **Enquetes nas notícias** — participação rápida em votações relacionadas às matérias.  
 
 ### 🎮 Jogos e Fidelização
 - 🎯 **Caça-links** — mini-game interativo que estimula cliques e descoberta de conteúdo.  
@@ -34,12 +35,14 @@ A plataforma combina **conteúdo jornalístico** com **elementos de jogos, recom
 ### 🧩 Autenticação e Gamificação
 - 🔐 Login, logout e controle de acesso com `django.contrib.auth`.  
 
+---
+
 ## 📄 Histórias de Usuário (BDD)
 
-As histórias de usuário implementadas no Projeto JC estão descritas em detalhe neste documento:
+As histórias de usuário implementadas (e planejadas) no Projeto JC — como **Compartilhar notícias**, **Top 3 da Semana**, **Ler Mais Tarde**, **Caça-links**, **Sudoku JC**, **Resumo Automático**, **Submenu rápido** e **Enquetes** — estão descritas em detalhe neste documento:
 
 - [Histórias de Usuário — Projeto JC](https://docs.google.com/document/d/1mwm4nb6xFgJM3tm10Y9zcyyIu7CfqOX0JvPXR5SX3ro/edit?usp=sharing)
-  
+
 ---
 
 ## 🤝 Programação em Par (Pair Programming)
@@ -51,11 +54,14 @@ Os registros e reflexões sobre as sessões de programação em par da equipe es
 ---
 
 ## 🧪 Testes e Qualidade
-O projeto utiliza **pytest-django** para garantir estabilidade:
+
+O projeto utiliza **pytest-django** para garantir estabilidade e confiabilidade:
+
 - Testes de integração e unidade para views, templates e jogos (`noticias/tests`, `caca_links/tests`, `sudoku/tests`).  
 - Ambiente separado de testes (`settings_test.py`).  
 
-Comando para rodar todos os testes:  
+Para execução da suíte de testes automatizados:
+
 ```bash
 pytest -q
 ```
@@ -63,8 +69,9 @@ pytest -q
 ---
 
 ## ⚙️ Stack Tecnológica
+
 | Camada | Tecnologia |
-|--------|-------------|
+|--------|-----------|
 | **Backend** | Django 5.2 (Python 3.13) |
 | **Frontend** | HTML5 • CSS3 • JavaScript |
 | **Banco de Dados (Dev/Test)** | SQLite |
@@ -76,6 +83,7 @@ pytest -q
 ---
 
 ## 📈 Métricas de Sucesso
+
 - ⏱️ Tempo médio de permanência no site  
 - 🔁 Taxa de retorno e frequência de leitura  
 - 📊 Páginas por sessão  
@@ -84,19 +92,17 @@ pytest -q
 
 ---
 
----
-
 ## 🎥 Demonstrações em Vídeo
 
-- ✅ Veja os **testes automatizados** em execução [neste vídeo](https://youtu.be/jgPmHwQA0cM).  
-- 🚀 Confira o **processo de deploy** do Projeto JC [neste vídeo](https://youtu.be/ylrIaAFVhO0).
+- ✅ **Testes automatizados** em execução: [vídeo de testes](https://youtu.be/jgPmHwQA0cM).  
+- 🚀 **Processo de deploy** do Projeto JC: [vídeo de deploy](https://youtu.be/ylrIaAFVhO0).
 
 ---
 
 ## 👥 Equipe Plumo — CESAR School
 
 | Nome | E-mail | Funções |
-|------|--------|----------|
+|------|--------|---------|
 | **André Borges Viana** | abv2@cesar.school | Desenvolvedor • Verificação e Validação • Revisão textual |
 | **Bruno Augusto da Rocha Leite Filho** | barlf@cesar.school | Desenvolvedor • Verificação e Validação • Gestor de Projetos |
 | **Danilo Araújo Duleba** | dad@cesar.school | Desenvolvedor • Verificação e Validação |
@@ -113,5 +119,6 @@ pytest -q
 ---
 
 ## 📄 Licença
+
 Projeto acadêmico — uso educacional e de pesquisa.  
 © 2025 Equipe Plumo • CESAR School • Jornal do Commercio.
