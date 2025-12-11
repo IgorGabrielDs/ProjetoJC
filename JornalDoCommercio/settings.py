@@ -2,12 +2,15 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv 
 
+# Define o diretório base
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Carrega as variáveis do arquivo .env
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
+# Define DEBUG como False se estiver no Azure (onde WEBSITE_HOSTNAME existe), caso contrário True
 DEBUG = os.getenv("WEBSITE_HOSTNAME") is None
 
 ALLOWED_HOSTS = ['jcproject.azurewebsites.net', '127.0.0.1', 'localhost']
@@ -67,14 +70,22 @@ APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
 APSCHEDULER_RUN_MIGRATIONS = True
 
 
-
+# --- CONFIGURAÇÃO DO BANCO DE DADOS (POSTGRESQL) ---
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'jcproject_db'),      # Nome do banco
+        'USER': os.getenv('DB_USER', 'postgres'),          # Usuário
+        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),  # Senha
+        'HOST': os.getenv('DB_HOST', 'localhost'),         # Host
+        'PORT': os.getenv('DB_PORT', '5432'),              # Porta
+        # Configuração SSL: 'require' para Azure/Prod, vazio para Local/Debug.
+        # Definido aqui dentro para evitar erro de tipo no Pylance.
+        'OPTIONS': {'sslmode': 'require'} if not DEBUG else {},
     }
-} 
-        
+}
+# ---------------------------------------------------
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -109,6 +120,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "noticias" / "static",
 ]
 
+# Compressão e cache de arquivos estáticos (WhiteNoise)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
