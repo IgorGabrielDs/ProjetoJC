@@ -67,4 +67,4 @@ def test_resumo_erro_provider(monkeypatch, settings, client_logged, noticia_fact
     r = client_logged.post(url)
     assert r.status_code == 500
     data = r.json()
-    assert "Erro ao conectar" in data["error"]
+    assert data["error"] == "Não foi possível gerar o resumo da notícia."
