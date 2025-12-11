@@ -74,11 +74,11 @@ APSCHEDULER_RUN_MIGRATIONS = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'jcproject_db'),      # Nome do banco
-        'USER': os.getenv('DB_USER', 'postgres'),          # Usuário
-        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),  # Senha
-        'HOST': os.getenv('DB_HOST', 'localhost'),         # Host
-        'PORT': os.getenv('DB_PORT', '5432'),              # Porta
+        'NAME': os.getenv('DBNAME', 'jcproject_db'),      # Nome do banco
+        'USER': os.getenv('DBUSER', 'postgres'),          # Usuário
+        'PASSWORD': os.getenv('DBPASSWORD', 'postgres'),  # Senha
+        'HOST': os.getenv('DBHOST', 'localhost'),         # Host
+        'PORT': os.getenv('DBPORT', '5432'),              # Porta
         # Configuração SSL: 'require' para Azure/Prod, vazio para Local/Debug.
         # Definido aqui dentro para evitar erro de tipo no Pylance.
         'OPTIONS': {'sslmode': 'require'} if not DEBUG else {},
