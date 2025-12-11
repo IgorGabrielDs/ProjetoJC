@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'django_apscheduler',
     "sudoku",
     'noticias.apps.NoticiasConfig',
-    'storage',
 ]
 
 MIDDLEWARE = [
