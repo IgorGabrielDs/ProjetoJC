@@ -164,7 +164,11 @@ class Enquete(models.Model):
     # As opções (opcao_a / opcao_b) foram movidas para o modelo OpcaoEnquete
 
     def __str__(self):
-        return self.titulo or f"Enquete da notícia: {self.noticia.titulo}"
+        if self.titulo:
+            return self.titulo
+        if self.noticia:
+            return f"Enquete da notícia: {self.noticia.titulo}"
+        return f"Enquete #{self.pk}"
 
     def ja_votou(self, user):
         """Verifica se um usuário específico já votou nesta enquete."""
