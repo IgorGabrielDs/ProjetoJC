@@ -9,10 +9,14 @@
 
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'noticias/img/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'noticias/img/favicon-16x16.png' %}">
+
+    {# CSS global do site #}
     <link rel="stylesheet" href="{% static 'noticias/css/base.css' %}">
     <link rel="stylesheet" href="{% static 'noticias/css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'noticias/css/article.css' %}">
     <link rel="stylesheet" href="{% static 'noticias/css/auth.css' %}">
     <link rel="stylesheet" href="{% static 'noticias/css/menu.css' %}">
+
     <meta name="csrf-token" content="{{ csrf_token }}">
 
     <style>
@@ -34,6 +38,7 @@
 
 <body {% if user.is_authenticated %}data-username="{{ user.first_name|default:user.username }}"{% endif %}>
 
+    {# ===== BARRA UOL ===== #}
     <div class="uol-bar">
         <div class="uol-container">
 
@@ -70,6 +75,7 @@
         </div>
     </div>
 
+    {# ===== HEADER ===== #}
     <header class="header">
         <div class="container row">
 
@@ -89,6 +95,7 @@
 
     <div id="menu-overlay" class="menu-overlay" hidden></div>
 
+    {# ===== MENU LATERAL ===== #}
     <nav id="menu" class="menu" aria-hidden="true">
 
         <div class="menu-top">
@@ -102,19 +109,22 @@
 
                 <div class="menu-user-icons">
 
+                    {# link para editar perfil (versão projeto) #}
                     <a href="{% url 'noticias:editarperfil' %}">
                         <img src="{% static 'noticias/img/editar_uol.png' %}" class="edit-icon" title="Editar perfil" alt="Editar perfil">
                     </a>
 
+                    {# avatar com foto do perfil se existir (versão projeto) #}
                     {% if user.perfil.foto %}
                         <img src="{{ user.perfil.foto.url }}" class="avatar" title="Meu perfil" alt="Foto de perfil">
                     {% else %}
                         <img src="{% static 'noticias/img/perfil_uol.png' %}" class="avatar" title="Meu perfil" alt="Foto de perfil">
                     {% endif %}
 
+                    {# Logout via POST (Django 5) com aria-label da sua versão #}
                     <form method="post" action="{% url 'logout' %}" style="display:inline;">
                         {% csrf_token %}
-                        <button type="submit" class="logout-btn" title="Sair da conta">
+                        <button type="submit" class="logout-btn" title="Sair da conta" aria-label="Sair da conta">
                             <img src="{% static 'noticias/img/sair_uol.png' %}" class="logout-icon" alt="Sair">
                         </button>
                     </form>
@@ -178,9 +188,9 @@
 
                 <li><a href="{% url 'noticias:index' %}#colunistas">Colunistas</a></li>
 
-                <!-- ============================
-                     NOSSOS PRODUTOS — CORRIGIDO
-                ============================= -->
+                {# ============================
+                   NOSSOS PRODUTOS — links reais
+                   ============================ #}
                 <li class="dropdown">
                     <button class="drop-btn" aria-expanded="false">Nossos Produtos</button>
                     <ul class="submenu">
@@ -225,48 +235,95 @@
 
     </nav>
 
-    <main class="container">
+    {# ===== CONTEÚDO PRINCIPAL ===== #}
+    <main class="container site-main">
         {% block content %}{% endblock %}
     </main>
 
-    <section class="produtos">
-        <h2>Nossos Produtos</h2>
-        <div class="produtos-logos">
-            <a href="https://interior.ne10.uol.com.br" class="produto-item"><img src="{% static 'noticias/img/ne10interior.png' %}" alt="NE10 Interior"><p>NE10 Interior</p></a>
-            <a href="https://jc.uol.com.br/radio-jornal" class="produto-item"><img src="{% static 'noticias/img/radiojornal.png' %}" alt="Rádio Jornal"><p>Rádio Jornal</p></a>
-            <a href="https://jc.uol.com.br/tv-jornal" class="produto-item"><img src="{% static 'noticias/img/tvjornal.png' %}" alt="TV Jornal"><p>TV Jornal</p></a>
-            <a href="https://jc.uol.com.br" class="produto-item"><img src="{% static 'noticias/img/pejc.png' %>" alt="JC Pernambuco"><p>JC Pernambuco</p></a>
-            <a href="https://jc.uol.com.br/blog-do-torcedor/" class="produto-item"><img src="{% static 'noticias/img/blogdotorcedor.png' %}" alt="Blog do Torcedor"><p>Blog do Torcedor</p></a>
-            <a href="https://jc.uol.com.br/social1/" class="produto-item"><img src="{% static 'noticias/img/social1.png' %}" alt="Social1"><p>Social1</p></a>
-            <a href="https://receitadaboa.com.br" class="produto-item"><img src="{% static 'noticias/img/receitadaboa.png' %}" alt="Receita da Boa"><p>Receita da Boa</p></a>
-        </div>
+    {# ===== FOOTER ===== #}
+    <footer class="jc-footer">
 
-        <div class="carousel-dots">
-            <span class="dot active" data-index="0"></span>
-            <span class="dot" data-index="1"></span>
-        </div>
-    </section>
+        <section class="produtos">
+            <h2>Nossos Produtos</h2>
+            <div class="produtos-logos">
+                <a href="https://interior.ne10.uol.com.br" class="produto-item">
+                    <img src="{% static 'noticias/img/ne10interior.png' %}" alt="NE10 Interior">
+                    <p>NE10 Interior</p>
+                </a>
+                <a href="https://jc.uol.com.br/radio-jornal" class="produto-item">
+                    <img src="{% static 'noticias/img/radiojornal.png' %}" alt="Rádio Jornal">
+                    <p>Rádio Jornal</p>
+                </a>
+                <a href="https://jc.uol.com.br/tv-jornal" class="produto-item">
+                    <img src="{% static 'noticias/img/tvjornal.png' %}" alt="TV Jornal">
+                    <p>TV Jornal</p>
+                </a>
+                <a href="https://jc.uol.com.br" class="produto-item">
+                    <img src="{% static 'noticias/img/pejc.png' %}" alt="JC Pernambuco">
+                    <p>JC Pernambuco</p>
+                </a>
+                <a href="https://jc.uol.com.br/blog-do-torcedor/" class="produto-item">
+                    <img src="{% static 'noticias/img/blogdotorcedor.png' %}" alt="Blog do Torcedor">
+                    <p>Blog do Torcedor</p>
+                </a>
+                <a href="https://jc.uol.com.br/social1/" class="produto-item">
+                    <img src="{% static 'noticias/img/social1.png' %}" alt="Social1">
+                    <p>Social1</p>
+                </a>
+                <a href="https://receitadaboa.com.br" class="produto-item">
+                    <img src="{% static 'noticias/img/receitadaboa.png' %}" alt="Receita da Boa">
+                    <p>Receita da Boa</p>
+                </a>
+            </div>
 
-    <section class="redes">
-        <img src="{% static 'noticias/img/jcpe.png' %}" alt="JCPE Logo" class="jcpe-logo">
-        <p class="redes-titulo">Confira nossas redes</p>
+            <div class="carousel-dots">
+                <span class="dot active" data-index="0"></span>
+                <span class="dot" data-index="1"></span>
+            </div>
+        </section>
 
-        <div class="redes-icones">
-            <a href="https://www.facebook.com/jornaldocommercioPE/"><img src="{% static 'noticias/img/facebook.png' %}" alt="Facebook"></a>
-            <a href="https://www.instagram.com/jc_pe"><img src="{% static 'noticias/img/instagram.png' %}" alt="Instagram"></a>
-            <a href="https://x.com/jc_pe"><img src="{% static 'noticias/img/x.png' %}" alt="X"></a>
-            <a href="https://www.linkedin.com/company/sistema-jornal-do-commercio/"><img src="{% static 'noticias/img/linkedin.png' %}" alt="LinkedIn"></a>
-            <a href="https://www.youtube.com/@JCPlayOficial"><img src="{% static 'noticias/img/youtube.png' %}" alt="YouTube"></a>
-        </div>
+        <section class="redes">
+            <img src="{% static 'noticias/img/jcpe.png' %}" alt="JCPE Logo" class="jcpe-logo">
+            <p class="redes-titulo">Confira nossas redes</p>
 
-        <img src="{% static 'noticias/img/jcpm90.png' %}" alt="Grupo JCPM 90 anos" class="jcpm-logo">
+            <div class="redes-icones">
+                <a href="https://www.facebook.com/jornaldocommercioPE/">
+                    <img src="{% static 'noticias/img/facebook.png' %}" alt="Facebook">
+                </a>
+                <a href="https://www.instagram.com/jc_pe">
+                    <img src="{% static 'noticias/img/instagram.png' %}" alt="Instagram">
+                </a>
+                <a href="https://x.com/jc_pe">
+                    <img src="{% static 'noticias/img/x.png' %}" alt="X">
+                </a>
+                <a href="https://www.linkedin.com/company/sistema-jornal-do-commercio/">
+                    <img src="{% static 'noticias/img/linkedin.png' %}" alt="LinkedIn">
+                </a>
+                <a href="https://www.youtube.com/@JCPlayOficial">
+                    <img src="{% static 'noticias/img/youtube.png' %}" alt="YouTube">
+                </a>
+            </div>
 
-        <p class="footer-text">
-            Jornal © 2025 — Uma empresa do grupo JCPM<br>
-            PARA SOLICITAÇÃO DE LICENCIAMENTO, CONTATAR<br>
-            <a href="mailto:editores@ne10.com.br">EDITORES@NE10.COM.BR</a>
-        </p>
-    </section>
+            <img src="{% static 'noticias/img/jcpm90.png' %}" alt="Grupo JCPM 90 anos" class="jcpm-logo">
+
+            <p class="footer-text">
+                Jornal © 2025 — Uma empresa do grupo JCPM<br>
+                PARA SOLICITAÇÃO DE LICENCIAMENTO, CONTATAR<br>
+                <a href="mailto:editores@ne10.com.br">EDITORES@NE10.COM.BR</a>
+            </p>
+        </section>
+
+    </footer>
+
+    {# === POPUP DE PERSONALIZAÇÃO (onboarding) === #}
+    {% if show_welcome %}
+      <script>
+        window.SHOW_PERSONALIZACAO = true;
+        window.JC_USER_NAME = "{{ welcome_name|default_if_none:''|escapejs }}";
+      </script>
+    {% endif %}
+
+    {% include "noticias/partials/popup_personalizacao.html" %}
 
     {% block extra_js %}
         <script src="{% static 'noticias/js/jc.js' %}"></script>
