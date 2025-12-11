@@ -116,9 +116,7 @@ STATIC_URL = "/static/"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_DIRS = [
-    BASE_DIR / "noticias" / "static",
-]
+STATICFILES_DIRS = []
 
 # Compressão e cache de arquivos estáticos (WhiteNoise)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
