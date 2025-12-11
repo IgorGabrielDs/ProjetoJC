@@ -41,6 +41,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'JornalDoCommercio.urls'
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://jcproject.azurewebsites.net",
+]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
