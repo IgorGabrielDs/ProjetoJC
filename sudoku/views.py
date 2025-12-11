@@ -15,16 +15,17 @@ from .sudoku_generator import generate_puzzle
 #  PADRONIZA acesso a campos do puzzle
 # ----------------------------------------------------------------------
 def _get_boards(p):
-    # Tenta pegar o problem
     problem = getattr(p, "problem_board", getattr(p, "board", None))
-    # Tenta pegar a solution
     solution = getattr(p, "solution_board", getattr(p, "solution", None))
 
-    if problem and solution:
+    # Validação mais robusta
+    if problem and solution and len(problem) > 0:
         return problem, solution
-
-    # Se falhar, aí sim lançamos o erro
-    raise AttributeError(f"O objeto SudokuPuzzle (ID: {p.id}) não tem campos de tabuleiro válidos. Campos encontrados: {dir(p)}")
+    
+    # Se chegamos aqui, o puzzle no banco está corrompido.
+    # Em vez de crashar, vamos tentar regenerar (opcional) ou deletar
+    p.delete() 
+    raise ValueError("Puzzle corrompido detectado e deletado. Recarregue a página.")
 
 
 def _set_boards(p, problem_str, solution_str):

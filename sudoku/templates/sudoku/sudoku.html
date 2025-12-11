@@ -200,9 +200,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const popupBtn = document.getElementById("popup-play-btn");
 
   popupBtn.onclick = () => {
-      if (difficulty === "easy") window.location.href = "{% url 'sudoku:play' 'medium' %}";
-      else if (difficulty === "medium") window.location.href = "{% url 'sudoku:play' 'hard' %}";
-      else window.location.href = "/";
+    if (difficulty === "easy") window.location.href = "{% url 'sudoku:play_sudoku' 'medium' %}";
+    else if (difficulty === "medium") window.location.href = "{% url 'sudoku:play_sudoku' 'hard' %}";
+    else window.location.href = "/";
   };
 
   document.getElementById("check-button").addEventListener("click", () => {
