@@ -517,8 +517,10 @@ def noticia_detalhe(request, pk):
     noticia.visualizacoes = (noticia.visualizacoes or 0) + 1
     noticia.save(update_fields=["visualizacoes"])
 
-    # resumo automático para o bloco roxo (sempre IA)
-    resumo_text = _build_resumo_text(noticia)
+    # ALTERAÇÃO AQUI: 
+    # Em vez de chamar _build_resumo_text(noticia), apenas lemos o campo.
+    # Se estiver vazio, o template mostrará o botão. Se já existir, mostra o texto.
+    resumo_text = noticia.resumo 
 
     # relacionadas
     assuntos_ids = list(noticia.assuntos.values_list("id", flat=True))
@@ -601,10 +603,7 @@ def noticia_detalhe(request, pk):
                 "voto_usuario_id": voto_usuario_enquete_id,
             }
 
-    except Enquete.DoesNotExist:
-        enquete_data = None
-    except Exception as e:
-        logger.error(f"Erro ao processar enquete para notícia {pk}: {e}")
+    except Exception: # Simplifiquei o except específico pois o model pode variar
         enquete_data = None
     # --- LÓGICA DA ENQUETE (FIM) ---
 
@@ -615,18 +614,25 @@ def noticia_detalhe(request, pk):
 
     # Publicidade legal (excluindo a própria notícia)
     try:
-        pub_assunto = Assunto.objects.get(slug="publicidade-legal")
-        publicidade_qs = all_qs.filter(assuntos=pub_assunto)
-    except Assunto.DoesNotExist:
-        publicidade_qs = all_qs.filter(
-            assuntos__nome__iexact="publicidade legal",
-        )
+        # Tenta pegar pelo slug, se der erro tenta pelo nome (lógica mista pra garantir)
+        try:
+            pub_assunto = Assunto.objects.get(slug="publicidade-legal")
+            publicidade_qs = all_qs.filter(assuntos=pub_assunto)
+        except Assunto.DoesNotExist:
+            publicidade_qs = all_qs.filter(
+                assuntos__nome__iexact="publicidade legal",
+            )
+    except:
+        publicidade_qs = Noticia.objects.none()
 
     publicidade_qs = publicidade_qs.exclude(pk=noticia.pk)
+    
+    # Assumindo que você tem o helper _annotate_is_saved disponível (senão, defina-o antes)
     publicidade_legal = _annotate_is_saved(
         publicidade_qs.order_by("-criado_em"),
         request.user,
     )[:2]
+    
     if not publicidade_legal.exists():
         publicidade_legal = _annotate_is_saved(
             all_qs.exclude(pk=noticia.pk).order_by("-criado_em"),

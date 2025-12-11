@@ -1041,3 +1041,75 @@
     column-gap: 16px;
   }
 }
+/* Container para dar um espaçamento do texto da notícia */
+.resumo-container-bottom {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    border-top: 1px solid #eee; /* Uma linha sutil separando a notícia */
+    padding-top: 1rem;
+}
+
+/* Estilo do Box de texto (quando o resumo aparece) */
+.art-lead-box.bottom-style {
+    background-color: #f8fbff;
+    border-left: 3px solid #0056b3;
+    padding: 1rem;
+    border-radius: 4px;
+    font-size: 0.95rem; /* Texto levemente menor */
+}
+
+/* Container do botão (alinhado a esquerda ou centro, como preferir) */
+.ai-actions-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Deixa alinhado à esquerda. Use 'center' se preferir no meio */
+}
+
+/* O BOTÃO PEQUENO */
+.btn-gerar-resumo-small {
+    background-color: #fff;
+    color: #555; /* Cinza para não chamar tanta atenção */
+    border: 1px solid #ddd;
+    
+    /* Tamanho reduzido */
+    padding: 6px 14px;
+    font-size: 0.8rem; /* Fonte pequena (12-13px) */
+    border-radius: 20px; /* Formato pílula */
+    
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+/* Hover do botão */
+.btn-gerar-resumo-small:hover {
+    background-color: #f0f7ff;
+    color: #0056b3;
+    border-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+/* Ícone dentro do botão */
+.btn-gerar-resumo-small .ai-icon {
+    font-size: 1rem;
+}
+
+/* Spinner pequeno para caber no botão pequeno */
+.ai-spinner-small {
+    width: 10px;
+    height: 10px;
+    border: 2px solid currentColor;
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    animation: rotation 1s linear infinite;
+}
+
+.ai-error-msg {
+    font-size: 0.75rem;
+    color: #dc3545;
+    margin-top: 5px;
+}

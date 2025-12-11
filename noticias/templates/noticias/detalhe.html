@@ -6,12 +6,59 @@
 {% block extra_css %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'noticias/css/article.css' %}">
+<style>
+    /* CSS ADICIONADO PARA O RESUMO NO RODAPÉ */
+    .resumo-container-bottom {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+    .art-lead-box.bottom-style {
+        background-color: #f8fbff;
+        border-left: 3px solid #0056b3;
+        padding: 1rem;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+    /* Botão Pequeno */
+    .btn-gerar-resumo-small {
+        background-color: #fff;
+        color: #666;
+        border: 1px solid #ccc;
+        padding: 5px 14px;
+        font-size: 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+    .btn-gerar-resumo-small:hover {
+        border-color: #0056b3;
+        color: #0056b3;
+        background-color: #f0f7ff;
+    }
+    .ai-badge {
+        font-size: 0.7rem; font-weight: bold; color: #0056b3; 
+        background: rgba(0,86,179,0.1); padding: 2px 6px; border-radius: 4px;
+    }
+    .ai-spinner-small {
+        width: 10px; height: 10px; border: 2px solid currentColor; 
+        border-bottom-color: transparent; border-radius: 50%; 
+        display: inline-block; animation: rotation 1s linear infinite;
+    }
+    .ai-error-msg { font-size: 0.75rem; color: #dc3545; margin-top: 5px; }
+    @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
 {% endblock %}
 
 {% block content %}
 <article class="art-wrap" itemscope itemtype="https://schema.org/NewsArticle">
 
-  <!-- Kicker + ações (topo, linha única) + título -->
   <header class="art-top">
     <div class="art-topbar">
       <div class="art-kicker">
@@ -39,7 +86,6 @@
         </button>
         {% endif %}
 
-        <!-- COMPARTILHAR -->
         <button class="btn-icon btn-share"
                 type="button"
                 title="Compartilhar"
@@ -55,7 +101,6 @@
     <h1 class="art-title" itemprop="headline">{{ noticia.titulo }}</h1>
   </header>
 
-  <!-- Imagem principal (hero) -->
   {% if noticia.imagem %}
   <figure class="art-hero" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
     {% if noticia.legenda %}
@@ -75,7 +120,6 @@
   </figure>
   {% endif %}
 
-  <!-- Linha de data/atualização/autor -->
   <div class="art-times">
     <time itemprop="datePublished" datetime="{{ noticia.criado_em|date:'c' }}">
       Publicado em {{ noticia.criado_em|date:"d/m/Y" }} às {{ noticia.criado_em|date:"H:i" }}
@@ -94,23 +138,52 @@
     </span>
   </div>
 
-  {# ============================= #}
-  {# BLOCO DE RESUMO (texto azul antes da matéria) #}
-  {% if resumo_text %}
-    <meta itemprop="description" content="{{ resumo_text|striptags|truncatechars:280 }}">
-    <section class="art-lead-box" aria-label="Resumo da notícia">
-      <p class="art-lead-text">
-        {{ resumo_text|linebreaksbr }}
-      </p>
-    </section>
-  {% endif %}
 
   {# ============================= #}
   {# TEXTO DA NOTÍCIA + CONTINUAR LENDO #}
   <section class="art-content-block">
     <div class="art-body-wrapper" id="artBodyWrapper">
       <div class="art-body" id="artBody" itemprop="articleBody">
+        
         {{ noticia.conteudo|linebreaks }}
+
+        {# ============================= #}
+        {# ============================= #}
+        {# NOVO BLOCO DE RESUMO NO FINAL DO TEXTO #}
+        <div class="resumo-container-bottom">
+            {% if resumo_text %}
+                <div class="art-lead-box bottom-style" id="aiSummaryBox">
+                    <div class="ai-header" style="margin-bottom: 5px;">
+                        <span class="ai-badge">Resumir</span>
+                    </div>
+                    <p class="art-lead-text">
+                        {{ resumo_text|linebreaksbr }}
+                    </p>
+                </div>
+            {% else %}
+                <div id="aiResultContainer" class="art-lead-box bottom-style" style="display: none;">
+                    <div class="ai-header" style="margin-bottom: 5px;">
+                        <span class="ai-badge">Resumo</span>
+                    </div>
+                    <p class="art-lead-text" id="aiResultText"></p>
+                </div>
+
+                <div id="aiActionContainer">
+                    <button type="button" 
+                            class="btn-gerar-resumo-small" 
+                            id="btnGerarResumo"
+                            data-url="{% url 'noticias:resumir_noticia' noticia.pk %}">
+                        <span class="ai-icon"></span> 
+                        Resumir
+                    </button>
+                    <p class="ai-error-msg" id="aiErrorMsg" style="display: none;">
+                        Não foi possível gerar. Tente novamente.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+        {# FIM DO BLOCO RESUMO #}
+
       </div>
     </div>
 
@@ -120,8 +193,6 @@
     </button>
   </section>
 
-  <!-- ============================= -->
-  <!-- ===== BLOCO DA ENQUETE ===== -->
   {% if enquete_data %}
   <section class="enquete-box" aria-labelledby="enquete-titulo-{{ enquete_data.obj.pk }}">
     <h2 class="enquete-titulo" id="enquete-titulo-{{ enquete_data.obj.pk }}">
@@ -187,9 +258,6 @@
     {% endif %}
   </section>
   {% endif %}
-  <!-- ===== FIM DA ENQUETE ===== -->
-
-  <!-- ===== LEIA TAMBÉM ===== -->
   {% if relacionadas %}
   <section class="art-related">
     <h2 class="related-title">LEIA TAMBÉM</h2>
@@ -218,7 +286,6 @@
   </section>
   {% endif %}
 
-  <!-- ===== COMPARTILHE ===== -->
   <section class="art-share" aria-labelledby="share-heading">
     <h2 class="share-title" id="share-heading">
       <span class="share-title-text">Compartilhe</span>
@@ -264,7 +331,6 @@
     </div>
   </section>
 
-  <!-- ===== TAGS / ASSUNTOS ===== -->
   {% with noticia.assuntos.all as tags %}
   {% if tags %}
   <section class="art-tags" aria-labelledby="tags-heading">
@@ -356,7 +422,6 @@
 <section class="section para-voce-section">
   <div class="container">
 
-    <!-- Título com linhas laterais -->
     <div class="section-title pv-title">
       <span class="rule"></span>
       <span class="label">Para você</span>
@@ -366,7 +431,6 @@
     {% with pv_list=pv|default:para_voce %}
     {% if pv_list %}
 
-      <!-- Carrossel 2x2 -->
       <div class="carousel para-voce-carousel">
         <input type="radio" name="pv" id="pv1" checked>
         <input type="radio" name="pv" id="pv2">
@@ -375,7 +439,6 @@
         <div class="carousel-inner">
           <div class="carousel-track">
 
-            <!-- Slide 1 -->
             <div class="carousel-slide">
               <div class="para-voce-grid">
                 {% for item in pv_list|slice:":2" %}
@@ -383,7 +446,6 @@
                   <a href="{{ item.get_absolute_url }}" class="para-voce-link">
 
                     {% if item.assuntos.first %}
-                    <!-- HEADER DO CARD: ASSUNTO + ESTRELA -->
                     <div class="pv-card-header">
                       <span class="pv-tag-label">
                         {{ item.assuntos.first.nome|upper }}
@@ -419,7 +481,6 @@
             </div>
 
             {% if pv_list|length > 2 %}
-            <!-- Slide 2 -->
             <div class="carousel-slide">
               <div class="para-voce-grid">
                 {% for item in pv_list|slice:"2:4" %}
@@ -463,7 +524,6 @@
             {% endif %}
 
             {% if pv_list|length > 4 %}
-            <!-- Slide 3 -->
             <div class="carousel-slide">
               <div class="para-voce-grid">
                 {% for item in pv_list|slice:"4:6" %}
@@ -478,8 +538,6 @@
 
                       <button
                         class="card-hero-fav bookmark-btn salvar-btn{% if item.is_saved %} is-saved{% endif %}"
-                        aria-label="{% if item.is_saved %}Retirar dos salvos{% else %}Salvar nos favoritos{% endif %}"
-                        aria-pressed="{{ item.is_saved|yesno:'true,false' }}"
                         data-url="{% url 'noticias:toggle_salvo' item.pk %}"
                         data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
                         data-login-url="{% url 'login' %}?next={{ item.get_absolute_url }}">
@@ -509,7 +567,6 @@
           </div>
         </div>
 
-        <!-- Dots -->
         <div class="dots pv-dots" aria-label="Paginação do carrossel">
           <label for="pv1" class="dot d1"></label>
           <label for="pv2" class="dot d2"></label>
@@ -528,7 +585,6 @@
     <span class="escute-agora-rule"></span>
   </div>
 
-  <!-- Bloco Rádio Jornal (3 cards em linha) -->
   <div class="escute-bloco escute-bloco--radio">
     <span class="escute-pill">Rádio Jornal</span>
 
@@ -556,14 +612,12 @@
     </div>
   </div>
 
-  <!-- Dots entre Rádio e TV -->
   <div class="escute-dots" aria-hidden="true">
     <span class="escute-dot escute-dot--active"></span>
     <span class="escute-dot"></span>
     <span class="escute-dot"></span>
   </div>
 
-  <!-- Bloco TV Jornal (2 cards lado a lado) -->
   <div class="escute-bloco escute-bloco--tv">
     <span class="escute-pill">TV Jornal</span>
 
@@ -588,6 +642,63 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('btnGerarResumo');
+    
+    // Se o botão não existe, é porque o resumo já veio do servidor.
+    if (!btn) return;
+
+    const actionContainer = document.getElementById('aiActionContainer');
+    const resultContainer = document.getElementById('aiResultContainer');
+    const resultText = document.getElementById('aiResultText');
+    const errorMsg = document.getElementById('aiErrorMsg');
+
+    btn.addEventListener('click', function() {
+        const url = this.getAttribute('data-url');
+        
+        // 1. Estado de Carregamento
+        btn.disabled = true;
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<span class="ai-spinner-small"></span> Gerando...';
+        errorMsg.style.display = 'none';
+
+        // 2. Requisição ao Backend
+        fetch(url, {
+            method: 'GET', // Ou POST, dependendo da sua view
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Erro na rede');
+            return response.json();
+        })
+        .then(data => {
+            if (data.resumo) {
+                // 3. Sucesso: Esconde botão e mostra texto
+                actionContainer.style.display = 'none';
+                
+                // Formata quebras de linha (\n para <br>)
+                resultText.innerHTML = data.resumo.replace(/\n/g, '<br>');
+                
+                resultContainer.style.display = 'block';
+                resultContainer.classList.add('fade-in');
+            } else {
+                throw new Error('Resumo vazio');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            // 4. Erro: Restaura botão
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+            errorMsg.style.display = 'block';
+        });
+    });
+});
+</script>
 {{ block.super }}
 <script src="{% static 'noticias/js/salvar.js' %}"></script>
 <script>
