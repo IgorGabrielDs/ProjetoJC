@@ -4,10 +4,6 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ---------------------------------------------------------
-# VARIÁVEIS DE AMBIENTE
-# ---------------------------------------------------------
-# Carrega variáveis do arquivo .env localmente (em produção usa as variáveis do Azure)
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -83,25 +79,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "JornalDoCommercio.wsgi.application"
 
 # ---------------------------------------------------------
-# BANCO DE DADOS (CORRIGIDO PARA SSL)
+# BANCO
+# Pode continuar usando SQLite, mas não é persistente.
 # ---------------------------------------------------------
-# O Azure PostgreSQL exige SSL. O DBSSLMODE deve ser 'require' ou 'verify-ca'.
-
-# Pega o valor de DBSSLMODE. Se não estiver definido, usa 'require' por padrão.
-DB_SSL_MODE = os.getenv("DBSSLMODE", "require") 
-
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DBNAME"),
-        "USER": os.getenv("DBUSER"),
-        "PASSWORD": os.getenv("DBPASSWORD"),
-        "HOST": os.getenv("DBHOST"),
-        "PORT": os.getenv("DBPORT"),
-        "OPTIONS": {
-            # CORREÇÃO CRÍTICA: Força o uso de SSL/TLS para o Azure PostgreSQL
-            "sslmode": DB_SSL_MODE, 
-        },
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -136,13 +120,11 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # MEDIA (USANDO AZURE BLOB STORAGE)
 # ---------------------------------------------------------
 
-# ESSA LINHA É A MUDANÇA CRÍTICA
 DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
 
 AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME")
 AZURE_ACCOUNT_KEY = os.getenv("AZURE_ACCOUNT_KEY")
-AZURE_CONTAINER = "media"  # crie no Azure Storage
-
+AZURE_CONTAINER = "media"
 MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/"
 
 # ---------------------------------------------------------
