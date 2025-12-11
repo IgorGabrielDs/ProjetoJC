@@ -24,27 +24,19 @@
 
       <div class="art-actions">
         {% if noticia.pk %}
-        <form method="post" action="{% url 'noticias:toggle_salvo' noticia.pk %}" class="act">
-          {% csrf_token %}
-          <button
-            class="btn-icon btn-save salvar-btn salvar-outline{% if is_saved %} is-saved{% endif %}"
-            type="button"
-            title="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
-            aria-label="{% if is_saved %}Remover dos salvos{% else %}Salvar para ler mais tarde{% endif %}"
-            aria-pressed="{{ is_saved|yesno:'true,false' }}"
-            data-saved="{{ is_saved|yesno:'1,0' }}"
-            data-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
-            data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
-            data-login-url="{% url 'login' %}?next={{ request.path }}"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="ico ico-star">
-              <path class="star-outline"
-                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-              <path class="star-fill"
-                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-            </svg>
-          </button>
-        </form>
+        <button
+          class="salvar-btn salvar-outline card-hero-fav{% if is_saved %} is-saved{% endif %}"
+          type="button"
+          aria-label="{% if is_saved %}Retirar dos salvos{% else %}Salvar nos favoritos{% endif %}"
+          aria-pressed="{{ is_saved|yesno:'true,false' }}"
+          data-url="{% url 'noticias:toggle_salvo' noticia.pk %}"
+          data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
+          data-login-url="{% url 'login' %}?next={{ request.path }}"
+        >
+          <span class="bm-icon bm-outline" aria-hidden="true">☆</span>
+          <span class="bm-icon bm-solid" aria-hidden="true">★</span>
+          <span class="sr-only">Salvar esta notícia</span>
+        </button>
         {% endif %}
 
         <!-- COMPARTILHAR -->
@@ -53,10 +45,9 @@
                 title="Compartilhar"
                 id="shareBtn"
                 aria-label="Compartilhar">
-          <svg viewBox="0 0 24 24" aria-hidden="true" class="ico ico-share">
-            <path d="M8 5h6a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3z"/>
-            <path d="M14 5V3h7v7h-2V7.83l-6.3 6.3-1.4-1.41L17.6 6H14z"/>
-          </svg>
+          <img src="{% static 'noticias/img/ico-share.png' %}"
+               alt="Compartilhar"
+               class="share-top-icon">
         </button>
       </div>
     </div>
@@ -158,7 +149,7 @@
         <form class="enquete-form" method="POST" action="{% url 'noticias:votar_enquete' enquete_data.obj.pk %}">
           {% csrf_token %}
           <fieldset>
-            <legend class="visually-hidden">Opções da enquete</legend>
+            <legend class="sr-only">Opções da enquete</legend>
             {% for op in enquete_data.opcoes %}
               <div class="enquete-opcao-radio">
                 <input type="radio" name="opcao_enquete" value="{{ op.id }}" id="op-{{ op.id }}" required>
@@ -296,6 +287,304 @@
   {% endwith %}
 
 </article>
+
+{# ============================= #}
+{# PUBLICIDADE LEGAL NO DETALHE #}
+{% if publicidade_legal %}
+<section class="publicidade-legal" aria-labelledby="publicidade-legal-title">
+  <header class="publicidade-legal-header">
+    <span class="publicidade-legal-rule" aria-hidden="true"></span>
+    <h2 id="publicidade-legal-title" class="publicidade-legal-title">
+      Publicidade legal
+    </h2>
+    <span class="publicidade-legal-rule" aria-hidden="true"></span>
+  </header>
+
+  <div class="publicidade-legal-grid">
+    {% for item in publicidade_legal|slice:":2" %}
+      <article class="publicidade-legal-card">
+        <div class="publicidade-legal-card-header">
+          <span class="publicidade-legal-tag">
+            {% if item.assuntos.first %}
+              {{ item.assuntos.first.nome|upper }}
+            {% else %}
+              PUBLICIDADE
+            {% endif %}
+          </span>
+
+          <button
+            type="button"
+            class="publicidade-legal-fav salvar-btn {% if item in salvos %}is-saved{% endif %}"
+            data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
+            data-url="{% url 'noticias:toggle_salvo' item.pk %}"
+            data-login-url="{% url 'login' %}?next={{ request.path }}"
+            aria-pressed="{% if item in salvos %}true{% else %}false{% endif %}"
+          >
+            <span class="bm-icon bm-outline" aria-hidden="true">☆</span>
+            <span class="bm-icon bm-solid" aria-hidden="true">★</span>
+            <span class="sr-only">Salvar esta notícia</span>
+          </button>
+        </div>
+
+        <a href="{{ item.get_absolute_url }}" class="publicidade-legal-link">
+          <div class="publicidade-legal-media">
+            {% if item.imagem %}
+              <img src="{{ item.imagem.url }}" alt="{{ item.titulo }}">
+            {% else %}
+              <div class="publicidade-thumb-placeholder" aria-hidden="true"></div>
+            {% endif %}
+          </div>
+
+          <p class="publicidade-legal-text">
+            {{ item.resumo|default:item.titulo }}
+          </p>
+        </a>
+      </article>
+    {% endfor %}
+  </div>
+
+  {% if publicidade_legal|length > 2 %}
+    <div class="publicidade-legal-more">
+      <button type="button" class="publicidade-legal-more-btn">
+        Ver mais
+      </button>
+    </div>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="section para-voce-section">
+  <div class="container">
+
+    <!-- Título com linhas laterais -->
+    <div class="section-title pv-title">
+      <span class="rule"></span>
+      <span class="label">Para você</span>
+      <span class="rule"></span>
+    </div>
+
+    {% with pv_list=pv|default:para_voce %}
+    {% if pv_list %}
+
+      <!-- Carrossel 2x2 -->
+      <div class="carousel para-voce-carousel">
+        <input type="radio" name="pv" id="pv1" checked>
+        <input type="radio" name="pv" id="pv2">
+        <input type="radio" name="pv" id="pv3">
+
+        <div class="carousel-inner">
+          <div class="carousel-track">
+
+            <!-- Slide 1 -->
+            <div class="carousel-slide">
+              <div class="para-voce-grid">
+                {% for item in pv_list|slice:":2" %}
+                <article class="para-voce-card" data-href="{{ item.get_absolute_url }}">
+                  <a href="{{ item.get_absolute_url }}" class="para-voce-link">
+
+                    {% if item.assuntos.first %}
+                    <!-- HEADER DO CARD: ASSUNTO + ESTRELA -->
+                    <div class="pv-card-header">
+                      <span class="pv-tag-label">
+                        {{ item.assuntos.first.nome|upper }}
+                      </span>
+
+                      <button
+                        class="card-hero-fav bookmark-btn salvar-btn{% if item.is_saved %} is-saved{% endif %}"
+                        aria-label="{% if item.is_saved %}Retirar dos salvos{% else %}Salvar nos favoritos{% endif %}"
+                        aria-pressed="{{ item.is_saved|yesno:'true,false' }}"
+                        data-url="{% url 'noticias:toggle_salvo' item.pk %}"
+                        data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
+                        data-login-url="{% url 'login' %}?next={{ item.get_absolute_url }}">
+                        <span class="bm-icon bm-outline">☆</span>
+                        <span class="bm-icon bm-solid">★</span>
+                      </button>
+                    </div>
+                    {% endif %}
+
+                    <div class="para-voce-thumb">
+                      {% if item.imagem %}
+                        <img src="{{ item.imagem.url }}"
+                             alt="{{ item.alt_imagem|default:item.titulo }}">
+                      {% endif %}
+                    </div>
+
+                    <p class="para-voce-text">
+                      {{ item.titulo }}
+                    </p>
+                  </a>
+                </article>
+                {% endfor %}
+              </div>
+            </div>
+
+            {% if pv_list|length > 2 %}
+            <!-- Slide 2 -->
+            <div class="carousel-slide">
+              <div class="para-voce-grid">
+                {% for item in pv_list|slice:"2:4" %}
+                <article class="para-voce-card" data-href="{{ item.get_absolute_url }}">
+                  <a href="{{ item.get_absolute_url }}" class="para-voce-link">
+
+                    {% if item.assuntos.first %}
+                    <div class="pv-card-header">
+                      <span class="pv-tag-label">
+                        {{ item.assuntos.first.nome|upper }}
+                      </span>
+
+                      <button
+                        class="card-hero-fav bookmark-btn salvar-btn{% if item.is_saved %} is-saved{% endif %}"
+                        aria-label="{% if item.is_saved %}Retirar dos salvos{% else %}Salvar nos favoritos{% endif %}"
+                        aria-pressed="{{ item.is_saved|yesno:'true,false' }}"
+                        data-url="{% url 'noticias:toggle_salvo' item.pk %}"
+                        data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
+                        data-login-url="{% url 'login' %}?next={{ item.get_absolute_url }}">
+                        <span class="bm-icon bm-outline">☆</span>
+                        <span class="bm-icon bm-solid">★</span>
+                      </button>
+                    </div>
+                    {% endif %}
+
+                    <div class="para-voce-thumb">
+                      {% if item.imagem %}
+                        <img src="{{ item.imagem.url }}"
+                             alt="{{ item.alt_imagem|default:item.titulo }}">
+                      {% endif %}
+                    </div>
+
+                    <p class="para-voce-text">
+                      {{ item.titulo }}
+                    </p>
+                  </a>
+                </article>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            {% if pv_list|length > 4 %}
+            <!-- Slide 3 -->
+            <div class="carousel-slide">
+              <div class="para-voce-grid">
+                {% for item in pv_list|slice:"4:6" %}
+                <article class="para-voce-card" data-href="{{ item.get_absolute_url }}">
+                  <a href="{{ item.get_absolute_url }}" class="para-voce-link">
+
+                    {% if item.assuntos.first %}
+                    <div class="pv-card-header">
+                      <span class="pv-tag-label">
+                        {{ item.assuntos.first.nome|upper }}
+                      </span>
+
+                      <button
+                        class="card-hero-fav bookmark-btn salvar-btn{% if item.is_saved %} is-saved{% endif %}"
+                        aria-label="{% if item.is_saved %}Retirar dos salvos{% else %}Salvar nos favoritos{% endif %}"
+                        aria-pressed="{{ item.is_saved|yesno:'true,false' }}"
+                        data-url="{% url 'noticias:toggle_salvo' item.pk %}"
+                        data-auth="{{ user.is_authenticated|yesno:'1,0' }}"
+                        data-login-url="{% url 'login' %}?next={{ item.get_absolute_url }}">
+                        <span class="bm-icon bm-outline">☆</span>
+                        <span class="bm-icon bm-solid">★</span>
+                      </button>
+                    </div>
+                    {% endif %}
+
+                    <div class="para-voce-thumb">
+                      {% if item.imagem %}
+                        <img src="{{ item.imagem.url }}"
+                             alt="{{ item.alt_imagem|default:item.titulo }}">
+                      {% endif %}
+                    </div>
+
+                    <p class="para-voce-text">
+                      {{ item.titulo }}
+                    </p>
+                  </a>
+                </article>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+
+        <!-- Dots -->
+        <div class="dots pv-dots" aria-label="Paginação do carrossel">
+          <label for="pv1" class="dot d1"></label>
+          <label for="pv2" class="dot d2"></label>
+          <label for="pv3" class="dot d3"></label>
+        </div>
+      </div>
+    {% endif %}
+    {% endwith %}
+  </div>
+</section>
+
+<section class="escute-agora-section" aria-label="Escute agora">
+  <div class="escute-agora-header">
+    <span class="escute-agora-rule"></span>
+    <h2 class="escute-agora-title">Escute agora</h2>
+    <span class="escute-agora-rule"></span>
+  </div>
+
+  <!-- Bloco Rádio Jornal (3 cards em linha) -->
+  <div class="escute-bloco escute-bloco--radio">
+    <span class="escute-pill">Rádio Jornal</span>
+
+    <div class="escute-canais-lista escute-canais-lista--scroll">
+      <a href="#" class="escute-card">
+        <div class="escute-card-icone">
+          <div class="escute-wave" aria-hidden="true"></div>
+        </div>
+        <p class="escute-card-label">Recife</p>
+      </a>
+
+      <a href="#" class="escute-card">
+        <div class="escute-card-icone">
+          <div class="escute-wave" aria-hidden="true"></div>
+        </div>
+        <p class="escute-card-label">Interior</p>
+      </a>
+
+      <a href="#" class="escute-card">
+        <div class="escute-card-icone">
+          <div class="escute-wave" aria-hidden="true"></div>
+        </div>
+        <p class="escute-card-label">Interior</p>
+      </a>
+    </div>
+  </div>
+
+  <!-- Dots entre Rádio e TV -->
+  <div class="escute-dots" aria-hidden="true">
+    <span class="escute-dot escute-dot--active"></span>
+    <span class="escute-dot"></span>
+    <span class="escute-dot"></span>
+  </div>
+
+  <!-- Bloco TV Jornal (2 cards lado a lado) -->
+  <div class="escute-bloco escute-bloco--tv">
+    <span class="escute-pill">TV Jornal</span>
+
+    <div class="escute-canais-lista escute-canais-lista--grid">
+      <a href="#" class="escute-card">
+        <div class="escute-card-icone">
+          <div class="escute-wave" aria-hidden="true"></div>
+        </div>
+        <p class="escute-card-label">Recife</p>
+      </a>
+
+      <a href="#" class="escute-card">
+        <div class="escute-card-icone">
+          <div class="escute-wave" aria-hidden="true"></div>
+        </div>
+        <p class="escute-card-label">Interior</p>
+      </a>
+    </div>
+  </div>
+</section>
+
 {% endblock %}
 
 {% block extra_js %}
