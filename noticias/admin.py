@@ -1,5 +1,4 @@
 from django.contrib import admin
-# Importamos os modelos
 from .models import (
     Noticia, 
     Voto, 
@@ -12,46 +11,51 @@ from .models import (
     Video
 )
 
-# 1. Inline das OPÇÕES (Essencial: permite adicionar respostas na tela da Enquete)
+# --- 1. CONFIGURAÇÃO DAS OPÇÕES (RESPOSTAS) ---
 class OpcaoEnqueteInline(admin.TabularInline): 
+    """
+    Permite adicionar opções (Sim, Não, etc.) diretamente
+    na tela de criação da Enquete.
+    """
     model = OpcaoEnquete
-    extra = 2  # Mostra 2 linhas vazias por padrão
+    extra = 2  # Já exibe 2 campos em branco para facilitar
     verbose_name_plural = "Opções da Enquete"
 
 
-# 2. Admin da ENQUETE (Fluxo Principal)
+# --- 2. ADMIN DA ENQUETE (ONDE VOCÊ CRIA A PERGUNTA) ---
 @admin.register(Enquete)
 class EnqueteAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'get_noticia_titulo')
+    list_display = ('id', '__str__', 'get_noticia_titulo')
     search_fields = ('titulo', 'noticia__titulo')
     
-    # É aqui que a mágica acontece: Opções dentro da Enquete
+    # CRUCIAL: Adiciona o formulário de opções dentro da enquete
     inlines = [OpcaoEnqueteInline]
 
-    # Helper para mostrar o título da notícia na listagem de forma segura
+    # Helper para mostrar o título da notícia sem dar erro se estiver vazia
     @admin.display(description='Notícia Vinculada')
     def get_noticia_titulo(self, obj):
-        return obj.noticia.titulo if obj.noticia else "-"
+        if obj.noticia:
+            return obj.noticia.titulo
+        return "-"
 
 
-# 3. Admin da NOTÍCIA
+# --- 3. ADMIN DA NOTÍCIA (SEM ENQUETE INLINE) ---
 @admin.register(Noticia)
 class NoticiaAdmin(admin.ModelAdmin):
     list_display = ("id", "titulo", "criado_em", "tem_enquete")
     search_fields = ("titulo", "conteudo")
     ordering = ("-criado_em",)
     
-    # REMOVI o 'inlines = [EnqueteInline]' propositalmente.
-    # Motivo: Criar enquete por aqui gerava enquetes sem opções de resposta.
-    # Agora o usuário deve ir em "Enquetes > Adicionar" para fazer do jeito certo.
+    # IMPORTANTE: Não colocamos 'inlines = [EnqueteInline]' aqui.
+    # Isso evita o erro de "Inline dentro de Inline" e o erro 500.
 
     @admin.display(boolean=True, description="Tem Enquete?")
     def tem_enquete(self, obj):
-        # Verifica se existe uma enquete vinculada (reverso do OneToOne)
+        # Verifica se a notícia já tem uma enquete associada
         return hasattr(obj, 'enquete')
 
 
-# 4. Admin de VÍDEO (Sua configuração estava ótima, mantive igual)
+# --- 4. ADMIN DE VÍDEO ---
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
     list_display = ('titulo', 'tem_link', 'tem_arquivo', 'ativo', 'criado_em')
@@ -60,29 +64,32 @@ class VideoAdmin(admin.ModelAdmin):
     ordering = ('-criado_em',)
     list_editable = ('ativo',) 
 
-    @admin.display(boolean=True, description="Link")
+    @admin.display(boolean=True, description="Link Externo")
     def tem_link(self, obj):
         return bool(obj.link)
 
-    @admin.display(boolean=True, description="Arquivo")
+    @admin.display(boolean=True, description="Arquivo Local")
     def tem_arquivo(self, obj):
         return bool(obj.arquivo)
 
 
-# 5. Outros Registros
+# --- 5. ADMIN DE ASSUNTO (TAXONOMIA) ---
 @admin.register(Assunto)
 class AssuntoAdmin(admin.ModelAdmin):
     list_display = ("id", "nome", "slug")
     prepopulated_fields = {"slug": ("nome",)}
 
 
+# --- 6. ADMIN DE VOTOS DA ENQUETE (LOGS) ---
 @admin.register(VotoEnquete)
 class VotoEnqueteAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'enquete', 'opcao_selecionada', 'criado_em')
     list_filter = ('enquete',)
-    search_fields = ('usuario__username', 'enquete__titulo', 'enquete__noticia__titulo')
+    search_fields = ('usuario__username', 'enquete__titulo')
 
 
+# --- 7. REGISTROS SIMPLES ---
 admin.site.register(Voto)
 admin.site.register(Salvo)
 admin.site.register(Perfil)
+# admin.site.register(OpcaoEnquete) -> Não registrar separadamente, pois já está no Inline da Enquete

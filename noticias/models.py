@@ -145,6 +145,8 @@ class Video(models.Model):
 
 # --- SISTEMA DE ENQUETES ---
 
+# models.py (Trecho das Enquetes)
+
 class Enquete(models.Model):
     noticia = models.OneToOneField(
         Noticia,
@@ -161,15 +163,16 @@ class Enquete(models.Model):
     )
 
     def __str__(self):
-        # 1. Se tem título (pergunta) preenchido, usa ele
+        # Lógica Blindada:
+        # 1. Se tem título, usa ele.
         if self.titulo:
-            return self.titulo
+            return str(self.titulo)
         
-        # 2. Se não tem pergunta, tenta pegar o título da notícia vinculada
-        if self.noticia:
-            return f"Enquete: {self.noticia.titulo}"
-                
-        # 3. Fallback de segurança (caso não tenha nem título nem notícia)
+        # 2. Se tem ID de notícia, mostra o ID (não tenta buscar o objeto para evitar erro)
+        if self.noticia_id: #type: ignore
+            return f"Enquete da Notícia (ID: {self.noticia_id})" #type: ignore
+            
+        # 3. Se não tem nada, retorna o ID da própria enquete
         return f"Enquete #{self.pk}"
 
     def ja_votou(self, user):
@@ -179,8 +182,6 @@ class Enquete(models.Model):
 
 
 class OpcaoEnquete(models.Model):
-    """Uma opção de escolha para uma enquete."""
-
     enquete = models.ForeignKey(
         Enquete,
         on_delete=models.CASCADE,
@@ -189,14 +190,12 @@ class OpcaoEnquete(models.Model):
     texto = models.CharField("Texto da opção", max_length=100)
 
     def __str__(self):
-        # O ERRO 500 ACONTECIA AQUI ANTES:
-        # Você tentava acessar 'self.enquete.titulo', mas se o título fosse None, quebrava.
-        # Agora usamos 'str(self.enquete)', que usa a lógica inteligente criada acima.
-        return f"{self.enquete} -> {self.texto}"
+        # Lógica Blindada:
+        return f"{self.texto}"  # Simplificado para evitar erro ao acessar a enquete pai
 
     @property
     def total_votos(self):
-        return self.votoenquete_set.count()
+        return self.votoenquete_set.count() #type: ignore
 
 
 class VotoEnquete(models.Model):
